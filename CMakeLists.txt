@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(vulkanlearn VERSION 0.0.1)
+project(Sego)
 set(SRC main.cpp)
 
 #增加-std=c++17
@@ -11,9 +11,20 @@ set(output_bin ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${output_bin})
 
 #头文件
+#SegoHead
+include_directories(${PROJECT_SOURCE_DIR}/SegoSystem)
+#
 include_directories(${PROJECT_SOURCE_DIR}/vendor/glfw/include)
 include_directories(${PROJECT_SOURCE_DIR}/vendor/glm)
-include_directories(${PROJECT_SOURCE_DIR}/vendor/imgui-1.89.5)
+include_directories(${PROJECT_SOURCE_DIR}/vendor/spdlog/include)
+include_directories(${PROJECT_SOURCE_DIR}/SegoUI/imgui)
+
+
+#add subdirectory
+add_subdirectory(vendor/glfw)
+add_subdirectory(vendor/imgui)
+
+#add library
 
 #Vulkan
 include_directories(D:/Vulkan1.3.246.1/Include)
@@ -24,10 +35,23 @@ link_directories(${PROJECT_SOURCE_DIR}/vendor/glfw/build/src)
 #Vulkan lib
 link_directories(D:/Vulkan1.3.246.1/Lib)
 # glfw
-link_libraries(glfw3)
 link_libraries(vulkan-1)
 
 #源文件src
-aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/src SRC_LIST)
-add_executable(app  ${SRC_LIST})
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/Resource/Editor SRC_LIST)
+# 添加SegoUI文件夹下的源文件
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/SegoUI/imgui SEGOUI_SRC_LIST)
+# 添加SegoSystem文件夹下的源文件
+
+file(GLOB SOURCES "SegoSystem/Log/*.cpp")
+#APPEND LIST
+list(APPEND SRC_LIST ${SEGOUI_SRC_LIST})
+list(APPEND SRC_LIST ${SOURCES})
+#add exe
+add_executable(editor  ${SRC_LIST})
+
+#add link
+target_link_libraries(editor PRIVATE imgui glfw3)
+
+
 
