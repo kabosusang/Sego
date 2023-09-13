@@ -44,9 +44,12 @@ aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/SegoUI/imgui SEGOUI_SRC_LIST)
 # 添加SegoSystem文件夹下的源文件
 
 file(GLOB SOURCES "SegoSystem/Log/*.cpp")
+file(GLOB THREAD "SegoSystem/ThreadPool/*.cpp")
+
 #APPEND LIST
 list(APPEND SRC_LIST ${SEGOUI_SRC_LIST})
 list(APPEND SRC_LIST ${SOURCES})
+list(APPEND SRC_LIST ${THREAD})
 #add exe
 add_executable(editor  ${SRC_LIST})
 
