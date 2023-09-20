@@ -1,7 +1,7 @@
 #ifndef EVENT_H
 #define EVENT_H
 #include <string>
-
+#include <sstream>
 
 #define BIT(x) (1<<x)
 
@@ -9,10 +9,10 @@
 enum class EventType
 {
     None = 0,
-    WindowClose,WindowResize,WindowFocus,WindowsLostFocus,WindowMoved,
+    WindowClose,WindowResize,WindowFocus,WindowsLostFocus,WindowMoved,WindowTyped,
     AppTick,
     KeyPressed, KeyReleased, KeyTyped,
-    MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled
+    MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled,MouseType
 };
 enum EventCategory //事件分类枚举
 {

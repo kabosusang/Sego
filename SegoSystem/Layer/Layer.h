@@ -5,9 +5,9 @@ class Layer
 public:
     virtual void OnAttach() = 0;
     virtual void OnDeatch() = 0;
-    virtual void OnUpdate() {}
-    virtual void OnRenderer() {}
-    
+    virtual void OnUpdate() = 0;
+    virtual void OnRenderer() =0;
+        
     Layer(const std::string& name = "Layer");
     virtual ~Layer();
 

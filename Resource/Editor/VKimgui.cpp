@@ -1,6 +1,7 @@
 #include "VKimgui.h"
-
-// Data
+#include "Renderer/Vulkan/VulkanInit.h"
+#include "core.h"
+// Data 
 VkAllocationCallbacks*   g_Allocator = nullptr;
 VkInstance               g_Instance = VK_NULL_HANDLE;
 VkPhysicalDevice         g_PhysicalDevice = VK_NULL_HANDLE;
@@ -47,12 +48,31 @@ bool IsExtensionAvailable(const ImVector<VkExtensionProperties>& properties, con
     return false;
 }
 
+bool isDeviceSuitable(VkPhysicalDevice device)
+{
+   
+    VkPhysicalDeviceProperties properties;//显卡详细信息
+    vkGetPhysicalDeviceProperties(device, &properties);
+
+    VkPhysicalDeviceFeatures  deviceFeatures;//查询各种特性
+    vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
+
+    std::cout <<"Your GPU is " << properties.deviceName << std::endl;
+
+    if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && deviceFeatures.samplerAnisotropy)
+            return device;
+
+}
+
 VkPhysicalDevice SetupVulkan_SelectPhysicalDevice()
 {
     uint32_t gpu_count;
     VkResult err = vkEnumeratePhysicalDevices(g_Instance, &gpu_count, nullptr);
+    
     check_vk_result(err);
-    IM_ASSERT(gpu_count > 0);
+    
+    SG_CORE_ASSERT(gpu_count,"gpu_Count"); //
 
     ImVector<VkPhysicalDevice> gpus;
     gpus.resize(gpu_count);
@@ -62,12 +82,13 @@ VkPhysicalDevice SetupVulkan_SelectPhysicalDevice()
     // If a number >1 of GPUs got reported, find discrete GPU if present, or use first one available. This covers
     // most common cases (multi-gpu/integrated+dedicated graphics). Handling more complicated setups (multiple
     // dedicated GPUs) is out of scope of this sample.
+    
     for (VkPhysicalDevice& device : gpus)
     {
-        VkPhysicalDeviceProperties properties;
-        vkGetPhysicalDeviceProperties(device, &properties);
-        if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+        if(isDeviceSuitable(device))//isDeviceSuitable(device))
+        {
             return device;
+        }
     }
 
     // Use first GPU (Integrated) is a Discrete one is not available.
@@ -140,6 +161,7 @@ void SetupVulkan(ImVector<const char*> instance_extensions)
         uint32_t count;
         vkGetPhysicalDeviceQueueFamilyProperties(g_PhysicalDevice, &count, nullptr);
         VkQueueFamilyProperties* queues = (VkQueueFamilyProperties*)malloc(sizeof(VkQueueFamilyProperties) * count);
+         std::cout <<"Has queue " << count<<std::endl;
         vkGetPhysicalDeviceQueueFamilyProperties(g_PhysicalDevice, &count, queues);
         for (uint32_t i = 0; i < count; i++)
             if (queues[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
@@ -177,6 +199,15 @@ void SetupVulkan(ImVector<const char*> instance_extensions)
         create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
         create_info.queueCreateInfoCount = sizeof(queue_info) / sizeof(queue_info[0]);
         create_info.pQueueCreateInfos = queue_info;
+
+        //开启各项异性过滤
+        //指定使用的设备功能
+        VkPhysicalDeviceFeatures deviceFeatures{};
+        deviceFeatures.samplerAnisotropy = VK_TRUE;//各项异性过滤
+        create_info.pEnabledFeatures = &deviceFeatures;
+
+
+
         create_info.enabledExtensionCount = (uint32_t)device_extensions.Size;
         create_info.ppEnabledExtensionNames = device_extensions.Data;
         err = vkCreateDevice(g_PhysicalDevice, &create_info, g_Allocator, &g_Device);
@@ -365,6 +396,9 @@ void Cleanup_imgui()
 }
 void Init_Imgui(GLFWwindow* window)
 {
+    
+
+    
     ImVector<const char*> extensions;
     uint32_t extensions_count = 0;
     const char** glfw_extensions = glfwGetRequiredInstanceExtensions(&extensions_count);
@@ -372,6 +406,7 @@ void Init_Imgui(GLFWwindow* window)
         extensions.push_back(glfw_extensions[i]);
     SetupVulkan(extensions);
 
+    
     // Create Window Surface
     VkSurfaceKHR surface;
     VkResult err = glfwCreateWindowSurface(g_Instance, window, g_Allocator, &surface);
@@ -380,8 +415,12 @@ void Init_Imgui(GLFWwindow* window)
     // Create Framebuffers
     int w, h;
     glfwGetFramebufferSize(window, &w, &h);
+
     ImGui_ImplVulkanH_Window* wd = &g_MainWindowData;
-    SetupVulkanWindow(wd, surface, w, h);
+    SetupVulkanWindow(wd,surface, w, h);
+   
+    
+
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -474,10 +513,18 @@ void Init_Imgui(GLFWwindow* window)
     bool show_demo_window = true;
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    
+   
 
+    //Vulkan Init
+   
     while (!glfwWindowShouldClose(window))
     {
-       
+        //app.drawFrame();
+        //Vulkan
+        
+
+
         // Poll and handle events (inputs, window resize, etc.)
         // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
         // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.

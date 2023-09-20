@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Event.h>
-#include <sstream>
 
 class KeyEvent :public Event
 {
@@ -16,7 +15,6 @@ int Key_Code;
 
 };
 
-
 class KeyDownEvent : public KeyEvent
 {
 public:
@@ -26,6 +24,7 @@ std::string ToString() const override
     ss << "KeyDownEvent: " << Key_Code << std::endl;
     return ss.str();
 }
+KeyDownEvent(int KeyCode , int keyCount) : KeyEvent(KeyCode),m_Count(keyCount) {}
 
 private:
 int m_Count;
@@ -43,9 +42,9 @@ std::string ToString() const override
     return ss.str();
 }
 
-private:
-int m_Count;
+KeyRealseEvent(int KeyCode) : KeyEvent(KeyCode) {}
 
+private:
 
 };
 

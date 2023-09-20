@@ -1,18 +1,17 @@
-#include "core.h"
 
+#pragma once
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
 
 namespace Sego{
 
-    class Sego_API Log
+    class Log
     {
     public:
         static void Log_Init();
 
         inline static std::shared_ptr<spdlog::logger>& GetCoreLogger() { return s_CoreLogger;}
         inline static std::shared_ptr<spdlog::logger>& GetClientLogger() { return s_ClientLogger;}
-
 
     private:
         static std::shared_ptr<spdlog::logger> s_CoreLogger;
@@ -37,4 +36,5 @@ namespace Sego{
 #define SG_INFO(...)		::Sego::Log::GetClientLogger()->info(__VA_ARGS__)
 #define SG_TRACE(...)		::Sego::Log::GetClientLogger()->trace(__VA_ARGS__)
 #define SG_FATAL(...)		::Sego::Log::GetClientLogger()->fatal(__VA_ARGS__)
+
 

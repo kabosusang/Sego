@@ -6,6 +6,7 @@
 #include <memory>
 #include <assert.h>
 #include <string>
+#include <Log/Log.h>
 
 #ifdef WINDOWS
 #define Sego_API
@@ -16,12 +17,8 @@
 
 //ASSERT
 
-
-#define SG_ASSERT(x,...) {if(!(x)) { SG_ERROR("Assertion Failed: {0}",__VA_ARGS__);assert(x); }}
-#define SG_CORE_ASSERT(x, ...) {if(!(x)) {SG_CORE_ERROR("Assertion Failed: {0}",__VA_ARGS__); assert(x);}}
-
-
-
+#define SG_ASSERT(x,...) {if(!(x)) { SG_ERROR("Assertion Failed: {0}",__VA_ARGS__);}}
+#define SG_CORE_ASSERT(x, ...) {if(!(x)) {SG_CORE_ERROR("Assertion Failed: {0}",__VA_ARGS__);}}
 
 
 #endif

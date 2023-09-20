@@ -2,12 +2,13 @@
 
 #include "VKimgui.h"
 
-#include <Log/Log.h>
+#include "Window/Window.h"
+
+#include "Log/Log.h"
 
 void glfwCallKey(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     SG_INFO("Keycode = :",key);
-
 }
 
 
@@ -27,23 +28,19 @@ int main(int, char**)
         return 1;
     }
 
+    std::unique_ptr<SegoWindow> Sego_Window = std::make_unique<SegoWindow>(window,1280,720);
+
     //Log
     Sego::Log::Log_Init(); //初始化日志
-    SG_CORE_INFO("Hello World {}","Log Start");
+    SG_CORE_INFO("Hello World {0}",Sego_Window->GetHeight());
+
 
     //Imgui loop
     glfwSetKeyCallback(window,glfwCallKey);
-    Init_Imgui(window);
+    Init_Imgui(Sego_Window->GetWindow());
 
     
     // Main loop
-    while (!glfwWindowShouldClose(window))
-    {
-        
-
-
-        /* code */
-    }
     
     
     // Cleanup
@@ -51,9 +48,10 @@ int main(int, char**)
     check_vk_result(err);
    
     Cleanup_imgui();
+    Sego_Window->DestorySegowindow();
 
-    glfwDestroyWindow(window);
-    glfwTerminate();
+    //glfwDestroyWindow(window);
+    //glfwTerminate();
 
     return 0;
 }
