@@ -74,5 +74,18 @@ extern ImGui_ImplVulkanH_Window g_MainWindowData;
 extern int                      g_MinImageCount ;
 extern bool                     g_SwapChainRebuild ;
 
-
 //imgui 
+
+
+class ImguiLayer
+{
+private:
+ImGui_ImplVulkan_InitInfo init_info;
+public:
+void Init_Imgui(GLFWwindow* window);
+
+ImguiLayer& operator=(const ImguiLayer&) = delete;
+
+ImguiLayer(const ImGui_ImplVulkan_InitInfo& IGVuIn) { init_info = IGVuIn;}
+
+};

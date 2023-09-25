@@ -39,7 +39,7 @@ link_directories(${PROJECT_SOURCE_DIR}/vendor/glfw/build/src)
 link_directories(D:/Vulkan1.3.246.1/Lib)
 # glfw
 link_libraries(vulkan-1)
-
+link_libraries(glfw3)
 #源文件src
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/Resource/Editor SRC_LIST)
 # 添加SegoUI文件夹下的源文件
@@ -49,10 +49,16 @@ aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/SegoUI/imgui SEGOUI_SRC_LIST)
 file(GLOB SOURCES "SegoSystem/Log/*.cpp")
 file(GLOB THREAD "SegoSystem/ThreadPool/*.cpp")
 
+#添加vulkan渲染源文件
+file(GLOB VULKAN "SegoSystem/Renderer/Vulkan/*.cpp")
+
+
 #APPEND LIST
 list(APPEND SRC_LIST ${SEGOUI_SRC_LIST})
 list(APPEND SRC_LIST ${SOURCES})
 list(APPEND SRC_LIST ${THREAD})
+list(APPEND SRC_LIST ${VULKAN})
+
 #add exe
 add_executable(editor  ${SRC_LIST})
 

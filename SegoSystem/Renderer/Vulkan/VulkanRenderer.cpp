@@ -1,163 +1,14 @@
-#pragma once
-#include <vector>
+#include "VulkanRenderer.h"
 
-//-----------------------------------------------//
-const int MAX_FRAMES_IN_FLIGHT = 2;//定义多少帧同时处理
-
-const uint32_t WIDTH = 800;
-const uint32_t HEIGHT = 600;
-//模型路径
-#define TINYOBJLOADER_IMPLEMENTATION
-#include <tiny_obj_loader.h>
-const std::string MODEL_PATH = "models/viking_room.obj";
-const std::string TEXTURE_PATH = "models/viking_room.png";
-
-
-//Option
-#ifdef NDEBUG
-    const bool enableValidationLayers = false;
-#else
-    const bool enableValidationLayers = true;
-#endif
-
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-
-#include <unordered_map>
-#include <iostream>
-#include <fstream>
-#include <stdexcept>
-#include <algorithm>
-#include <cstring>
-#include <cstdlib>
-#include <cstdint>
-#include <limits>
-#include <optional>
-#include <set>
-#include <map>
-//updateUniformBuffer函数包含头文件
-#include <chrono>
-
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
-//stb图像加载库
+//texture
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-float calculateFPS()
-{
-    static std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
-    static int frameCount = 0;
 
-    if (frameCount == 0)
-    {
-        startTime = std::chrono::high_resolution_clock::now();
-    }
+//模型路径
 
-    frameCount++;
-
-    auto endTime = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count();
-
-    if (duration >= 1)
-    {
-        float fps = static_cast<float>(frameCount) / duration;
-        frameCount = 0;
-        startTime = endTime;
-        return fps;
-    }
-
-    return -1.0f; // 返回-1表示FPS还未计算完成
-}
-//顶点数据
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/hash.hpp>
-#include <array>
-struct Vertex {
-    glm::vec3 pos;
-    glm::vec3 color;
-    glm::vec2 texCoord;
-    //绑定说明
-    static VkVertexInputBindingDescription getBindingDescription() {
-        VkVertexInputBindingDescription bindingDescription{};
-        bindingDescription.binding = 0;
-        bindingDescription.stride = sizeof(Vertex);
-        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-        return bindingDescription;
-    }
-    //属性说明
-    static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
-        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
-
-        attributeDescriptions[0].binding = 0;
-        attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[0].offset = offsetof(Vertex, pos);
-
-        attributeDescriptions[1].binding = 0;
-        attributeDescriptions[1].location = 1;
-        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[1].offset = offsetof(Vertex, color);
-
-        attributeDescriptions[2].binding = 0;
-        attributeDescriptions[2].location = 2;
-        attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-        attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
-        
-        return attributeDescriptions;
-    }
-
-bool operator==(const Vertex& other) const {
-        return pos == other.pos && color == other.color && texCoord == other.texCoord;
-    }
-};
-namespace std {
-    template<> struct hash<Vertex> {
-        size_t operator()(Vertex const& vertex) const {
-            return ((hash<glm::vec3>()(vertex.pos) ^ (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^ (hash<glm::vec2>()(vertex.texCoord) << 1);
-        }
-    };
-}
-
-
-/*
-const std::vector<Vertex> vertices = {
-    {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-    {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-    {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-    {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
-
-    {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-    {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-    {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-    {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
-};
-
-const std::vector<uint16_t> indices = {
-    0, 1, 2, 2, 3, 0,
-    4, 5, 6, 6, 7, 4
-};*/
-
-//定义UBO
-struct UniformBufferObject{
-    alignas(16) glm::mat4 model;
-    alignas(16) glm::mat4 view;
-    alignas(16) glm::mat4 proj;
-};
-
-
-const std::vector<const char*> validationLayers = {
-    "VK_LAYER_KHRONOS_validation"//标准诊断层
-};
-
-const std::vector<const char*> deviceExtensions = {
-    VK_KHR_SWAPCHAIN_EXTENSION_NAME //交换链
-};
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <tiny_obj_loader.h>
 
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
@@ -168,153 +19,51 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMes
     }
 }
 
-void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
-    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-    if (func != nullptr) {
-        func(instance, debugMessenger, pAllocator);
-    }
-}
-
-//队列索引
-struct QueueFamilyIndices {
-    std::optional<uint32_t> graphicsFamily;
-    std::optional<uint32_t> presentFamily;
-
-    bool isComplete(){
-        return graphicsFamily.has_value() && presentFamily.has_value();
-    }
-};
-//交换链格式
-struct SwapChainSupportDetails {
-    VkSurfaceCapabilitiesKHR capabilities;
-    std::vector<VkSurfaceFormatKHR> formats;
-    std::vector<VkPresentModeKHR> presentModes;
-};
-
-//加载着色器代码
-static std::vector<char>readFile(const std::string& filename) {
-    std::ifstream file(filename, std::ios::ate | std::ios::binary);
+//交换imgui结构体
+void HelloTriangleApplication::SwitchVulkanInfo(ImGui_ImplVulkan_InitInfo& src)
+{
+    src.Instance = instance; //实例
+    src.PhysicalDevice = physicalDevice;
+    src.Device = device;
     
-    if (!file.is_open()) {
-        throw std::runtime_error("failed to open file!");
-    }
 
-    size_t fileSize = (size_t) file.tellg();//tellg() 用于在输入流中获取位置
-    std::vector<char> buffer(fileSize);
-    //回到文件开头 并读取所有字节
-    file.seekg(0);//seekg()用于设置在输入流中的位置
-    file.read(buffer.data(), fileSize);
 
-    file.close();
-    return buffer;
+
+
+
+
 }
 
 
-class HelloTriangleApplication 
+
+void HelloTriangleApplication::run()
 {
-public:
-    bool InputWindow(GLFWwindow* InputW){  if(!window){return false;} window = InputW;return true; }
-    bool InputInstance(VkInstance& ins) { if(!ins){return false;} instance = ins;return true;}
-    bool InputInSurface(VkSurfaceKHR& Sur) { if(!Sur){return false;} surface = Sur;return true;}
-    bool InputphysicalDevice(VkPhysicalDevice& phDev){if(!phDev){return false;} physicalDevice = phDev; return true;}
-   
-    GLFWwindow* GetWindow(){ return window ;}
-    VkInstance& GetInstance() { return instance; }
-    VkSurfaceKHR& GetSurface() {return  surface;}
-    VkPhysicalDevice& GetphysicalDevice(){return physicalDevice;}
-    VkSwapchainKHR& GetSwapchain(){return swapChain;}
-
-
-private:
-    GLFWwindow* window;
-
-    VkInstance instance;
-    VkDebugUtilsMessengerEXT debugMessenger;
-
-    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-
-    VkDevice device; //逻辑设备
-    VkQueue graphicsqueue;//
-    VkQueue presentQueue;//呈现队列
-
-    VkSurfaceKHR surface; //窗口表面
-
-    VkSwapchainKHR swapChain; //交换链
-    std::vector<VkImage> swapChainImages; //
-    VkFormat swapChainImageFormat;
-    VkExtent2D swapChainExtent;
-
-    std::vector<VkImageView> swapChainImageViews;
-
-    VkRenderPass renderPass;
-    //VkPipelineLayout pipelineLayout;//管道布局layout
-    VkPipeline graphicsPipeline;//图像管道对象
-
-    std::vector<VkFramebuffer> swapChainFramebuffers;
-
-    VkCommandPool commandPool;
-    std::vector<VkCommandBuffer> commandBuffers;//命令缓冲
-
-    //信号量和fence
-    std::vector<VkSemaphore> imageAvailableSemaphores;
-    std::vector<VkSemaphore> renderFinishedSemaphores;
-    std::vector<VkFence> inFlightFences;
-    uint32_t currentFrame = 0;//帧索引
-    bool framebufferResized = false;
-    //顶点缓冲区
-    std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
-    VkBuffer vertexBuffer;
-    VkDeviceMemory vertexBufferMemory;
-    //索引缓冲区
-    VkBuffer indexBuffer;
-    VkDeviceMemory indexBufferMemory;
-    //描述绑定符
-    VkDescriptorSetLayout descriptorSetLayout;
-    VkPipelineLayout pipelineLayout;
-    //均匀缓冲区
-    std::vector<VkBuffer> uniformBuffers;
-    std::vector<VkDeviceMemory> uniformBuffersMemory;
-    std::vector<void*> uniformBuffersMapped;
-    //描述符池
-    VkDescriptorPool descriptorPool;
-    //描述符集
-    std::vector<VkDescriptorSet> descriptorSets;
-    //Texture
-    uint32_t mipLevels;//mipmaplevel
-    VkImage textureImage;
-    VkDeviceMemory textureImageMemory;
-    //纹理图像视图
-    VkImageView textureImageView;
-    VkSampler textureSampler;//采样器
-    //深度图像和视图
-    VkImage depthImage;
-    VkDeviceMemory depthImageMemory;
-    VkImageView depthImageView;
-
-public: 
-void run()
-{
-    drawFrame();
-    vkDeviceWaitIdle(device);
+    //initWindow();
+    initVulkan();
+    mainloop();
     cleanup();
 }
-private:
-//窗口大小回调函数
-static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
-{
-auto app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
 
-app->framebufferResized = true;
+void HelloTriangleApplication::initWindow()
+{
+     glfwInit();
+    
+    glfwWindowHint(GLFW_CLIENT_API,GLFW_NO_API);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    window = glfwCreateWindow(WIDTH,HEIGHT,"Vulkan",nullptr,nullptr);
+    glfwSetWindowUserPointer(window,this);
+    glfwSetFramebufferSizeCallback(window,framebufferResizeCallback);
 }
-public:
-void initVulkan(){
-    //cretaeInstance();
-    //setupDebugMessenger();
-    //createSurface();
-    //pickPhysicalDevice();
-    //createLogicalDevice();
-    //createSwapChain();
+
+
+void HelloTriangleApplication::initVulkan()
+{
+    cretaeInstance();
+    setupDebugMessenger();
+    createSurface();
+    pickPhysicalDevice();
+    createLogicalDevice();
+    createSwapChain();
     createImageViews();
     createRenderPass();
     createDescriptorSetLayout();
@@ -334,10 +83,20 @@ void initVulkan(){
     createCommandBuffer();  
     createSyncObjects();
 }
-private:
 
-//重建交换链
-void recreateSwapChain()
+//程序主循环
+void HelloTriangleApplication::mainloop()
+{
+    while (!glfwWindowShouldClose(window)){
+        glfwPollEvents();
+        
+        drawFrame();
+    }
+    vkDeviceWaitIdle(device);
+
+}
+//重建
+void HelloTriangleApplication::recreateSwapChain()
 {
 int width = 0,height = 0;
 glfwGetFramebufferSize(window,&width,&height);
@@ -357,7 +116,8 @@ createFramebuffers();
 
 }
 //清理旧交换链版本
-void cleanSwapChain(){
+void HelloTriangleApplication::cleanSwapChain()
+{
 //清除depth
 vkDestroyImageView(device, depthImageView, nullptr);
 vkDestroyImage(device, depthImage, nullptr);
@@ -376,8 +136,9 @@ for(size_t i = 0; i <swapChainImageViews.size();i++)
  vkDestroySwapchainKHR(device, swapChain, nullptr);
 
 }
-
-void cleanup(){
+//清理Vulkan
+void HelloTriangleApplication::cleanup()
+{
     //清理交换链 
     cleanSwapChain();
     //清理texture
@@ -426,10 +187,10 @@ void cleanup(){
 
     glfwTerminate();
 }
-//渲染主循环
-public:
-void drawFrame()
+
+void HelloTriangleApplication::drawFrame()
 {
+    {
 vkWaitForFences(device,1,&inFlightFences[currentFrame],VK_TRUE,UINT64_MAX);
 
 uint32_t imageIndex;
@@ -506,8 +267,11 @@ if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR
 currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
 }
+}
+
 //更新统一数据
-void updateUniformBuffer(uint32_t currentImage) {
+void HelloTriangleApplication::updateUniformBuffer(uint32_t currentImage)
+{
 static auto startTime = std::chrono::high_resolution_clock::now();
 
 auto currentTime = std::chrono::high_resolution_clock::now();
@@ -523,7 +287,8 @@ memcpy(uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
 }
 
 //寻找队列
-QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
+QueueFamilyIndices HelloTriangleApplication::findQueueFamilies(VkPhysicalDevice device)
+{
     QueueFamilyIndices indices;
     //检索队列 期望并且使用的队列
     uint32_t queueFamilyCount = 0;
@@ -556,16 +321,16 @@ QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
     return indices;
 }
 
-
-void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
+void HelloTriangleApplication::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
+{
     createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
     createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
     createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
     createInfo.pfnUserCallback = debugCallback;
 }
-
-void setupDebugMessenger() {
+//设置DebugMessenger
+void HelloTriangleApplication::setupDebugMessenger() {
     if (!enableValidationLayers) return;
 
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
@@ -575,8 +340,9 @@ void setupDebugMessenger() {
         throw std::runtime_error("failed to set up debug messenger!");
     }
 }
-
-void cretaeInstance(){
+//创建实例
+void HelloTriangleApplication::cretaeInstance()
+{
     if(enableValidationLayers && !checkValidationLayerSupport()){
         throw std::runtime_error("validation layers requested, but not available!");
     }
@@ -617,7 +383,7 @@ void cretaeInstance(){
     }
 }
 //检查列表是否存在Layer
-bool checkValidationLayerSupport() {
+bool HelloTriangleApplication::checkValidationLayerSupport() {
     uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
@@ -636,12 +402,11 @@ bool checkValidationLayerSupport() {
     if (!layerFound) {
         return false;
     }
+    return true;
 }
-
-return true;
 }
 //检查是否支持交换链
-bool checkDeviceExtensionSupport(VkPhysicalDevice device) {
+bool HelloTriangleApplication::checkDeviceExtensionSupport(VkPhysicalDevice device) {
     uint32_t extensionCount;
     vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
 
@@ -655,10 +420,9 @@ bool checkDeviceExtensionSupport(VkPhysicalDevice device) {
     }
 
     return requiredExtensions.empty();
-    
 }
 //返回基于是否启用验证层
-std::vector<const char*> getRequiredExtensions() {
+std::vector<const char*> HelloTriangleApplication::getRequiredExtensions() {
     uint32_t glfwExtensionCount = 0;
     const char** glfwExtensions;
     glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -671,19 +435,9 @@ std::vector<const char*> getRequiredExtensions() {
 
     return extensions;
 }
-//回调函数
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-    void* pUserData) {
 
-    std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
-
-    return VK_FALSE;
-}
 //选择物理设备
-void pickPhysicalDevice()
+void HelloTriangleApplication::pickPhysicalDevice()
 {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -706,11 +460,9 @@ void pickPhysicalDevice()
     if(physicalDevice == VK_NULL_HANDLE){
         throw std::runtime_error("failed to find a suitable GPU!");
     }
-    
-
 }
 //检查物理设备是否适合我们想要执行的操作
-bool isDeviceSuitable(VkPhysicalDevice device)
+bool HelloTriangleApplication::isDeviceSuitable(VkPhysicalDevice device)
 {
     VkPhysicalDeviceProperties deviceProperties;  //显卡详细信息
     VkPhysicalDeviceFeatures  deviceFeatures;//查询各种特性
@@ -735,7 +487,7 @@ bool isDeviceSuitable(VkPhysicalDevice device)
     && extensionsSupported && swapChainAdequate && deviceFeatures.samplerAnisotropy; 
 }
 //创建逻辑设备
-void createLogicalDevice()
+void HelloTriangleApplication::createLogicalDevice()
 {
     
     QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
@@ -784,16 +536,15 @@ vkGetDeviceQueue(device,indices.graphicsFamily.value(),0,&graphicsqueue);
 vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
 }
 //创建表面
-void createSurface()
+void HelloTriangleApplication::createSurface()
 {
 
 if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
     throw std::runtime_error("failed to create window surface!");
 }
 }
-
 //创建交换链
-void createSwapChain()
+void HelloTriangleApplication::createSwapChain()
 {
     SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);//需要检查的三种属性1.表面格式（像素格式、色彩空间）
     //2.可用的演示模式
@@ -857,7 +608,8 @@ if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS
     swapChainExtent = extent;
 }
 
-SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device) 
+//交换链详情
+SwapChainSupportDetails HelloTriangleApplication::querySwapChainSupport(VkPhysicalDevice device) 
 {
     SwapChainSupportDetails details;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
@@ -880,8 +632,9 @@ SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device)
     }   
     return details;
 }
+
 //选出最佳SurfaceFormat
-VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) 
+VkSurfaceFormatKHR HelloTriangleApplication::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) 
 {
     for (const auto& availableFormat : availableFormats) {
     if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
@@ -892,8 +645,9 @@ VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>
     return availableFormats[0];//如果不满足上面的条件则默认选择第一个
 
 }
+
 //选出最佳presentMode
-VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) {
+VkPresentModeKHR HelloTriangleApplication::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) {
     for (const auto& availablePresentMode : availablePresentModes) {
         if (availablePresentMode == VK_PRESENT_MODE_FIFO_KHR) {
             return availablePresentMode;
@@ -903,8 +657,9 @@ VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& avai
     //VK_PRESENT_MODE_FIFO_KHR为垂直同步
     return VK_PRESENT_MODE_FIFO_KHR;//改参数任何设备都可以使用虽然不如上面的好
 }
+
 //选出最佳交换范围
-VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
+VkExtent2D HelloTriangleApplication::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
     if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
         return capabilities.currentExtent;
     } else {
@@ -922,8 +677,9 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
         return actualExtent;
     }
 }
+
 //图像视图
-void createImageViews()
+void HelloTriangleApplication::createImageViews()
 {
 swapChainImageViews.resize(swapChainImages.size());
 
@@ -932,8 +688,9 @@ for (size_t i = 0; i < swapChainImages.size(); i++)
     swapChainImageViews[i] = createImageView(swapChainImages[i], swapChainImageFormat,VK_IMAGE_ASPECT_COLOR_BIT);
 }
 }
+
 //渲染通道
-void createRenderPass()
+void HelloTriangleApplication::createRenderPass()
 {
 //颜色附件
 VkAttachmentDescription colorAttachment{};
@@ -1002,11 +759,10 @@ renderPassInfo.pDependencies = &dependency;
 if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
     throw std::runtime_error("failed to create render pass!");
 }
-
-
 }
+
 //提供描述符绑定的详细信息
-void createDescriptorSetLayout()
+void HelloTriangleApplication::createDescriptorSetLayout()
 {
 VkDescriptorSetLayoutBinding uboLayoutBinding{};
 uboLayoutBinding.binding = 0;
@@ -1035,14 +791,13 @@ if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayo
     throw std::runtime_error("failed to create descriptor set layout!");
 }
 
-
-
 }
 //创建pipeline
-void createGraphicsPipeline()
+void HelloTriangleApplication::createGraphicsPipeline()
 {
-    auto vertShaderCode = readFile("shaders/vert.spv");
-    auto fragShaderCode = readFile("shaders/frag.spv");
+    auto vertShaderCode = readFile("../SegoSystem/Renderer/shaders/vert.spv");
+    
+    auto fragShaderCode = readFile("../SegoSystem/Renderer/shaders/frag.spv");
     std::cout << "vertShaderCode has Filesize : " <<vertShaderCode.size() << std::endl;
     std::cout << "fragShaderCode has Filesize : " <<fragShaderCode.size() << std::endl;
     //创建着色器模块
@@ -1221,7 +976,7 @@ if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
 }
 
 //创建着色器模块
-VkShaderModule createShaderModule(const std::vector<char> code)
+VkShaderModule HelloTriangleApplication::createShaderModule(const std::vector<char> code)
 {
     VkShaderModuleCreateInfo createInfo{};
 
@@ -1236,7 +991,7 @@ if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCC
     return shaderModule;
 }
 //创建帧缓冲
-void createFramebuffers()
+void HelloTriangleApplication::createFramebuffers()
 {
     swapChainFramebuffers.resize(swapChainImageViews.size());
     //遍历图像创建帧缓冲区
@@ -1261,7 +1016,7 @@ void createFramebuffers()
         }
 }
 //imageview抽象函数
-VkImageView createImageView(VkImage image, VkFormat format,VkImageAspectFlags aspectFlags) {
+VkImageView HelloTriangleApplication::createImageView(VkImage image, VkFormat format,VkImageAspectFlags aspectFlags) {
     VkImageViewCreateInfo viewInfo{};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     viewInfo.image = image;
@@ -1281,12 +1036,12 @@ VkImageView createImageView(VkImage image, VkFormat format,VkImageAspectFlags as
     return imageView;
 }
 //纹理视图
-void createTextureImageView()
+void HelloTriangleApplication::createTextureImageView()
 {
 textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB,VK_IMAGE_ASPECT_COLOR_BIT);
 }
 //采样器
-void createTextureSampler()
+void HelloTriangleApplication::createTextureSampler()
 {
 VkSamplerCreateInfo samplerInfo{};
 samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -1319,12 +1074,9 @@ samplerInfo.maxLod = 0.0f;
  if (vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
         throw std::runtime_error("failed to create texture sampler!");
     }
-
-
-
 }
 //加载图像
-void createTextureImage()
+void HelloTriangleApplication::createTextureImage()
 {
 int texWidth,texHeight,texChannels;
 stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(),&texWidth,&texHeight,&texChannels,STBI_rgb_alpha);
@@ -1361,10 +1113,11 @@ transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRA
  
 vkDestroyBuffer(device, stagingBuffer, nullptr);
 vkFreeMemory(device, stagingBufferMemory, nullptr);
-
 }
-//助手功能
-void copyBufferToImage(VkBuffer buffer, VkImage image,uint32_t width,uint32_t height)
+
+//将一个 Vulkan 缓冲区（buffer）中的数据复制到一个 Vulkan 图像（image）中
+//参数:1.源缓冲区，包含待复制的数据。2.目标图像，数据将被复制到这个图像中 3.图像的宽度 4.图像的高度
+void HelloTriangleApplication::copyBufferToImage(VkBuffer buffer, VkImage image,uint32_t width,uint32_t height)
 {
 VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
@@ -1393,14 +1146,11 @@ vkCmdCopyBufferToImage(
     1,
     &region
 );
-    
-
-
-    endSingleTimeCommands(commandBuffer);
-
+endSingleTimeCommands(commandBuffer);
 }
 //创建布局过度
-void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
+void HelloTriangleApplication::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) 
+{
 VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
 VkImageMemoryBarrier barrier{};
@@ -1457,8 +1207,6 @@ if(newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL){
 }
 //添加正确的访问掩码和管道阶段
 
-
-
 vkCmdPipelineBarrier(
     commandBuffer,
     sourceStage, destinationStage,
@@ -1472,7 +1220,7 @@ endSingleTimeCommands(commandBuffer);
 }
 
 //layout过度
-VkCommandBuffer beginSingleTimeCommands() {
+VkCommandBuffer HelloTriangleApplication::beginSingleTimeCommands() {
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -1491,7 +1239,8 @@ VkCommandBuffer beginSingleTimeCommands() {
     return commandBuffer;
 }
 
-void endSingleTimeCommands(VkCommandBuffer commandBuffer) {
+//endSingleTimeCommands
+void HelloTriangleApplication::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
     vkEndCommandBuffer(commandBuffer);
 
     VkSubmitInfo submitInfo{};
@@ -1504,8 +1253,9 @@ void endSingleTimeCommands(VkCommandBuffer commandBuffer) {
 
     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 }
+
 //createImage
-void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
+void HelloTriangleApplication::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
     VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -1540,7 +1290,8 @@ void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling
     vkBindImageMemory(device, image, imageMemory, 0);
 }
 
-void loadModel()
+//加载模型
+void HelloTriangleApplication::loadModel()
 {
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
@@ -1581,7 +1332,7 @@ void loadModel()
 }
 
 //创建顶点缓冲区
-void createVertexBuffer()
+void HelloTriangleApplication::createVertexBuffer()
 {
 VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 //临时缓冲区
@@ -1603,8 +1354,9 @@ vkDestroyBuffer(device, stagingBuffer, nullptr);
 vkFreeMemory(device, stagingBufferMemory, nullptr);
 
 }
+
 //创建索引缓冲区
-void createIndexBuffer()
+void HelloTriangleApplication::createIndexBuffer()
 {
 VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
@@ -1625,8 +1377,10 @@ vkDestroyBuffer(device, stagingBuffer, nullptr);
 vkFreeMemory(device, stagingBufferMemory, nullptr);
 
 }
+
+
 //抽象缓冲区
-void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
+void HelloTriangleApplication::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
 VkBufferCreateInfo bufferInfo{};
 bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 bufferInfo.size = size;
@@ -1651,9 +1405,12 @@ if (vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) 
 
 vkBindBufferMemory(device, buffer, bufferMemory, 0);
 }
+
+
 //从一个缓冲区复制到另一个缓冲区(内存传输操作使用命令缓冲区执行)
 //copy
-void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
+void HelloTriangleApplication::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) 
+ {
     VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
     VkBufferCopy copyRegion{};
@@ -1662,8 +1419,9 @@ void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
 
     endSingleTimeCommands(commandBuffer);
 }
+
 //缓冲区类型分配
-uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+uint32_t HelloTriangleApplication::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
 //查询可用关于内存类型的信息
 VkPhysicalDeviceMemoryProperties memProperties;
 vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
@@ -1680,7 +1438,7 @@ throw std::runtime_error("failed to find suitable memory type!");
 
 
 //创建命令池
-void createCommandPool()
+void HelloTriangleApplication::createCommandPool()
 {
 QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
 
@@ -1693,8 +1451,9 @@ if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
     throw std::runtime_error("failed to create command pool!");
 }
 }
+
 //创建均匀缓冲区
-void createUniformBuffers()
+void HelloTriangleApplication::createUniformBuffers()
 {
 VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
@@ -1710,8 +1469,9 @@ for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
     vkMapMemory(device, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
 }
 }
+
 //创建描述符池
-void createDescriptorPool()
+void HelloTriangleApplication::createDescriptorPool()
 {
 std::array<VkDescriptorPoolSize, 2> poolSizes{};
 poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -1731,8 +1491,9 @@ if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SU
 }
 
 }
+
 //创建图像深度
-void createDepthResources()
+void HelloTriangleApplication::createDepthResources()
 {
     VkFormat depthFormat = findDepthFormat();
     createImage(swapChainExtent.width, swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, 
@@ -1743,20 +1504,24 @@ void createDepthResources()
     //transitionImageLayout(depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
 }
-//
-bool hasStencilComponent(VkFormat format) {
+
+//检查给定的 Vulkan 格式（format）是否包含模板缓冲（stencil buffer）
+bool HelloTriangleApplication::hasStencilComponent(VkFormat format) {
     return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 }
+
+
 //辅助选择具有深度的组件格式
-VkFormat findDepthFormat() {
+VkFormat HelloTriangleApplication::findDepthFormat() {
     return findSupportedFormat(
         {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
         VK_IMAGE_TILING_OPTIMAL,
         VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
     );
 }
+
 //选择格式
-VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) 
+VkFormat HelloTriangleApplication::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) 
 {
     for (VkFormat format : candidates){
         VkFormatProperties props;
@@ -1770,8 +1535,9 @@ VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTil
     }
     throw std::runtime_error("failed to find supported format!");
 }
+
 //分配描述符集
-void createDescriptorSets()
+void HelloTriangleApplication::createDescriptorSets()
 {
 std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
 VkDescriptorSetAllocateInfo allocInfo{};
@@ -1821,8 +1587,9 @@ vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), d
 
 }
 }
+
 //命令缓冲buffer
-void createCommandBuffer()
+void HelloTriangleApplication::createCommandBuffer()
 {
 commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -1839,7 +1606,7 @@ if (vkAllocateCommandBuffers(device, &allocInfo,commandBuffers.data()) != VK_SUC
 }
 
 //命令缓冲区记录
-void recordCommandBuffer(VkCommandBuffer commandBuffer,uint32_t imageIndex)
+void HelloTriangleApplication::recordCommandBuffer(VkCommandBuffer commandBuffer,uint32_t imageIndex)
 {
 VkCommandBufferBeginInfo beginInfo{};
 beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -1902,12 +1669,10 @@ vkCmdEndRenderPass(commandBuffer);//结束渲染通风道
 if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
     throw std::runtime_error("failed to record command buffer!");
 }
-
-
 }
 
-//创建异步通信
-void createSyncObjects()
+
+void HelloTriangleApplication::createSyncObjects()
 {
 imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
@@ -1933,6 +1698,48 @@ if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores
 }
 }
 
-//class尾部
-};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

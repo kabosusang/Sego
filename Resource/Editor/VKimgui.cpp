@@ -1,6 +1,9 @@
 #include "VKimgui.h"
-#include "Renderer/Vulkan/VulkanInit.h"
+
 #include "core.h"
+
+#include "Renderer/Vulkan/VulkanRenderer.h"
+
 // Data 
 VkAllocationCallbacks*   g_Allocator = nullptr;
 VkInstance               g_Instance = VK_NULL_HANDLE;
@@ -394,11 +397,10 @@ void Cleanup_imgui()
     CleanupVulkanWindow();
     CleanupVulkan();
 }
-void Init_Imgui(GLFWwindow* window)
+void Init_Imgui_orgian(GLFWwindow* window)
 {
     
 
-    
     ImVector<const char*> extensions;
     uint32_t extensions_count = 0;
     const char** glfw_extensions = glfwGetRequiredInstanceExtensions(&extensions_count);
@@ -419,8 +421,6 @@ void Init_Imgui(GLFWwindow* window)
     ImGui_ImplVulkanH_Window* wd = &g_MainWindowData;
     SetupVulkanWindow(wd,surface, w, h);
    
-    
-
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -515,12 +515,11 @@ void Init_Imgui(GLFWwindow* window)
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     
    
-
     //Vulkan Init
    
     while (!glfwWindowShouldClose(window))
     {
-        //app.drawFrame();
+        
         //Vulkan
         
 
@@ -613,7 +612,43 @@ void Init_Imgui(GLFWwindow* window)
 
 }
 
+void ImguiLayer::Init_Imgui(GLFWwindow* window)
+{
 
+// Setup Dear ImGui context
+IMGUI_CHECKVERSION();
+ImGui::CreateContext();
+ImGuiIO& io = ImGui::GetIO(); (void)io;
+//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+// Setup Dear ImGui style
+ImGui::StyleColorsDark();
+//ImGui::StyleColorsClassic();
+
+
+// Setup Platform/Renderer bindings
+ImGui_ImplGlfw_InitForVulkan(window, true);
+ImGui_ImplVulkan_InitInfo init_info = {};
+
+init_info.QueueFamily = g_QueueFamily;
+init_info.Queue = g_Queue;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
 
 
 
