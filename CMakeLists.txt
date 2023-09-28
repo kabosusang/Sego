@@ -13,6 +13,7 @@ set(EXECUTABLE_OUTPUT_PATH ${output_bin})
 #头文件
 #SegoHead
 include_directories(${PROJECT_SOURCE_DIR}/SegoSystem)
+include_directories(${PROJECT_SOURCE_DIR}/Resource/Editor)
 #
 include_directories(${PROJECT_SOURCE_DIR}/vendor/glfw/include)
 include_directories(${PROJECT_SOURCE_DIR}/vendor/glm)

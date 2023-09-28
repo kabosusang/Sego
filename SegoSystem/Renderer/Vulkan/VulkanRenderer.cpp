@@ -18,28 +18,286 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMes
         return VK_ERROR_EXTENSION_NOT_PRESENT;
     }
 }
-
-//交换imgui结构体
-void HelloTriangleApplication::SwitchVulkanInfo(ImGui_ImplVulkan_InitInfo& src)
+void HelloTriangleApplication::createUIDescriptorPool()
 {
-    src.Instance = instance; //实例
-    src.PhysicalDevice = physicalDevice;
-    src.Device = device;
-    
 
+     VkDescriptorPoolSize pool_sizes[] = {
+        { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
+        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+        { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
+        { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
+        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
+        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+        { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
+    };
 
-
-
-
+    VkDescriptorPoolCreateInfo pool_info = {};
+    pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+    pool_info.maxSets = 1000 * IM_ARRAYSIZE(pool_sizes);
+    pool_info.poolSizeCount = static_cast<uint32_t>(IM_ARRAYSIZE(pool_sizes));
+    pool_info.pPoolSizes = pool_sizes;
+    if (vkCreateDescriptorPool(device, &pool_info, nullptr, &uiDescriptorPool) != VK_SUCCESS) {
+        throw std::runtime_error("Cannot allocate UI descriptor pool!");
+    }
 
 }
 
+void HelloTriangleApplication::createUIRenderPass()
+{
+    // Create an attachment description for the render pass
+    VkAttachmentDescription attachment = {};
+    attachment.format = swapChainImageFormat;
+    attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+    attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+    attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+    // Create a color attachment reference
+    VkAttachmentReference attachmentReference = {};
+    attachmentReference.attachment = 0;
+    attachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    // Create a subpass
+    VkSubpassDescription subpass = {};
+    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments = &attachmentReference;
+
+    // Create a subpass dependency to synchronize our main and UI render passes
+    // We want to render the UI after the geometry has been written to the framebuffer
+    // so we need to configure a subpass dependency as such
+    VkSubpassDependency subpassDependency = {};
+    subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL; // Create external dependency
+    subpassDependency.dstSubpass = 0; // The geometry subpass comes first
+    subpassDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    subpassDependency.srcAccessMask = 0; // Wait on writes
+    subpassDependency.dstStageMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+    // Finally create the UI render pass
+    VkRenderPassCreateInfo renderPassInfo = {};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    renderPassInfo.attachmentCount = 1;
+    renderPassInfo.pAttachments = &attachment;
+    renderPassInfo.subpassCount = 1;
+    renderPassInfo.pSubpasses = &subpass;
+    renderPassInfo.dependencyCount = 1;
+    renderPassInfo.pDependencies = &subpassDependency;
+
+    if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &uiRenderPass) != VK_SUCCESS) {
+        throw std::runtime_error("Unable to create UI render pass!");
+    }
+}
+
+void HelloTriangleApplication::createUICommandPool(VkCommandPool *cmdPool, VkCommandPoolCreateFlags flags)
+{
+auto indices = findQueueFamilies(physicalDevice);
+
+VkCommandPoolCreateInfo commandPoolCreateInfo = {};
+    commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    commandPoolCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+    commandPoolCreateInfo.flags = flags;
+
+    if (vkCreateCommandPool(device, &commandPoolCreateInfo, nullptr, cmdPool) != VK_SUCCESS) {
+        throw std::runtime_error("Could not create graphics command pool!");
+    }
+
+
+}
+void HelloTriangleApplication::createUICommandBuffers()
+{
+uiCommandBuffers.resize(swapChainImageViews.size());
+
+    VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
+    commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    commandBufferAllocateInfo.commandPool = uiCommandPool;
+    commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    commandBufferAllocateInfo.commandBufferCount = static_cast<uint32_t>(uiCommandBuffers.size());
+
+    if (vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, uiCommandBuffers.data()) != VK_SUCCESS) {
+        throw std::runtime_error("Unable to allocate UI command buffers!");
+    }
+
+}
+void HelloTriangleApplication::createUIFramebuffers()
+{
+    // Create some UI framebuffers. These will be used in the render pass for the UI
+    uiFramebuffers.resize(swapChainImages.size());
+    VkImageView attachment[1];
+    VkFramebufferCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    info.renderPass = uiRenderPass;
+    info.attachmentCount = 1;
+    info.pAttachments = attachment;
+    info.width = swapChainExtent.width;
+    info.height = swapChainExtent.height;
+    info.layers = 1;
+    for (uint32_t i = 0; i < swapChainImages.size(); ++i) {
+        attachment[0] = swapChainImageViews[i];
+        if (vkCreateFramebuffer(device, &info, nullptr, &uiFramebuffers[i]) != VK_SUCCESS) {
+            throw std::runtime_error("Unable to create UI framebuffers!");
+        }
+    }
+
+}
+
+void HelloTriangleApplication::recordUICommands(uint32_t bufferIdx) {
+    VkCommandBufferBeginInfo cmdBufferBegin = {};
+    cmdBufferBegin.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    cmdBufferBegin.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    if (vkBeginCommandBuffer(uiCommandBuffers[bufferIdx], &cmdBufferBegin) != VK_SUCCESS) {
+        throw std::runtime_error("Unable to start recording UI command buffer!");
+    }
+
+    VkClearValue clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
+    VkRenderPassBeginInfo renderPassBeginInfo = {};
+    renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassBeginInfo.renderPass = uiRenderPass;
+    renderPassBeginInfo.framebuffer = uiFramebuffers[bufferIdx];
+    renderPassBeginInfo.renderArea.extent.width = swapChainExtent.width;
+    renderPassBeginInfo.renderArea.extent.height = swapChainExtent.height;
+    renderPassBeginInfo.clearValueCount = 1;
+    renderPassBeginInfo.pClearValues = &clearColor;
+
+    vkCmdBeginRenderPass(uiCommandBuffers[bufferIdx], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    // Grab and record the draw data for Dear Imgui
+    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), uiCommandBuffers[bufferIdx]);
+
+    // End and submit render pass
+    vkCmdEndRenderPass(uiCommandBuffers[bufferIdx]);
+
+    if (vkEndCommandBuffer(uiCommandBuffers[bufferIdx]) != VK_SUCCESS) {
+        throw std::runtime_error("Failed to record command buffers!");
+    }
+}
+
+
+
+void HelloTriangleApplication::Imgui_Init()
+{
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
+    //io.ConfigViewportsNoAutoMerge = true;
+    //io.ConfigViewportsNoTaskBarIcon = true;
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+    //ImGui::StyleColorsLight();
+
+    // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+    ImGuiStyle& style = ImGui::GetStyle();
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
+        style.WindowRounding = 0.0f;
+        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+    }
+
+
+    queueIndices = findQueueFamilies(physicalDevice);
+
+     // Initialize some DearImgui specific resources
+    createUIDescriptorPool();
+    createUIRenderPass();
+    createUICommandPool(&uiCommandPool, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+    createUICommandBuffers();
+    createUIFramebuffers();
+
+   
+    SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);//需要检查的三种属性1.表面格式（像素格式、色彩空间
+    MinImageCount = swapChainSupport.capabilities.minImageCount +1;
+    // Provide bind points from Vulkan API
+    ImGui_ImplGlfw_InitForVulkan(window, true);
+    ImGui_ImplVulkan_InitInfo init_info = {};
+    init_info.Instance = instance;
+    init_info.PhysicalDevice = physicalDevice;
+    init_info.Device = device;
+    init_info.QueueFamily = queueIndices.graphicsFamily.value();
+    init_info.Queue = graphicsqueue;
+    init_info.DescriptorPool = uiDescriptorPool;
+    init_info.MinImageCount = MinImageCount;
+    init_info.ImageCount = MinImageCount;
+    ImGui_ImplVulkan_Init(&init_info, uiRenderPass);
+
+    // Upload the fonts for DearImgui
+    VkCommandBuffer commandBuffer = beginSingleTimeCommands(uiCommandPool);
+    ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
+    endSingleTimeCommands(commandBuffer, uiCommandPool);
+    ImGui_ImplVulkan_DestroyFontUploadObjects();
+
+}
+void HelloTriangleApplication::drawUI()
+{
+    // Resize swap chain?
+        if (g_SwapChainRebuild)
+        {
+            int width, height;
+            glfwGetFramebufferSize(window, &width, &height);
+            if (width > 0 && height > 0)
+            {
+                ImGui_ImplVulkan_SetMinImageCount(MinImageCount);
+                ImGui_ImplVulkanH_CreateOrResizeWindow(instance, physicalDevice, device, &g_MainWindowData, queueIndices.graphicsFamily.value(), nullptr, width, height, MinImageCount);
+                g_MainWindowData.FrameIndex = 0;
+                g_SwapChainRebuild = false;
+            }
+        }
+
+    // Start the Dear ImGui frame
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    static float f = 0.0f;
+    static int counter = 0;
+
+    ImGui::Begin("Renderer Options");
+    ImGui::Text("This is some useful text.");
+    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+    if (ImGui::Button("Button")) {
+        counter++;
+    }
+    ImGui::SameLine();
+    ImGui::Text("counter = %d", counter);
+
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    if (showDemoWindow) 
+    {
+        ImGui::ShowDemoWindow();
+    }
+    
+    ImGui::End();
+
+    // Render Dear ImGui
+    ImGui::Render();
+
+    // Update and render additional platform windows (e.g. Viewports)
+    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
+    }
+}
 
 
 void HelloTriangleApplication::run()
 {
     //initWindow();
     initVulkan();
+    Imgui_Init();
     mainloop();
     cleanup();
 }
@@ -89,12 +347,23 @@ void HelloTriangleApplication::mainloop()
 {
     while (!glfwWindowShouldClose(window)){
         glfwPollEvents();
-        
+        drawUI();
         drawFrame();
     }
     vkDeviceWaitIdle(device);
 
 }
+
+void HelloTriangleApplication::cleanupUIResources() {
+    for (auto framebuffer : uiFramebuffers) {
+        vkDestroyFramebuffer(device, framebuffer, nullptr);
+    }
+
+    vkFreeCommandBuffers(device, uiCommandPool,
+                         static_cast<uint32_t>(uiCommandBuffers.size()), uiCommandBuffers.data());
+}
+
+
 //重建
 void HelloTriangleApplication::recreateSwapChain()
 {
@@ -108,11 +377,25 @@ while (width == 0 || height == 0) {
 vkDeviceWaitIdle(device);
 
 cleanSwapChain();
+//Imgui
+cleanupUIResources();
 
+ // Recreate main application Vulkan resources
 createSwapChain();
 createImageViews();
 createDepthResources();
+createRenderPass();
+createGraphicsPipeline();
 createFramebuffers();
+createDescriptorPool();
+createCommandBuffer();
+    
+
+
+// We also need to take care of the UI
+ImGui_ImplVulkan_SetMinImageCount(MinImageCount);
+createUICommandBuffers();
+createUIFramebuffers();
 
 }
 //清理旧交换链版本
@@ -122,6 +405,13 @@ void HelloTriangleApplication::cleanSwapChain()
 vkDestroyImageView(device, depthImageView, nullptr);
 vkDestroyImage(device, depthImage, nullptr);
 vkFreeMemory(device, depthImageMemory, nullptr);
+//清除CommandBuffer
+vkFreeCommandBuffers(device, commandPool, static_cast<uint32_t>(commandBuffers.size()),
+                         commandBuffers.data());
+
+vkDestroyPipeline(device, graphicsPipeline, nullptr);
+vkDestroyRenderPass(device, renderPass, nullptr);
+
 
 for(size_t i = 0; i < swapChainFramebuffers.size();i++)
 {
@@ -139,6 +429,21 @@ for(size_t i = 0; i <swapChainImageViews.size();i++)
 //清理Vulkan
 void HelloTriangleApplication::cleanup()
 {
+    // Cleanup DearImGui
+    ImGui_ImplVulkan_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    vkDestroyDescriptorPool(device, uiDescriptorPool, nullptr);
+    vkFreeCommandBuffers(device, uiCommandPool, static_cast<uint32_t>(uiCommandBuffers.size()),
+                         uiCommandBuffers.data());
+    vkDestroyCommandPool(device, uiCommandPool, nullptr);
+    vkDestroyRenderPass(device, uiRenderPass, nullptr);
+
+    for (auto framebuffer : uiFramebuffers) {
+        vkDestroyFramebuffer(device, framebuffer, nullptr);
+    }
+
     //清理交换链 
     cleanSwapChain();
     //清理texture
@@ -174,38 +479,41 @@ void HelloTriangleApplication::cleanup()
 
     vkDestroyCommandPool(device, commandPool, nullptr);
 
-    vkDestroyDevice(device, nullptr);
 
     if (enableValidationLayers) {
         DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
     }
-
+  
     vkDestroySurfaceKHR(instance, surface, nullptr);
+    vkDestroyDevice(device, nullptr);
     vkDestroyInstance(instance, nullptr);
 
     glfwDestroyWindow(window);
 
-    glfwTerminate();
+    
+
 }
 
 void HelloTriangleApplication::drawFrame()
 {
-    {
 vkWaitForFences(device,1,&inFlightFences[currentFrame],VK_TRUE,UINT64_MAX);
 
 uint32_t imageIndex;
 VkResult result = vkAcquireNextImageKHR(device,swapChain,UINT64_MAX,imageAvailableSemaphores[currentFrame],VK_NULL_HANDLE,&imageIndex);
 if(result == VK_ERROR_OUT_OF_DATE_KHR)//交换链已与 表面，不能再用于渲染。通常发生在调整窗口大小后
 {
+    g_SwapChainRebuild = true;
     recreateSwapChain();
     return ;
 }else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
 {
     throw std::runtime_error("failed to acquire swap chain image!");
 }
-// Only reset the fence if we are submitting work
-vkResetFences(device,1,&inFlightFences[currentFrame]);
+vkResetFences(device, 1, &inFlightFences[currentFrame]);
 
+// Record UI draw data
+
+recordUICommands(imageIndex);
 
 vkResetCommandBuffer(commandBuffers[currentFrame], 0);
 recordCommandBuffer(commandBuffers[currentFrame],imageIndex);
@@ -218,19 +526,24 @@ submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
 VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame]};//指定信号量
 VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};//指定等待管道的哪个阶段
+std::vector<VkCommandBuffer> cmdBuffers = {commandBuffers[imageIndex],uiCommandBuffers[imageIndex],};
 submitInfo.waitSemaphoreCount = 1;
 submitInfo.pWaitSemaphores = waitSemaphores;
 submitInfo.pWaitDstStageMask = waitStages;
 
-submitInfo.commandBufferCount = 1;
-submitInfo.pCommandBuffers = &commandBuffers[currentFrame];
+submitInfo.commandBufferCount = static_cast<uint32_t>(cmdBuffers.size());
+submitInfo.pCommandBuffers = cmdBuffers.data();
 
 VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame]};
 submitInfo.signalSemaphoreCount = 1;
 submitInfo.pSignalSemaphores = signalSemaphores;
 
-if (vkQueueSubmit(graphicsqueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
+VkResult err;
+err == vkQueueSubmit(graphicsqueue, 1, &submitInfo, inFlightFences[currentFrame]);
+if (err!= VK_SUCCESS) {
+
     throw std::runtime_error("failed to submit draw command buffer!");
+    std::cout << "Error Code:" << err ;
 }//将命令缓冲区提交到图形队列
 
 //将结果提交回交换链 让它最终出现在屏幕上
@@ -266,7 +579,6 @@ if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR
 //前进下一帧
 currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
-}
 }
 
 //更新统一数据
@@ -704,7 +1016,7 @@ colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;//模板加载�
 colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;//现有内容未定 我们不关心他()
 
 colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;//表示不关心附件的初始布局(设置初始布局)
-colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;//表示在渲染结束后将附件用于呈现(设置最终布局)
+colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;//
 
 //深度附件
 VkAttachmentDescription depthAttachment{};
@@ -966,9 +1278,6 @@ pipelineInfo.basePipelineIndex = -1; // Optional
 if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
     throw std::runtime_error("failed to create graphics pipeline!");
 }
-
-
-
     //销毁着色器模块
     vkDestroyShaderModule(device,fragShaderModule,nullptr);
     vkDestroyShaderModule(device,vertShaderMoudle,nullptr);
@@ -1119,7 +1428,7 @@ vkFreeMemory(device, stagingBufferMemory, nullptr);
 //参数:1.源缓冲区，包含待复制的数据。2.目标图像，数据将被复制到这个图像中 3.图像的宽度 4.图像的高度
 void HelloTriangleApplication::copyBufferToImage(VkBuffer buffer, VkImage image,uint32_t width,uint32_t height)
 {
-VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+VkCommandBuffer commandBuffer = beginSingleTimeCommands(commandPool);
 
 VkBufferImageCopy region{};
 region.bufferOffset = 0;
@@ -1146,12 +1455,12 @@ vkCmdCopyBufferToImage(
     1,
     &region
 );
-endSingleTimeCommands(commandBuffer);
+endSingleTimeCommands(commandBuffer,commandPool);
 }
 //创建布局过度
 void HelloTriangleApplication::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) 
 {
-VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+VkCommandBuffer commandBuffer = beginSingleTimeCommands(commandPool);
 
 VkImageMemoryBarrier barrier{};
 barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -1216,18 +1525,18 @@ vkCmdPipelineBarrier(
     1, &barrier
 );
 
-endSingleTimeCommands(commandBuffer);
+endSingleTimeCommands(commandBuffer,commandPool);
 }
 
 //layout过度
-VkCommandBuffer HelloTriangleApplication::beginSingleTimeCommands() {
+VkCommandBuffer HelloTriangleApplication::beginSingleTimeCommands(VkCommandPool cmdPool) {
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandPool = commandPool;
+    allocInfo.commandPool = cmdPool;
     allocInfo.commandBufferCount = 1;
 
-    VkCommandBuffer commandBuffer;
+    VkCommandBuffer commandBuffer = {};
     vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
 
     VkCommandBufferBeginInfo beginInfo{};
@@ -1240,7 +1549,7 @@ VkCommandBuffer HelloTriangleApplication::beginSingleTimeCommands() {
 }
 
 //endSingleTimeCommands
-void HelloTriangleApplication::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
+void HelloTriangleApplication::endSingleTimeCommands(VkCommandBuffer commandBuffer,VkCommandPool cmdPool) {
     vkEndCommandBuffer(commandBuffer);
 
     VkSubmitInfo submitInfo{};
@@ -1251,7 +1560,7 @@ void HelloTriangleApplication::endSingleTimeCommands(VkCommandBuffer commandBuff
     vkQueueSubmit(graphicsqueue, 1, &submitInfo, VK_NULL_HANDLE);
     vkQueueWaitIdle(graphicsqueue);
 
-    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+    vkFreeCommandBuffers(device, cmdPool, 1, &commandBuffer);
 }
 
 //createImage
@@ -1411,13 +1720,13 @@ vkBindBufferMemory(device, buffer, bufferMemory, 0);
 //copy
 void HelloTriangleApplication::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) 
  {
-    VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+    VkCommandBuffer commandBuffer = beginSingleTimeCommands(commandPool);
 
     VkBufferCopy copyRegion{};
     copyRegion.size = size;
     vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-    endSingleTimeCommands(commandBuffer);
+    endSingleTimeCommands(commandBuffer,commandPool);
 }
 
 //缓冲区类型分配
@@ -1591,7 +1900,7 @@ vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), d
 //命令缓冲buffer
 void HelloTriangleApplication::createCommandBuffer()
 {
-commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+commandBuffers.resize(swapChainImageViews.size());
 
 VkCommandBufferAllocateInfo allocInfo{};
 allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;

@@ -94,9 +94,6 @@ int main(){
 
     //Imugi Renderer
     
-
-
-
     try{
         app.run();
     }catch(const std::exception&e){
@@ -105,11 +102,7 @@ int main(){
     } 
     
 
-      // Cleanup
-    VkResult err = vkDeviceWaitIdle(g_Device);
-    check_vk_result(err);
-   
-    Cleanup_imgui();
+    
     Sego_Window->DestorySegowindow();
 
     //glfwDestroyWindow(window);

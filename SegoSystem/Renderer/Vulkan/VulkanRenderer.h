@@ -203,13 +203,30 @@ static std::vector<char>readFile(const std::string& filename) {
 }
 
 
-
+#include "VKimgui.h"
 class HelloTriangleApplication 
 {
 public:
-ImGui_ImplVulkan_InitInfo InputVulkanInfo;
+void drawUI();
+void Imgui_Init();
+void createUIDescriptorPool();
+void createUIRenderPass();
+void createUICommandPool(VkCommandPool *cmdPool, VkCommandPoolCreateFlags flags);
+void createUICommandBuffers();
+void createUIFramebuffers();
+void recordUICommands(uint32_t bufferIdx);
+void cleanupUIResources();
+//imgui
+private:
+VkDescriptorPool uiDescriptorPool;
+VkRenderPass uiRenderPass;
+VkCommandPool uiCommandPool;
+std::vector<VkCommandBuffer> uiCommandBuffers;
+std::vector<VkFramebuffer> uiFramebuffers;
+uint32_t MinImageCount = 0;
+bool showDemoWindow = true;
+QueueFamilyIndices queueIndices;
 
-void SwitchVulkanInfo(ImGui_ImplVulkan_InitInfo& src);
 private:
     GLFWwindow* window;
 
@@ -378,9 +395,9 @@ void copyBufferToImage(VkBuffer buffer, VkImage image,uint32_t width,uint32_t he
 //创建布局过度
 void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) ;
 //layout过度
-VkCommandBuffer beginSingleTimeCommands();
+VkCommandBuffer beginSingleTimeCommands(VkCommandPool cmdPool);
 //endSingleTimeCommands
-void endSingleTimeCommands(VkCommandBuffer commandBuffer) ;
+void endSingleTimeCommands(VkCommandBuffer commandBuffer,VkCommandPool cmdPool) ;
 
 //createImage
 void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) ;
