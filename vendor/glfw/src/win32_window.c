@@ -1121,6 +1121,12 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
             _glfwInputWindowDamage(window);
             break;
         }
+        //重绘UI
+        case WM_ACTIVATE:
+        {
+
+            break;
+        }
 
         case WM_ERASEBKGND:
         {

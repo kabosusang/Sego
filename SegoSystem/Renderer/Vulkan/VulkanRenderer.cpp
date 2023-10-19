@@ -9,6 +9,7 @@
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
+#include "Renderer/Vulkan/GUI.h"
 
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
@@ -197,11 +198,50 @@ void HelloTriangleApplication::Imgui_Init()
     //io.ConfigViewportsNoAutoMerge = true;
     //io.ConfigViewportsNoTaskBarIcon = true;
     // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
     //ImGui::StyleColorsLight();
 
-    // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+    io.Fonts->AddFontFromFileTTF("../Resource/ziti.ttf",18,NULL,io.Fonts->GetGlyphRangesChineseFull());
+
+    ImGui::StyleColorsDark();
     ImGuiStyle& style = ImGui::GetStyle();
+    style.WindowRounding = 4;
+    style.FrameRounding = 4;
+    style.GrabRounding = 3;
+    style.ScrollbarSize = 7;
+    style.ScrollbarRounding = 0;
+
+    
+
+    ImVec4* colors = style.Colors; 
+    colors[ImGuiCol_FrameBg] = ImVec4(0.16f, 0.16f, 0.17f, 1.00f);
+	colors[ImGuiCol_FrameBgHovered] = ImVec4(0.37f, 0.36f, 0.36f, 102.00f);
+	colors[ImGuiCol_FrameBgActive] = ImVec4(0.10f, 0.10f, 0.10f, 171.00f);
+	colors[ImGuiCol_TitleBgActive] = ImVec4(0.20f, 0.20f, 0.20f, 255.00f);
+	colors[ImGuiCol_CheckMark] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
+	colors[ImGuiCol_SliderGrab] = ImVec4(0.64f, 0.64f, 0.64f, 1.00f);
+	colors[ImGuiCol_SliderGrabActive] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
+	colors[ImGuiCol_Button] = ImVec4(0.22f, 0.22f, 0.22f, 0.40f);
+	colors[ImGuiCol_ButtonHovered] = ImVec4(0.29f, 0.29f, 0.29f, 1.00f);
+	colors[ImGuiCol_ButtonActive] = ImVec4(0.13f, 0.13f, 0.13f, 1.00f);
+	colors[ImGuiCol_Header] = ImVec4(0.45f, 0.45f, 0.45f, 0.31f);
+	colors[ImGuiCol_HeaderHovered] = ImVec4(0.55f, 0.55f, 0.55f, 0.80f);
+	colors[ImGuiCol_HeaderActive] = ImVec4(0.09f, 0.09f, 0.09f, 1.00f);
+	colors[ImGuiCol_ResizeGrip] = ImVec4(1.00f, 1.00f, 1.00f, 0.20f);
+	colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.46f, 0.46f, 0.46f, 0.67f);
+	colors[ImGuiCol_ResizeGripActive] = ImVec4(0.17f, 0.17f, 0.17f, 0.95f);
+	colors[ImGuiCol_SeparatorActive] = ImVec4(0.42f, 0.42f, 0.42f, 1.00f);
+	colors[ImGuiCol_SeparatorHovered] = ImVec4(0.50f, 0.50f, 0.50f, 0.78f);
+	colors[ImGuiCol_TabHovered] = ImVec4(0.45f, 0.45f, 0.45f, 0.80f);
+	colors[ImGuiCol_TabActive] = ImVec4(0.28f, 0.28f, 0.28f, 1.00f);
+	colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.19f, 0.19f, 0.19f, 1.00f);
+	colors[ImGuiCol_DockingPreview] = ImVec4(0.51f, 0.51f, 0.51f, 0.70f);
+	colors[ImGuiCol_Tab] = ImVec4(0.21f, 0.21f, 0.21f, 0.86f);
+	colors[ImGuiCol_TabUnfocused] = ImVec4(0.15f, 0.15f, 0.15f, 0.97f);
+	colors[ImGuiCol_NavHighlight] = ImVec4(1.00f, 0.40f, 0.13f, 1.00f);
+	colors[ImGuiCol_TextSelectedBg] = ImVec4(0.45f, 1.00f, 0.85f, 0.35f); 
+
+    // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+    
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
     {
         style.WindowRounding = 0.0f;
@@ -235,15 +275,18 @@ void HelloTriangleApplication::Imgui_Init()
     ImGui_ImplVulkan_Init(&init_info, uiRenderPass);
 
     // Upload the fonts for DearImgui
-    VkCommandBuffer commandBuffer = beginSingleTimeCommands(uiCommandPool);
-    ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
-    endSingleTimeCommands(commandBuffer, uiCommandPool);
+    VkCommandBuffer commandBuffer_im = beginSingleTimeCommands(uiCommandPool);
+    ImGui_ImplVulkan_CreateFontsTexture(commandBuffer_im);
+    endSingleTimeCommands(commandBuffer_im, uiCommandPool);
     ImGui_ImplVulkan_DestroyFontUploadObjects();
-
+    vkDeviceWaitIdle(device);
+    
 }
+
 void HelloTriangleApplication::drawUI()
 {
     // Resize swap chain?
+    
         if (g_SwapChainRebuild)
         {
             int width, height;
@@ -261,35 +304,21 @@ void HelloTriangleApplication::drawUI()
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+   // ImGui::DockSpaceOverViewport(); 使得imgui主窗口停靠但是渲染被遮挡了
+     
 
-    static float f = 0.0f;
-    static int counter = 0;
-
-    ImGui::Begin("Renderer Options");
-    ImGui::Text("This is some useful text.");
-    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-    if (ImGui::Button("Button")) {
-        counter++;
-    }
-    ImGui::SameLine();
-    ImGui::Text("counter = %d", counter);
-
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-    if (showDemoWindow) 
-    {
-        ImGui::ShowDemoWindow();
-    }
+    DrawGUI();
     
-    ImGui::End();
 
     // Render Dear ImGui
+    ImGuiIO& io = ImGui::GetIO();
     ImGui::Render();
-
-    // Update and render additional platform windows (e.g. Viewports)
-    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable){
+        GLFWwindow* backuo_current_context = glfwGetCurrentContext();
         ImGui::UpdatePlatformWindows();
         ImGui::RenderPlatformWindowsDefault();
-    }
+        glfwMakeContextCurrent(backuo_current_context);
+}
 }
 
 
@@ -351,7 +380,6 @@ void HelloTriangleApplication::mainloop()
         drawFrame();
     }
     vkDeviceWaitIdle(device);
-
 }
 
 void HelloTriangleApplication::cleanupUIResources() {
@@ -390,7 +418,6 @@ createFramebuffers();
 createDescriptorPool();
 createCommandBuffer();
     
-
 
 // We also need to take care of the UI
 ImGui_ImplVulkan_SetMinImageCount(MinImageCount);
@@ -490,8 +517,6 @@ void HelloTriangleApplication::cleanup()
 
     glfwDestroyWindow(window);
 
-    
-
 }
 
 void HelloTriangleApplication::drawFrame()
@@ -509,9 +534,9 @@ if(result == VK_ERROR_OUT_OF_DATE_KHR)//交换链已与 表面，不能再用于
 {
     throw std::runtime_error("failed to acquire swap chain image!");
 }
-vkResetFences(device, 1, &inFlightFences[currentFrame]);
 
 // Record UI draw data
+vkResetFences(device, 1, &inFlightFences[currentFrame]);
 
 recordUICommands(imageIndex);
 
@@ -526,7 +551,7 @@ submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
 VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame]};//指定信号量
 VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};//指定等待管道的哪个阶段
-std::vector<VkCommandBuffer> cmdBuffers = {commandBuffers[imageIndex],uiCommandBuffers[imageIndex],};
+std::array<VkCommandBuffer, 2> cmdBuffers = {commandBuffers[imageIndex],uiCommandBuffers[imageIndex],};
 submitInfo.waitSemaphoreCount = 1;
 submitInfo.pWaitSemaphores = waitSemaphores;
 submitInfo.pWaitDstStageMask = waitStages;
@@ -539,11 +564,11 @@ submitInfo.signalSemaphoreCount = 1;
 submitInfo.pSignalSemaphores = signalSemaphores;
 
 VkResult err;
-err == vkQueueSubmit(graphicsqueue, 1, &submitInfo, inFlightFences[currentFrame]);
+err = vkQueueSubmit(graphicsqueue, 1, &submitInfo, inFlightFences[currentFrame]);
 if (err!= VK_SUCCESS) {
-
-    throw std::runtime_error("failed to submit draw command buffer!");
     std::cout << "Error Code:" << err ;
+    throw std::runtime_error("failed to submit draw command buffer!");
+    
 }//将命令缓冲区提交到图形队列
 
 //将结果提交回交换链 让它最终出现在屏幕上
