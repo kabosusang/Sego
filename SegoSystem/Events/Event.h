@@ -42,16 +42,19 @@ public:
 	inline bool HandledStatus() { return m_Handled; }
 	virtual int GetCategoryFlags() const = 0;
 
-protected:
+public:
 	bool m_Handled = false; //查看一个事件是否被处理
 };
 
 
-class EventDispatch
+class EventDispatcher
 {
 template<class T>
 using EventFn = std::function<bool(T&)>;
-
+public:
+EventDispatcher(Event& event)
+	:m_Event(event){}
+	
 template<typename T>
 bool Dispatch(EventFn<T> func)
 {

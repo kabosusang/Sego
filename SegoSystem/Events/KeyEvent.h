@@ -1,10 +1,9 @@
 #pragma once
 
-#include <Event.h>
+#include "Events/Event.h"
 
 class KeyEvent :public Event
 {
-
 protected:
 KeyEvent(int KeyCode) : Key_Code(KeyCode) {}
 EVENT_CLASS_TYPE(KeyTyped)
@@ -25,6 +24,7 @@ std::string ToString() const override
     return ss.str();
 }
 KeyDownEvent(int KeyCode , int keyCount) : KeyEvent(KeyCode),m_Count(keyCount) {}
+EVENT_CLASS_TYPE(KeyPressed)
 
 private:
 int m_Count;
@@ -41,10 +41,26 @@ std::string ToString() const override
     ss << "KeyRealseEvent: " << Key_Code << std::endl;
     return ss.str();
 }
-
+EVENT_CLASS_TYPE(KeyReleased)
 KeyRealseEvent(int KeyCode) : KeyEvent(KeyCode) {}
 
 private:
+
+};
+
+class KeyTypedEvent : public KeyEvent
+{
+public:
+	KeyTypedEvent(int keycode)
+		:KeyEvent(keycode) {}
+
+	std::string ToString() const override
+	{
+		std::stringstream ss;
+		ss << "KeyTypedEvent: " << Key_Code ;
+		return ss.str();
+	}
+	EVENT_CLASS_TYPE(KeyTyped)
 
 };
 

@@ -1,32 +1,8 @@
 #pragma once
 #include "Event.h"
 
-class WindowEvent:public Event
-{
-protected:
-EVENT_CLASS_TYPE(WindowTyped)
 
-EVENT_CLASS_CATEGORY(EventCategoryApplicayion | EventCategoryInput)
-
-protected:
-
-} ;
-
-
-class WindowClose : public WindowEvent
-{
-protected:
-EVENT_CLASS_TYPE(WindowClose)
-
-EVENT_CLASS_CATEGORY(EventCategoryApplicayion | EventCategoryInput)
-public:
-WindowClose() {}
-
-private:
-
-};
-
-class WindowChangeSize : public WindowEvent
+class WindowChangeSize : public Event
 {
 public:
 WindowChangeSize(int w , int h) :W_width(w) , W_height(h) {}
@@ -36,8 +12,16 @@ EVENT_CLASS_TYPE(WindowClose)
 
 EVENT_CLASS_CATEGORY(EventCategoryApplicayion | EventCategoryInput)
 
-
 private:
 int W_width;
 int W_height;
+};
+
+class WindowCloseEvent : public Event
+{
+public:
+	WindowCloseEvent() {}
+
+	EVENT_CLASS_TYPE(WindowClose)
+	EVENT_CLASS_CATEGORY(EventCategoryApplicayion)
 };

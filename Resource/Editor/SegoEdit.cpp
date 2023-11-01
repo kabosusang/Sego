@@ -4,15 +4,10 @@
 #include "Log/Log.h"
 #include "Renderer/Vulkan/VulkanRenderer.h"
 
-
-void glfwCallKey(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    SG_INFO("Keycode = :",key);
-}
+#define BIND_EVENT_FN(x) [this](auto&&... args) -> decltype(auto) { return this->x(std::forward<decltype(args)>(args)...); }
 
 int main(){
 
-    glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
         return 1;
 
@@ -33,8 +28,8 @@ int main(){
     }
 
     std::unique_ptr<SegoWindow> Sego_Window = std::make_unique<SegoWindow>(window,1280,720);
-
-
+    Sego_Window->Init();
+   
 
     //Log
     Sego::Log::Log_Init(); //初始化日志
@@ -42,7 +37,7 @@ int main(){
 
 
     //Imgui loop
-    glfwSetKeyCallback(window,glfwCallKey);
+    
     //Init_Imgui(Sego_Window->GetWindow());
     // Main loop
     
@@ -50,8 +45,8 @@ int main(){
     HelloTriangleApplication app;
 
     app.InputWindow(Sego_Window->GetWindow());
-    
-    
+
+    Sego_Window->SetEventCallback(std::bind(&HelloTriangleApplication::OnEvent,&app,std::placeholders::_1));
 
     //Imugi Renderer
     

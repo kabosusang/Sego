@@ -19,6 +19,27 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMes
         return VK_ERROR_EXTENSION_NOT_PRESENT;
     }
 }
+
+#include "Log/Log.h"
+
+#define BIND_EVENT_FN(x) [this](auto&&... args) -> decltype(auto) { return this->x(std::forward<decltype(args)>(args)...); }
+
+void HelloTriangleApplication::OnEvent(Event& e)
+{
+    
+	EventDispatcher dispatcher(e);
+	dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClose));
+
+	SG_CORE_INFO("e : {0}" , e);
+
+
+}
+ bool HelloTriangleApplication::OnWindowClose(WindowCloseEvent& e)
+{
+	m_Runing = false;
+	return true;
+}
+
 void HelloTriangleApplication::createUIDescriptorPool()
 {
 
@@ -324,6 +345,8 @@ void HelloTriangleApplication::drawUI()
 
 void HelloTriangleApplication::run()
 {
+
+
     //initWindow();
     initVulkan();
     Imgui_Init();
@@ -374,7 +397,7 @@ void HelloTriangleApplication::initVulkan()
 //程序主循环
 void HelloTriangleApplication::mainloop()
 {
-    while (!glfwWindowShouldClose(window)){
+    while (!glfwWindowShouldClose(window) && m_Runing){
         glfwPollEvents();
         drawUI();
         drawFrame();

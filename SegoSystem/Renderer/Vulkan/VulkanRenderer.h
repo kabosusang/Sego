@@ -202,11 +202,17 @@ static std::vector<char>readFile(const std::string& filename) {
     return buffer;
 }
 
-
+#include "Events/Event.h"
 #include "VKimgui.h"
+#include "Events/WindowEvent.h"
 class HelloTriangleApplication 
 {
+private:
+bool m_Runing = true;
 public:
+void OnEvent(Event& e);
+bool OnWindowClose(WindowCloseEvent& e);
+
 void drawUI();
 void Imgui_Init();
 void createUIDescriptorPool();
