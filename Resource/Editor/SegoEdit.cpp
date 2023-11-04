@@ -17,7 +17,7 @@ int main(){
     {
         //glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);//创建无边框窗口
         //glfwWindowHint(GLFW_TITLEBAR,false);
-
+       
     }
 
     GLFWwindow* window = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+Vulkan example", nullptr, nullptr);
@@ -48,8 +48,7 @@ int main(){
 
     Sego_Window->SetEventCallback(std::bind(&HelloTriangleApplication::OnEvent,&app,std::placeholders::_1));
 
-    //Imugi Renderer
-    
+   
     try{
         app.run();
     }catch(const std::exception&e){
@@ -57,12 +56,9 @@ int main(){
         return EXIT_FAILURE;
     } 
     
-
     
     Sego_Window->DestorySegowindow();
 
-    //glfwDestroyWindow(window);
-    //glfwTerminate();
     return EXIT_SUCCESS;
 
 

@@ -36,7 +36,8 @@ void HelloTriangleApplication::OnEvent(Event& e)
 }
  bool HelloTriangleApplication::OnWindowClose(WindowCloseEvent& e)
 {
-	m_Runing = false;
+   
+	//m_Runing = false;
 	return true;
 }
 
@@ -326,11 +327,9 @@ void HelloTriangleApplication::drawUI()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
    // ImGui::DockSpaceOverViewport(); 使得imgui主窗口停靠但是渲染被遮挡了
-     
 
-    DrawGUI();
+    DrawGUI(window);
     
-
     // Render Dear ImGui
     ImGuiIO& io = ImGui::GetIO();
     ImGui::Render();
@@ -403,6 +402,7 @@ void HelloTriangleApplication::mainloop()
         drawFrame();
     }
     vkDeviceWaitIdle(device);
+    initnumber = true; //重置Imgui位置
 }
 
 void HelloTriangleApplication::cleanupUIResources() {
