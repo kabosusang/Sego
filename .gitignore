@@ -1,9 +1,0 @@
-#File
-.vscode
-bin
-build
-vendor/Vulkan
-
-# 
-
-
