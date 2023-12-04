@@ -2,7 +2,6 @@
 
 #include "core.h"
 
-#include "Renderer/Vulkan/VulkanRenderer.h"
 
 // Data 
 VkAllocationCallbacks*   g_Allocator = nullptr;

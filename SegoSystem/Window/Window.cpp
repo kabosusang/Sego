@@ -11,7 +11,7 @@
 void SegoWindow::Init()
 {
     glfwSetWindowUserPointer(GLwindow, &m_Data);
-    glfwSetErrorCallback(glfw_error_callback);
+    
     //GLFW CALLBack
    
     glfwSetKeyCallback(GLwindow,[](GLFWwindow* window, int key, int scancode, int action, int mods)

@@ -28,19 +28,22 @@ include_directories(${PROJECT_SOURCE_DIR}/SegoUI/imgui)
 add_subdirectory(vendor/glfw)
 add_subdirectory(vendor/imgui)
 
-#add library
 
 #Vulkan
 include_directories(D:/Vulkan1.3.246.1/Include)
 
 #lib  
-# 包含静态库路径
-link_directories(${PROJECT_SOURCE_DIR}/vendor/glfw/build/src)
+# 包含库路径
+link_directories(${PROJECT_SOURCE_DIR}/vendor/glfw/build/src) # 静态
+
 #Vulkan lib
 link_directories(D:/Vulkan1.3.246.1/Lib)
+
+
 # glfw
 link_libraries(vulkan-1)
 link_libraries(glfw3)
+
 #源文件src
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/Resource/Editor SRC_LIST)
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/SegoSystem/Core CORE_LIST)
@@ -55,8 +58,9 @@ file(GLOB CAMERA "SegoSystem/camera/*.cpp")
 
 
 #添加vulkan渲染源文件
+file(GLOB APPLICATION "SegoSystem/Core/Application/*.cpp")
 file(GLOB VULKAN "SegoSystem/Renderer/Vulkan/*.cpp")
-
+file(GLOB SGUI "SegoSystem/Renderer/SgUI/*.cpp")
 
 #APPEND LIST
 list(APPEND SRC_LIST ${CORE_LIST})
@@ -66,9 +70,10 @@ list(APPEND SRC_LIST ${THREAD})
 list(APPEND SRC_LIST ${WINDOW})
 list(APPEND SRC_LIST ${CAMERA})
 
+list(APPEND SRC_LIST ${APPLICATION})
 
 list(APPEND SRC_LIST ${VULKAN})
-
+list(APPEND SRC_LIST ${SGUI})
 #add exe
 add_executable(editor  ${SRC_LIST})
 
