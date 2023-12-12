@@ -21,10 +21,16 @@ Application::Application()
     m_Window->Init();
 
     m_Window->SetEventCallback(std::bind(&Application::OnEvent,this,std::placeholders::_1));
+    glfwSetFramebufferSizeCallback(m_Window->GetWindow(), framebufferResizeCallback);
 
     //Log
     Sego::Log::Log_Init(); //初始化日志
     SG_CORE_INFO("Hello World {0} , {1}",m_Window->GetWidth(),m_Window->GetHeight());
+
+
+    
+
+
 
     app_device.InputWindow(m_Window->GetWindow());
     app_device.SGvk_Device_Create_Instance();// ins
@@ -36,19 +42,27 @@ Application::Application()
     app_device.SGvk_Device_Create_ImageViews();//img
     app_device.SGvk_Device_Create_RenderPass();//Ren
     app_device.SGvk_Device_Create_DescriptorSetLayout();//des
-    app_device.SGvk_Device_Create_GraphicsPipeline("../SegoSystem/Renderer/shaders/vert.spv","../SegoSystem/Renderer/shaders/frag.spv");
+    app_device.SGvk_Device_Create_GraphicsPipeline("../SegoSystem/Renderer/shaders/vert.spv",
+    "../SegoSystem/Renderer/shaders/frag.spv");
     app_device.SGvk_Device_Create_DepthResources();
     app_device.SGvk_Device_Create_Framebuffers();
     app_device.SGvk_Device_Create_CommandPool();
-    app_device.SGvk_Device_Create_TextureImage("../SegoSystem/Renderer/models/viking_room.png");
-    app_device.SGvk_Device_Create_TextureImageView();
-    app_device.SGvk_Device_Create_TextureSampler();
-    loadModel("../SegoSystem/Renderer/models/viking_room.obj");
-    app_device.SGvk_Device_Create_VertexBuffer();
-    app_device.SGvk_Device_Create_IndexBuffer();
+
+    std::string ModelName = "Closet";
+    CreateModel("../SegoSystem/Renderer/models/viking_room.obj",ModelName);
+
+    auto m_it = std::find_if(m_Model.begin(),m_Model.end(),[&ModelName](const SG_Model& modl)
+    {
+        return modl.Model_Name == ModelName;
+    });
+    if(m_it != m_Model.end())
+    {
+        CreateTexture(m_it,"../SegoSystem/Renderer/models/viking_room.png","ClosetTexture");
+    }
+    
     app_device.SGvk_Device_Create_UniformBuffers();
     app_device.SGvk_Device_Create_DescriptorPool();
-    app_device.SGvk_Device_Create_DescriptorSets();
+    app_device.SGvk_Device_Create_DescriptorSets(m_it->m_Texture);
     app_device.SGvk_Device_Create_CommandBuffer();
     app_device.SGvk_Device_Create_SyncObjects();
 
@@ -56,6 +70,8 @@ Application::Application()
     ,app_device.device,app_device.swapChainImageFormat,app_device.swapChainImages,app_device.swapChainImageViews
     ,app_device.swapChainExtent,app_device.graphicsqueue,app_device.presentQueue);
     Sg_ui.Init_Sg_Imgui(); //初始化imgui
+
+    MinImageCount = app_device.image_count;
 
 }
 
@@ -77,7 +93,7 @@ void Application::Run()
 void Application::OnEvent(Event& e)
 {
     EventDispatcher dispatcher(e);
-	dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClose));
+	//dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClose));
     dispatcher.Dispatch<KeyDownEvent>(GetcameraInput); //传入key摄像机
     dispatcher.Dispatch<KeyDownRepeate>(GetcameraRepeateInput); //传入key摄像机(重复输入)
     //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -95,14 +111,13 @@ bool Application::OnWindowClose(WindowCloseEvent& e)
 
 Application::~Application()
 {
-    app_device.cleanup();
+    app_device.cleanup(m_Model);
     Sg_ui.cleanup();
     m_Window->DestorySegowindow();
 }
 
 void Application::Application_DrawFrame()
 {
-
 vkWaitForFences(app_device.device,1,&app_device.inFlightFences[currentFrame],VK_TRUE,UINT64_MAX);
 
 uint32_t imageIndex;
@@ -112,19 +127,20 @@ if(result == VK_ERROR_OUT_OF_DATE_KHR)//交换链已与 表面，不能再用于
     g_SwapChainRebuild = true;
     app_device.recreateSwapChain();
     Sg_ui.cleanupUIResources();
+    Sg_ui.UpdataUiCleanDtata(app_device.swapChainImageFormat,app_device.swapChainImages
+    ,app_device.swapChainImageViews,app_device.swapChainExtent);
     return ;
 }else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
 {
     SG_CORE_ERROR("failed to acquire swap chain image!");
 }
 
-// Record UI draw data
 vkResetFences(app_device.device, 1, &app_device.inFlightFences[currentFrame]);
-
-//recordUICommands(imageIndex);
+// Record UI draw data
+Sg_ui.recordUICommands(imageIndex);
 
 vkResetCommandBuffer(app_device.commandBuffers[currentFrame], 0);
-app_device.recordCommandBuffer(app_device.commandBuffers[currentFrame],imageIndex);
+app_device.recordCommandBuffer(m_Model,app_device.commandBuffers[currentFrame],imageIndex);
 
 updateUniformBuffer(currentFrame);
 
@@ -174,13 +190,19 @@ if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR
     framebufferResized = false;
     app_device.recreateSwapChain();
     Sg_ui.cleanupUIResources();//清理
+    Sg_ui.UpdataUiCleanDtata(app_device.swapChainImageFormat,app_device.swapChainImages
+    ,app_device.swapChainImageViews,app_device.swapChainExtent);
 } else if (result != VK_SUCCESS) {
     SG_CORE_ERROR("failed to present swap chain image!");
 }//如果交换链不是最佳的需要重新创建交换链
 
-
 //前进下一帧
 currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+
+    //camera相关
+    float currentFrame = glfwGetTime();
+    deltaTime = currentFrame - lastFrame;
+    lastFrame = currentFrame;
 
 }
 
@@ -222,7 +244,6 @@ void Application::drawUI()
 }
 }
 
-
 #include "Camera/camera.h"
 //更新统一数据
 void Application::updateUniformBuffer(uint32_t currentImage)
@@ -242,4 +263,63 @@ ubo.proj[1][1] *= -1;
 memcpy(app_device.uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
 }
 
+//CreateResourceFunction
+void Application::CreateModel(std::string ModelPath,std::string ModelName)
+{
+    m_Model.push_back({ModelPath,ModelName});
 
+    auto m_it = std::find_if(m_Model.begin(),m_Model.end(),[&ModelName](const SG_Model& modl)
+    {
+        return modl.Model_Name == ModelName;
+    });
+
+    if(m_it != m_Model.end())
+    {
+        SG_CRes::loadModel_tiny_obj(m_it);
+        SG_CRes::SGvk_Device_Create_VertexBuffer(m_it,app_device.device,app_device.physicalDevice,
+        app_device.commandPool,app_device.presentQueue);
+        SG_CRes::SGvk_Device_Create_IndexBuffer(m_it,app_device.device,app_device.physicalDevice,
+        app_device.commandPool,app_device.presentQueue);
+    }
+    else
+    {
+        SG_CORE_ERROR("No Find Model in CreateModel");
+    }
+
+
+}
+
+void Application::CreateTexture(std::vector<SG_Model>::iterator m_it,
+std::string Texture_Path,std::string Tex_Name)
+{
+    m_it->m_Texture.push_back({Texture_Path,Tex_Name});
+    auto Tex_it = std::find_if(m_it->m_Texture.begin(),m_it->m_Texture.end(),[&Tex_Name](const SG_Texture& tex)
+    {
+    return tex.Texture_Name == Tex_Name;
+    }); //找到对应texture
+    if(Tex_it != m_it->m_Texture.end())
+    {
+        SG_CRes::CreateTexture(Tex_it,
+        app_device.device,
+        app_device.physicalDevice,
+        app_device.commandPool,
+        app_device.graphicsqueue);
+
+        SG_CRes::CreateTextureView(app_device.device,Tex_it->textureImage,
+        Tex_it->textureImageView);
+        SG_CRes::SGvk_Device_Create_TextureSampler(app_device.device,app_device.physicalDevice,
+        Tex_it->textureSampler);
+        
+        VkDescriptorImageInfo imageInfo{};
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageInfo.imageView = Tex_it->textureImageView;
+        imageInfo.sampler = Tex_it->textureSampler;
+        Tex_it->descriptor = imageInfo;
+
+    }
+    else{
+        SG_CORE_ERROR("No Find Texture in CreateTexture");
+    }
+  
+
+}

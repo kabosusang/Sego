@@ -1,0 +1,8 @@
+<material Model = "Pot">
+    <shader Vertshader="../Shader/shader.vert" Fragshader = "../Shader/shader.frag">
+    <texture name="pot_diffuse_texture" image="../Texture/Diffuse_FishSoup_Pot_1.jpg"/>
+</material>
+
+
+
+

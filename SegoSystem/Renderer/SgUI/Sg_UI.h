@@ -38,9 +38,17 @@ SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 VkCommandBuffer beginSingleTimeCommands(VkCommandPool cmdPool);
 void endSingleTimeCommands(VkCommandBuffer commandBuffer,VkCommandPool cmdPool);
 
+void recordUICommands(uint32_t bufferIdx);
+
+
 //clean
 void cleanupUIResources();
 void cleanup();
+
+void UpdataUiCleanDtata(VkFormat& swapformat,std::vector<VkImage>& swapimage,
+std::vector<VkImageView>& swapimviews,VkExtent2D Extent
+);
+
 
 public:
 //input Device

@@ -7,7 +7,7 @@
 #include <optional>
 #include <set>
 #include <string>
-
+#include <array>
 
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
@@ -334,7 +334,6 @@ void Application_Device::setupDebugMessenger() {
     }
 }
 
-
 //sur
 void Application_Device::SGvk_Device_Create_Surface()
 {
@@ -429,6 +428,7 @@ void Application_Device::SGvk_Device_Create_SwapChain()
     //uint32_t imageCount = swapChainSupport.capabilities.minImageCount;
     //至少请求一个比最小值多一个图像
     uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
+    image_count = imageCount;
     //确保在执行此操作时不超过最大图像数
     if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
     imageCount = swapChainSupport.capabilities.maxImageCount;
@@ -642,7 +642,6 @@ void Application_Device::SGvk_Device_Create_GraphicsPipeline(std::string vert,st
 
     VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
     
-    
     //顶点输入
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -743,8 +742,6 @@ pipelineLayoutInfo.setLayoutCount = 1; // Optional
 pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout; // Optional
 pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
-
-
 
 if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
     SG_CORE_ERROR("failed to create pipeline layout!");
@@ -899,7 +896,6 @@ void Application_Device::SGvk_Device_Create_Framebuffers()
                 swapChainImageViews[i],
                 depthImageView
             };
-
             VkFramebufferCreateInfo framebufferInfo{};
             framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
             framebufferInfo.renderPass = renderPass;
@@ -929,355 +925,6 @@ if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
     SG_CORE_ERROR("failed to create command pool!");
 }
 }
-//TextureImage
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
-void Application_Device::SGvk_Device_Create_TextureImage(std::string texture_path)
-{
-int texWidth,texHeight,texChannels;
-stbi_uc* pixels = stbi_load(texture_path.c_str(),&texWidth,&texHeight,&texChannels,STBI_rgb_alpha);
-
-VkDeviceSize imageSize = texWidth * texHeight * 4;
-
-    if (!pixels) {
-        SG_CORE_ERROR("failed to load texture image!");
-    }
-
-VkBuffer stagingBuffer;
-VkDeviceMemory stagingBufferMemory;
-SGvk_Device_Create_Buffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
-
-void* data;
-vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
-memcpy(data, pixels, static_cast<size_t>(imageSize));
-vkUnmapMemory(device, stagingBufferMemory);
-
-//设置mip层数
-mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth,texHeight)))) + 1;
-
-stbi_image_free(pixels);
-
-SGvk_Device_Create_Image(texWidth, texHeight,VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT
- | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
-
-SGvk_Device_Create_TransitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-copyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-
-SGvk_Device_Create_TransitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
- 
-vkDestroyBuffer(device, stagingBuffer, nullptr);
-vkFreeMemory(device, stagingBufferMemory, nullptr);
-
- 
-}
-
-void Application_Device::SGvk_Device_Create_TextureImageView()
-{
-textureImageView = SGvk_Device_Create_ImageView_AttachFuc(textureImage, VK_FORMAT_R8G8B8A8_SRGB,VK_IMAGE_ASPECT_COLOR_BIT);
-}
-
-//Buffer
-void Application_Device::SGvk_Device_Create_Buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer&  buffer, VkDeviceMemory& bufferMemory)
-{
-VkBufferCreateInfo bufferInfo{};
-bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-bufferInfo.size = size;
-bufferInfo.usage = usage;
-bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
-    SG_CORE_ERROR("failed to create buffer!");
-}
-
-VkMemoryRequirements memRequirements;
-vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
-
-VkMemoryAllocateInfo allocInfo{};
-allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-allocInfo.allocationSize = memRequirements.size;
-allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
-
-if (vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
-    SG_CORE_ERROR("failed to allocate buffer memory!");
-}
-
-vkBindBufferMemory(device, buffer, bufferMemory, 0);
-
-}
-//Beginlayout
-VkCommandBuffer Application_Device::beginSingleTimeCommands(VkCommandPool cmdPool) {
-    VkCommandBufferAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandPool = cmdPool;
-    allocInfo.commandBufferCount = 1;
-
-    VkCommandBuffer commandBuffer = {};
-    vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
-
-    VkCommandBufferBeginInfo beginInfo{};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-    vkBeginCommandBuffer(commandBuffer, &beginInfo);
-
-    return commandBuffer;
-}
-
-//endSingleTimeCommands
-void Application_Device::endSingleTimeCommands(VkCommandBuffer commandBuffer,VkCommandPool cmdPool) {
-    vkEndCommandBuffer(commandBuffer);
-
-    VkSubmitInfo submitInfo{};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffer;
-
-    vkQueueSubmit(graphicsqueue, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(graphicsqueue);
-
-    vkFreeCommandBuffers(device, cmdPool, 1, &commandBuffer);
-}
-//创建布局过度
-void Application_Device::SGvk_Device_Create_TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) 
-{ 
-VkCommandBuffer commandBuffer = beginSingleTimeCommands(commandPool);
-
-VkImageMemoryBarrier barrier{};
-barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-barrier.oldLayout = oldLayout;
-barrier.newLayout = newLayout;
-
-barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-
-barrier.image = image;
-barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-barrier.subresourceRange.baseMipLevel = 0;
-barrier.subresourceRange.levelCount = 1;
-barrier.subresourceRange.baseArrayLayer = 0;
-barrier.subresourceRange.layerCount = 1;
-
-barrier.srcAccessMask = 0; // TODO
-barrier.dstAccessMask = 0; // 
-
-VkPipelineStageFlags sourceStage;
-VkPipelineStageFlags destinationStage;
-
-if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
-    barrier.srcAccessMask = 0;
-    barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-    sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-    destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-} else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-    sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-    destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-} else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
-    barrier.srcAccessMask = 0;
-    barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
-    sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-    destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-} else {
-    throw std::invalid_argument("unsupported layout transition!");
-}
-//
-if(newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL){
-    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-
-    if(hasStencilComponent(format)){
-        barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
-    }
-} else{
-    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-}
-//添加正确的访问掩码和管道阶段
-
-vkCmdPipelineBarrier(
-    commandBuffer,
-    sourceStage, destinationStage,
-    0,
-    0, nullptr,
-    0, nullptr,
-    1, &barrier
-);
-endSingleTimeCommands(commandBuffer,commandPool);
-}
-//将一个 Vulkan 缓冲区（buffer）中的数据复制到一个 Vulkan 图像（image）中
-//参数:1.源缓冲区，包含待复制的数据。2.目标图像，数据将被复制到这个图像中 3.图像的宽度 4.图像的高度
-void Application_Device::copyBufferToImage(VkBuffer buffer, VkImage image,uint32_t width,uint32_t height)
-{
-VkCommandBuffer commandBuffer = beginSingleTimeCommands(commandPool);
-
-VkBufferImageCopy region{};
-region.bufferOffset = 0;
-region.bufferRowLength = 0;
-region.bufferImageHeight = 0;
-
-region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-region.imageSubresource.mipLevel = 0;
-region.imageSubresource.baseArrayLayer = 0;
-region.imageSubresource.layerCount = 1;
-
-region.imageOffset = {0, 0, 0};
-region.imageExtent = {
-    width,
-    height,
-    1
-};
-
-vkCmdCopyBufferToImage(
-    commandBuffer,
-    buffer,
-    image,
-    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-    1,
-    &region
-);
-endSingleTimeCommands(commandBuffer,commandPool);
-}
-
-//sampler
-void Application_Device::SGvk_Device_Create_TextureSampler()
-{
-VkSamplerCreateInfo samplerInfo{};
-samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-samplerInfo.magFilter = VK_FILTER_LINEAR;
-samplerInfo.minFilter = VK_FILTER_LINEAR;
-
-samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-
-VkPhysicalDeviceProperties properties{};
-vkGetPhysicalDeviceProperties(physicalDevice, &properties);
-
-//下面两个是否应用各向异性过滤 值越低性能越好
-samplerInfo.anisotropyEnable = VK_TRUE;
-samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;//设备支持最高值
-//该字段指定在采样超出范围时返回的颜色 具有钳位到边框寻址模式的图像。可以返回黑色， 浮动或整数格式的白色或透明。不能指定 任意颜色
-samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-//该字段指定所需的坐标系 用于寻址图像中的纹素
-samplerInfo.unnormalizedCoordinates = VK_FALSE;
-
-samplerInfo.compareEnable = VK_FALSE;
-samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-
-samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-samplerInfo.mipLodBias = 0.0f;
-samplerInfo.minLod = 0.0f;
-samplerInfo.maxLod = 0.0f;
-
- if (vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
-       SG_CORE_ERROR("failed to create texture sampler!");
-    }
-}
-//加载模型
-#define TINYOBJLOADER_IMPLEMENTATION
-#include <tiny_obj_loader.h>
-//model
-std::vector<Vertex> vertices;
-std::vector<uint32_t> indices;
-void loadModel(std::string Model_Path)
-{
-    tinyobj::attrib_t attrib;
-    std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> materials;
-    std::string warn, err;
-
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, Model_Path.c_str())) {
-        throw std::runtime_error(warn + err);
-    }
-    std::unordered_map<Vertex,uint32_t> uniqueVertices{};
-
-    //将文件中的所有面合并到一个模型中(遍历所有形状)
-    for (const auto& shape : shapes)
-    {
-        for (const auto& index : shape.mesh.indices)
-        {
-            Vertex vertex{};
-            vertex.pos = {
-            attrib.vertices[3 * index.vertex_index + 0],
-            attrib.vertices[3 * index.vertex_index + 1],
-            attrib.vertices[3 * index.vertex_index + 2]
-        };
-
-            vertex.texCoord = {
-            attrib.texcoords[2 * index.texcoord_index + 0],
-            1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
-        };
-
-            vertex.color = {1.0f, 1.0f, 1.0f};
-
-        if (uniqueVertices.count(vertex) == 0){
-            uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
-            vertices.push_back(vertex);
-        }
-            indices.push_back(uniqueVertices[vertex]);
-        }
-    }
-}
-
-void Application_Device::SGvk_Device_Create_VertexBuffer()
-{
-VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
-//临时缓冲区
-VkBuffer stagingBuffer;
-VkDeviceMemory stagingBufferMemory;
-SGvk_Device_Create_Buffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
-
-void* data;
-vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-memcpy(data, vertices.data(), (size_t) bufferSize);
-vkUnmapMemory(device, stagingBufferMemory);
-
-SGvk_Device_Create_Buffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
-
-copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
-//清理
-vkDestroyBuffer(device, stagingBuffer, nullptr);
-vkFreeMemory(device, stagingBufferMemory, nullptr);
-
-}
-
-void Application_Device::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) 
- {
-    VkCommandBuffer commandBuffer = beginSingleTimeCommands(commandPool);
-
-    VkBufferCopy copyRegion{};
-    copyRegion.size = size;
-    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
-
-    endSingleTimeCommands(commandBuffer,commandPool);
-}
-
-
-void Application_Device::SGvk_Device_Create_IndexBuffer()
-{
-VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
-
-VkBuffer stagingBuffer;
-VkDeviceMemory stagingBufferMemory;
-SGvk_Device_Create_Buffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
-
-void* data;
-vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-memcpy(data, indices.data(), (size_t) bufferSize);
-vkUnmapMemory(device, stagingBufferMemory);
-
-SGvk_Device_Create_Buffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
-
-copyBuffer(stagingBuffer, indexBuffer, bufferSize);
-
-vkDestroyBuffer(device, stagingBuffer, nullptr);
-vkFreeMemory(device, stagingBufferMemory, nullptr);
-
-}
 
 void Application_Device::SGvk_Device_Create_UniformBuffers()
 {
@@ -1289,8 +936,8 @@ uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
 
 for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 {
-    SGvk_Device_Create_Buffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-    , uniformBuffers[i], uniformBuffersMemory[i]);
+    SG_Allocate::SGvk_Device_Create_Buffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+    , uniformBuffers[i], uniformBuffersMemory[i],device,physicalDevice);
 
     vkMapMemory(device, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
 }
@@ -1321,7 +968,7 @@ if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SU
 }
 
 //DescriptorSets
-void Application_Device::SGvk_Device_Create_DescriptorSets()
+void Application_Device::SGvk_Device_Create_DescriptorSets(std::vector<SG_Texture>& textures)
 {
 std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
 VkDescriptorSetAllocateInfo allocInfo{};
@@ -1335,16 +982,21 @@ if (vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data()) != VK_SU
     SG_CORE_ERROR("failed to allocate descriptor sets!");
 }
 
+SG_CORE_INFO("Texture Name : {0}",textures[0].Texture_Name.c_str());
+SG_CORE_INFO("Texture Path : {0}",textures[0].Texture_Path.c_str());
+
+std::vector<VkDescriptorImageInfo> imageInfos;
+
+for (auto tex : textures)
+{
+    imageInfos.push_back(tex.descriptor);
+}
+
 for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     VkDescriptorBufferInfo bufferInfo{};
     bufferInfo.buffer = uniformBuffers[i];
     bufferInfo.offset = 0;
     bufferInfo.range = sizeof(UniformBufferObject);
-
-VkDescriptorImageInfo imageInfo{};
-imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-imageInfo.imageView = textureImageView;
-imageInfo.sampler = textureSampler;
 
 std::array<VkWriteDescriptorSet,2> descriptorWrites{};
 descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -1364,8 +1016,8 @@ descriptorWrites[1].dstSet = descriptorSets[i];
 descriptorWrites[1].dstBinding = 1;
 descriptorWrites[1].dstArrayElement = 0;
 descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-descriptorWrites[1].descriptorCount = 1;
-descriptorWrites[1].pImageInfo = &imageInfo;
+descriptorWrites[1].descriptorCount = static_cast<uint32_t>(imageInfos.size());
+descriptorWrites[1].pImageInfo = imageInfos.data();
 
 vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 
@@ -1433,21 +1085,22 @@ vkDeviceWaitIdle(device);
 cleanSwapChain();
 //Imgui
 
-
  // Recreate main application Vulkan resources
 SGvk_Device_Create_SwapChain();
 SGvk_Device_Create_ImageViews();
 SGvk_Device_Create_DepthResources();
 SGvk_Device_Create_RenderPass();
-SGvk_Device_Create_GraphicsPipeline("../SegoSystem/Renderer/shaders/vert.spv","../SegoSystem/Renderer/shaders/frag.spv");
+SGvk_Device_Create_GraphicsPipeline("../SegoSystem/Renderer/shaders/vert.spv",
+"../SegoSystem/Renderer/shaders/frag.spv");
 SGvk_Device_Create_Framebuffers();
 SGvk_Device_Create_DescriptorPool();
 SGvk_Device_Create_CommandBuffer();
+
 }
 
 void Application_Device::cleanSwapChain()
 {
-    //清除depth
+//清除depth
 vkDestroyImageView(device, depthImageView, nullptr);
 vkDestroyImage(device, depthImage, nullptr);
 vkFreeMemory(device, depthImageMemory, nullptr);
@@ -1473,7 +1126,7 @@ for(size_t i = 0; i <swapChainImageViews.size();i++)
 
 }
 
-void Application_Device::recordCommandBuffer(VkCommandBuffer commandBuffer,uint32_t imageIndex)
+void Application_Device::recordCommandBuffer(std::vector<SG_Model>& models,VkCommandBuffer commandBuffer,uint32_t imageIndex)
 {
 VkCommandBufferBeginInfo beginInfo{};
 beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -1518,18 +1171,26 @@ vkCmdBindPipeline(commandBuffer,VK_PIPELINE_BIND_POINT_GRAPHICS,graphicsPipeline
     scissor.extent = swapChainExtent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
     
-VkBuffer vertexBuffers[] = {vertexBuffer};
+std::vector<VkBuffer> vertexBuffers;
+std::vector<VkBuffer> indexBuffers;
+
+for (auto model : models)
+{
+    vertexBuffers.push_back(model.vertexBuffer);
+    indexBuffers.push_back(model.indexBuffer);
+}
+
 VkDeviceSize offsets[] = {0};
 
 //使用索引缓冲区
-vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-//绑定描述符集
+vkCmdBindVertexBuffers(commandBuffer, 0, vertexBuffers.size(), vertexBuffers.data(), offsets);
 vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
-
-vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
-//vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
-//vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+for (size_t i = 0; i < models.size(); i++)
+{
+vkCmdBindIndexBuffer(commandBuffer, indexBuffers[i], 0, VK_INDEX_TYPE_UINT32);
+vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(models[i].indices.size()), 1, 0, 0, 0);
+}
+//绑定描述符集
 
 vkCmdEndRenderPass(commandBuffer);//结束渲染通风道
 
@@ -1538,16 +1199,33 @@ if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
 }
 }
 
-void Application_Device::cleanup()
+void Application_Device::cleanup(std::vector<SG_Model>& models)
 {
 
     //清理交换链 
     cleanSwapChain();
-    //清理texture
-    vkDestroySampler(device,textureSampler,nullptr);
-    vkDestroyImageView(device,textureImageView,nullptr);
-    vkDestroyImage(device, textureImage, nullptr);
-    vkFreeMemory(device, textureImageMemory, nullptr);
+
+    //清理models 和 texture
+    for (auto model : models)
+    {
+        //Models
+        vkDestroyBuffer(device,model.indexBuffer,nullptr);
+        vkFreeMemory(device, model.indexBufferMemory , nullptr);
+
+        vkDestroyBuffer(device, model.vertexBuffer, nullptr);//清理缓冲区
+        vkFreeMemory(device, model.vertexBufferMemory, nullptr);
+
+        //texture
+        for (auto tex : model.m_Texture)
+        {
+            vkDestroySampler(device,tex.textureSampler,nullptr);
+            vkDestroyImageView(device,tex.textureImageView,nullptr);
+            vkDestroyImage(device, tex.textureImage, nullptr);
+            vkFreeMemory(device, tex.textureImageMemory, nullptr);
+        }
+    }
+
+    
     //清理均匀缓冲区
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroyBuffer(device, uniformBuffers[i], nullptr);
@@ -1557,11 +1235,6 @@ void Application_Device::cleanup()
     vkDestroyDescriptorPool(device,descriptorPool,nullptr);
     vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
 
-    vkDestroyBuffer(device,indexBuffer,nullptr);
-    vkFreeMemory(device, indexBufferMemory , nullptr);
-
-    vkDestroyBuffer(device, vertexBuffer, nullptr);//清理缓冲区
-    vkFreeMemory(device, vertexBufferMemory, nullptr);
 
     vkDestroyPipeline(device, graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(device, pipelineLayout, nullptr);

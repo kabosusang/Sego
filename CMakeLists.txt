@@ -20,6 +20,7 @@ include_directories(${PROJECT_SOURCE_DIR}/vendor/glm)
 include_directories(${PROJECT_SOURCE_DIR}/vendor/spdlog/include)
 include_directories(${PROJECT_SOURCE_DIR}/vendor/stb)
 include_directories(${PROJECT_SOURCE_DIR}/vendor/tinyobjloader)
+include_directories(${PROJECT_SOURCE_DIR}/vendor/rapidxml)
 
 include_directories(${PROJECT_SOURCE_DIR}/SegoUI/imgui)
 

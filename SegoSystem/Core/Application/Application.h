@@ -7,6 +7,8 @@
 
 #include "Events/WindowEvent.h"
 #include "Renderer/Vulkan/Vk_Device_Init.h"
+#include "Renderer/Vulkan/Vk_Create_Resource.h"
+
 class Application
 {
 public:
@@ -25,14 +27,32 @@ public:
     void updateUniformBuffer(uint32_t currentImage); //更新数据
     inline SegoWindow& GetWindow() {return *m_Window;}
 
+    //Model Create
+    void CreateModel(std::string Model_Path,std::string name);
+    
+    void CreateTexture(std::vector<SG_Model>::iterator m_it,std::string Texture_Path,std::string Texturte_Name);
+    
+    //处理窗口大小改变
+    inline static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
+    {
+    auto app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
+    app->framebufferResized = true;
+    }
+
+
 private:
     std::unique_ptr<SegoWindow> m_Window;//Main Window
+    //Device
     Application_Device app_device;
+    //UI
     Sg_UI Sg_ui;
+
     uint32_t currentFrame = 0;//帧索引
     bool framebufferResized = false;
     uint32_t MinImageCount = 0;
-
     bool m_Runing = true;
+
+    //Model
+    std::vector<SG_Model> m_Model;
 
 };

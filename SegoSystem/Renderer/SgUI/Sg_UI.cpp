@@ -368,5 +368,55 @@ void Sg_UI::cleanup()
 
 }
 
+void Sg_UI::UpdataUiCleanDtata(VkFormat& swapformat,std::vector<VkImage>& swapimage,
+std::vector<VkImageView>& swapimviews,VkExtent2D Extent)
+{
 
+    swapChainImageFormat = swapformat;
+    swapChainImages = swapimage;
+    swapChainImageViews = swapimviews;
+    swapChainExtent = Extent;
+
+    ImGui_ImplVulkan_SetMinImageCount(MinImageCount);
+    createUICommandBuffers();
+    createUIFramebuffers();
+
+
+
+}
+
+
+void Sg_UI::recordUICommands(uint32_t bufferIdx)
+{
+    VkCommandBufferBeginInfo cmdBufferBegin = {};
+    cmdBufferBegin.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    cmdBufferBegin.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    if (vkBeginCommandBuffer(uiCommandBuffers[bufferIdx], &cmdBufferBegin) != VK_SUCCESS) {
+        throw std::runtime_error("Unable to start recording UI command buffer!");
+    }
+
+    VkClearValue clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
+    VkRenderPassBeginInfo renderPassBeginInfo = {};
+    renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassBeginInfo.renderPass = uiRenderPass;
+    renderPassBeginInfo.framebuffer = uiFramebuffers[bufferIdx];
+    renderPassBeginInfo.renderArea.extent.width = swapChainExtent.width;
+    renderPassBeginInfo.renderArea.extent.height = swapChainExtent.height;
+    renderPassBeginInfo.clearValueCount = 1;
+    renderPassBeginInfo.pClearValues = &clearColor;
+
+    vkCmdBeginRenderPass(uiCommandBuffers[bufferIdx], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    // Grab and record the draw data for Dear Imgui
+    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), uiCommandBuffers[bufferIdx]);
+
+    // End and submit render pass
+    vkCmdEndRenderPass(uiCommandBuffers[bufferIdx]);
+
+    if (vkEndCommandBuffer(uiCommandBuffers[bufferIdx]) != VK_SUCCESS) {
+        throw std::runtime_error("Failed to record command buffers!");
+    }
+
+}
 

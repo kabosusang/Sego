@@ -52,11 +52,9 @@ bool GetcameraInput(KeyDownEvent& e)
         }
     }
 
-    
 
     return true;
 }
-
 
 bool GetcameraRepeateInput(KeyDownRepeate& e)
 {

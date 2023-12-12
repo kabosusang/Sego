@@ -5,6 +5,7 @@
 #include <string>
 #include <functional>
 #include "Renderer/Vulkan/Vk_Allocate.h"
+#include "Renderer/Vulkan/Vk_Create_Resource.h"
 
 #include "Camera/camera.h"
 
@@ -54,6 +55,13 @@ struct QueueFamilyIndices {
     }
 };
 
+//交换链格式
+struct SwapChainSupportDetails {
+    VkSurfaceCapabilitiesKHR capabilities;
+    std::vector<VkSurfaceFormatKHR> formats;
+    std::vector<VkPresentModeKHR> presentModes;
+};
+
 //加载着色器代码
 static std::vector<char>readFile(const std::string& filename) {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
@@ -72,67 +80,12 @@ static std::vector<char>readFile(const std::string& filename) {
     return buffer;
 }
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/hash.hpp>
-#include <array>
-//Vertex
-struct Vertex {
-    glm::vec3 pos;
-    glm::vec3 color;
-    glm::vec2 texCoord;
-    //绑定说明
-    static VkVertexInputBindingDescription getBindingDescription() {
-        VkVertexInputBindingDescription bindingDescription{};
-        bindingDescription.binding = 0;
-        bindingDescription.stride = sizeof(Vertex);
-        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-        return bindingDescription;
-    }
-    //属性说明
-    static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
-        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
-
-        attributeDescriptions[0].binding = 0;
-        attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[0].offset = offsetof(Vertex, pos);
-
-        attributeDescriptions[1].binding = 0;
-        attributeDescriptions[1].location = 1;
-        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[1].offset = offsetof(Vertex, color);
-
-        attributeDescriptions[2].binding = 0;
-        attributeDescriptions[2].location = 2;
-        attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-        attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
-        
-        return attributeDescriptions;
-    }
-
-bool operator==(const Vertex& other) const {
-        return pos == other.pos && color == other.color && texCoord == other.texCoord;
-    }
-};
-
-namespace std {
-    template<> struct hash<Vertex> {
-        size_t operator()(Vertex const& vertex) const {
-            return ((hash<glm::vec3>()(vertex.pos) ^ (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^ (hash<glm::vec2>()(vertex.texCoord) << 1);
-        }
-    };
-}
-
-
-
 
 
 #define MAX_FRAMES_IN_FLIGHT 2
 /*-------------------------------------------------------*/
 ////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////
-void loadModel(std::string Model_path);
 
 
 class Application_Device
@@ -159,34 +112,24 @@ public:
     void SGvk_Device_Create_Image(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory); //img
     VkImageView SGvk_Device_Create_ImageView(VkImage image, VkFormat format,VkImageAspectFlags aspectFlags);
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-    void copyBufferToImage(VkBuffer buffer, VkImage image,uint32_t width,uint32_t height);
+    //void copyBufferToImage(VkBuffer buffer, VkImage image,uint32_t width,uint32_t height);
     //
     void SGvk_Device_Create_Framebuffers();//Fram
     void SGvk_Device_Create_CommandPool();//pool
-    void SGvk_Device_Create_TextureImage(std::string texture_path);//texture
-    void SGvk_Device_Create_TextureImageView();
-    void SGvk_Device_Create_Buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+    //void SGvk_Device_Create_TextureImage(std::string texture_path);//texture
+    //void SGvk_Device_Create_TextureImageView();
+    //void SGvk_Device_Create_Buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
     
-
-    //Layout
-    void SGvk_Device_Create_TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
-    VkCommandBuffer beginSingleTimeCommands(VkCommandPool cmdPool);
-    void endSingleTimeCommands(VkCommandBuffer commandBuffer,VkCommandPool cmdPool);
-    //检查给定的 Vulkan 格式（format）是否包含模板缓冲（stencil buffer）
-    inline bool hasStencilComponent(VkFormat format) {
-    return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
-    }   
-
     //////////////////////////-------Vertex----------------///////////////////////////////
-    void SGvk_Device_Create_TextureSampler();
-    void SGvk_Device_Create_VertexBuffer();
-    void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-    void SGvk_Device_Create_IndexBuffer();
+    //void SGvk_Device_Create_TextureSampler();
+    //void SGvk_Device_Create_VertexBuffer();
+    //void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+    //void SGvk_Device_Create_IndexBuffer();
     /// @ ////////////////////////////////////////////////////////
 
     void SGvk_Device_Create_UniformBuffers();
     void SGvk_Device_Create_DescriptorPool();
-    void SGvk_Device_Create_DescriptorSets();
+    void SGvk_Device_Create_DescriptorSets(std::vector<SG_Texture>& textures);
     void SGvk_Device_Create_CommandBuffer();
     void SGvk_Device_Create_SyncObjects();
 
@@ -208,12 +151,12 @@ public:
     SwapChainSupportDetails Vk_Device_Status_QuerySwapChainSupport(VkPhysicalDevice device);
 
     
-    void recordCommandBuffer(VkCommandBuffer commandBuffer,uint32_t imageIndex);
+    void recordCommandBuffer(std::vector<SG_Model>& models,VkCommandBuffer commandBuffer,uint32_t imageIndex);
 
     //Destruction
     void recreateSwapChain();
     void cleanSwapChain();
-    void cleanup();
+    void cleanup(std::vector<SG_Model>& models);
 
     //OUTPUT DATA
     /*************************/
@@ -239,13 +182,7 @@ public:
 
     std::vector<VkFramebuffer> swapChainFramebuffers;//framebuffers
 
-    //Texture
-    uint32_t mipLevels;//mipmaplevel
-    VkImage textureImage;
-    VkDeviceMemory textureImageMemory;
-    //纹理图像视图
-    VkImageView textureImageView;
-    VkSampler textureSampler;//采样器
+   
     //深度图像和视图
     VkImage depthImage;
     VkDeviceMemory depthImageMemory;
@@ -262,11 +199,7 @@ public:
     //队列
     VkQueue graphicsqueue;//渲染队列
     VkQueue presentQueue;//呈现队列
-    VkBuffer vertexBuffer;
-    VkDeviceMemory vertexBufferMemory;
-    VkBuffer indexBuffer;
-    VkDeviceMemory indexBufferMemory;
-
+    
     //均匀缓冲区
     std::vector<VkBuffer> uniformBuffers;
     std::vector<VkDeviceMemory> uniformBuffersMemory;
@@ -285,7 +218,7 @@ public:
     bool framebufferResized = false;
 
 
-
+    uint32_t image_count = 0;
 };
 
 

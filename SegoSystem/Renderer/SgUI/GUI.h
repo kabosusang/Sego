@@ -125,6 +125,7 @@ void DrawGUI(GLFWwindow* window)
     {
         ImGui::SetWindowPos(ImVec2(xpos - OBJECT_WDITH  ,ypos - TITLE_HEIGHT));
     }
+
     ImGui::Text("Drag Target");
     if(ImGui::BeginDragDropTarget())
     {
