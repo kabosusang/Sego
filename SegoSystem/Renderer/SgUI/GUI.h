@@ -113,6 +113,13 @@ void DrawGUI(GLFWwindow* window)
         FPSmode = false;
     }
 
+    
+
+
+
+
+
+
     ImGui::End();
 
    

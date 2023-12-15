@@ -2,15 +2,19 @@
 #include "Renderer/Vulkan/Vk_Allocate.h"
 
 //TextureImage
+
+#ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
+#endif
 #include <stb_image.h>
+
 #include <Log/Log.h>
 SG_Model::SG_Model(std::string path,std::string name)
 {
 Model_Path = path;
 Model_Name = name;
-}
 
+}
 
 /*************Texture************************
  * CreateTexture
@@ -28,12 +32,7 @@ VkCommandPool& commandPool,
 VkQueue& graQue
 )
 {
-    /*
-    auto T_index = find(m_Texture.begin(),m_Texture.end(),[&Tex_Path](const SG_Texture& tex){
-    return tex.Texture_Path == Tex_Path;});
 
-    T_index->Create_TextureImage(Tex_Path);
-    */
 int texWidth,texHeight,texChannels;
 
 stbi_uc* pixels = stbi_load(Te_it->Texture_Path.c_str(),&texWidth,&texHeight,&texChannels,STBI_rgb_alpha);
@@ -162,11 +161,19 @@ void SG_CRes::loadModel_tiny_obj(std::vector<SG_Model>::iterator m_it)
             attrib.vertices[3 * index.vertex_index + 2]
         };
 
-            vertex.texCoord = {
+#ifdef GLFW_INCLUDE_VULKAN
+   vertex.texCoord = {
             attrib.texcoords[2 * index.texcoord_index + 0],
             1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
         };
-            vertex.color = {0.0f, 1.0f, 1.0f};
+#else
+vertex.texCoord = {
+            attrib.texcoords[2 * index.texcoord_index + 0],
+            attrib.texcoords[2 * index.texcoord_index + 1]
+        };
+#endif
+
+            vertex.color = {0.0f, 1.0f, 1.0f,1.0f};
 
         if (uniqueVertices.count(vertex) == 0){
             uniqueVertices[vertex] = static_cast<uint32_t>(m_it->vertices.size());
@@ -176,6 +183,29 @@ void SG_CRes::loadModel_tiny_obj(std::vector<SG_Model>::iterator m_it)
         }
     }
 }
+//mesh
+
+void SG_CRes::loadModel_mesh(std::vector<SG_Model>::iterator m_it)
+{
+    
+    MeshFilter ms;
+    ms.LoadMesh(m_it->Model_Path);
+    //Load 
+    
+    m_it->vertices = std::move(ms.mesh()->vertex_data_);
+    //m_it->indices = std::move(ms.mesh()->vertex_index_data_);
+    m_it->indices.resize(ms.mesh()->vertex_index_num_);
+    
+   std::transform(ms.mesh()->vertex_index_data_.begin(), ms.mesh()->vertex_index_data_.end(), 
+   std::back_inserter(m_it->indices),
+    [](unsigned short value) {
+        return static_cast<uint32_t>(value);
+    });
+    
+
+
+}
+
 
 void SG_CRes::SGvk_Device_Create_VertexBuffer(std::vector<SG_Model>::iterator m_it,
 VkDevice& device,VkPhysicalDevice& physicalDevice,VkCommandPool& cmdPool, VkQueue &endque)

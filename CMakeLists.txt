@@ -14,14 +14,15 @@ set(EXECUTABLE_OUTPUT_PATH ${output_bin})
 #SegoHead
 include_directories(${PROJECT_SOURCE_DIR}/SegoSystem)
 include_directories(${PROJECT_SOURCE_DIR}/Resource/Editor)
+include_directories(${PROJECT_SOURCE_DIR}/Resource)
 #
+include_directories(${PROJECT_SOURCE_DIR}/vendor/)
 include_directories(${PROJECT_SOURCE_DIR}/vendor/glfw/include)
 include_directories(${PROJECT_SOURCE_DIR}/vendor/glm)
 include_directories(${PROJECT_SOURCE_DIR}/vendor/spdlog/include)
-include_directories(${PROJECT_SOURCE_DIR}/vendor/stb)
 include_directories(${PROJECT_SOURCE_DIR}/vendor/tinyobjloader)
 include_directories(${PROJECT_SOURCE_DIR}/vendor/rapidxml)
-
+include_directories(${PROJECT_SOURCE_DIR}/vendor/stb)
 include_directories(${PROJECT_SOURCE_DIR}/SegoUI/imgui)
 
 
@@ -63,6 +64,12 @@ file(GLOB APPLICATION "SegoSystem/Core/Application/*.cpp")
 file(GLOB VULKAN "SegoSystem/Renderer/Vulkan/*.cpp")
 file(GLOB SGUI "SegoSystem/Renderer/SgUI/*.cpp")
 
+#添加渲染数据文件
+file(GLOB MESH "SegoSystem/Core/Mesh/*.cpp")
+file(GLOB MATERIAL "Resource/Material/*.cpp")
+
+
+
 #APPEND LIST
 list(APPEND SRC_LIST ${CORE_LIST})
 list(APPEND SRC_LIST ${SEGOUI_SRC_LIST})
@@ -70,11 +77,15 @@ list(APPEND SRC_LIST ${SOURCES})
 list(APPEND SRC_LIST ${THREAD})
 list(APPEND SRC_LIST ${WINDOW})
 list(APPEND SRC_LIST ${CAMERA})
-
 list(APPEND SRC_LIST ${APPLICATION})
-
 list(APPEND SRC_LIST ${VULKAN})
 list(APPEND SRC_LIST ${SGUI})
+
+#Data 
+list(APPEND SRC_LIST ${MESH})
+list(APPEND SRC_LIST ${MATERIAL})
+
+
 #add exe
 add_executable(editor  ${SRC_LIST})
 

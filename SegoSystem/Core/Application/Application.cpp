@@ -27,11 +27,6 @@ Application::Application()
     Sego::Log::Log_Init(); //初始化日志
     SG_CORE_INFO("Hello World {0} , {1}",m_Window->GetWidth(),m_Window->GetHeight());
 
-
-    
-
-
-
     app_device.InputWindow(m_Window->GetWindow());
     app_device.SGvk_Device_Create_Instance();// ins
     app_device.setupDebugMessenger();
@@ -48,16 +43,18 @@ Application::Application()
     app_device.SGvk_Device_Create_Framebuffers();
     app_device.SGvk_Device_Create_CommandPool();
 
-    std::string ModelName = "Closet";
-    CreateModel("../SegoSystem/Renderer/models/viking_room.obj",ModelName);
-
+    std::string ModelName = "Pot";
+    //CreateModel("../SegoSystem/Renderer/models/viking_room.obj","haha");
+    //CreateModel("../Resource/Model/obj/pot.obj",ModelName);
+    CreateModel("../Resource/Model/mesh/pot.mesh",ModelName);
     auto m_it = std::find_if(m_Model.begin(),m_Model.end(),[&ModelName](const SG_Model& modl)
     {
         return modl.Model_Name == ModelName;
     });
     if(m_it != m_Model.end())
     {
-        CreateTexture(m_it,"../SegoSystem/Renderer/models/viking_room.png","ClosetTexture");
+       //CreateTexture(m_it,"../SegoSystem/Renderer/models/viking_room.png","ClosetTexture");
+       //CreateTexture(m_it,"../Resource/Texture/Diffuse_FishSoup_Pot_1.jpg","PotTexture");
     }
     
     app_device.SGvk_Device_Create_UniformBuffers();
@@ -264,22 +261,45 @@ memcpy(app_device.uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
 }
 
 //CreateResourceFunction
+
 void Application::CreateModel(std::string ModelPath,std::string ModelName)
 {
     m_Model.push_back({ModelPath,ModelName});
+    std::string ext;
+    
+    size_t dot_pos = ModelPath.find_last_of(".");
+    ext = ModelPath.substr(dot_pos + 1);
 
     auto m_it = std::find_if(m_Model.begin(),m_Model.end(),[&ModelName](const SG_Model& modl)
     {
         return modl.Model_Name == ModelName;
     });
-
-    if(m_it != m_Model.end())
+    if(ext == "mesh")
+    {   std::cout << ext << std::endl;
+        m_it->model_type = Modeltype::mesh;
+    }
+    else if(ext == "obj")
+    {
+        std::cout << ext << std::endl;
+        m_it->model_type = Modeltype::obj;
+    }
+    
+    if(m_it != m_Model.end() && m_it->model_type == Modeltype::obj)
     {
         SG_CRes::loadModel_tiny_obj(m_it);
         SG_CRes::SGvk_Device_Create_VertexBuffer(m_it,app_device.device,app_device.physicalDevice,
         app_device.commandPool,app_device.presentQueue);
         SG_CRes::SGvk_Device_Create_IndexBuffer(m_it,app_device.device,app_device.physicalDevice,
         app_device.commandPool,app_device.presentQueue);
+    }
+    else if(m_it != m_Model.end() && m_it->model_type == Modeltype::mesh)
+    {
+        SG_CRes::loadModel_mesh(m_it);
+        SG_CRes::SGvk_Device_Create_VertexBuffer(m_it,app_device.device,app_device.physicalDevice,
+        app_device.commandPool,app_device.presentQueue);
+        SG_CRes::SGvk_Device_Create_IndexBuffer(m_it,app_device.device,app_device.physicalDevice,
+        app_device.commandPool,app_device.presentQueue);
+        
     }
     else
     {

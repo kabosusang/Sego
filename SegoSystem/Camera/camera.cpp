@@ -25,7 +25,7 @@ float lastFrame = 0.0f; // 上一帧的时间
 
 bool GetcameraInput(KeyDownEvent& e)
 {
-    float cameraSpeed = 2.5f * deltaTime; //adjust accordingly
+    float cameraSpeed = 10.f * deltaTime; //adjust accordingly
     
     if (e.GetEventType() == EventType::KeyPressed)
     {
@@ -58,7 +58,7 @@ bool GetcameraInput(KeyDownEvent& e)
 
 bool GetcameraRepeateInput(KeyDownRepeate& e)
 {
-    float cameraSpeed = 2.5f * deltaTime; //adjust accordingly
+    float cameraSpeed = 5.f * deltaTime; //adjust accordingly
     
     if (e.GetEventType() == EventType::KeyDownRepeate)
     {
@@ -122,7 +122,7 @@ bool GetCursorInput(MouseMoveEvent& e)
         lastX = e.GetMouseX();
         lastY = e.GetMouseY();
 
-        float sensitivity = 0.05f; //灵敏度
+        float sensitivity = 0.1f; //灵敏度
         xoffset *= sensitivity;
         yoffset *= sensitivity;
 
@@ -150,12 +150,11 @@ float fov = 45.0f;
 bool GetCursorScrollInput(MouseScrollEvent& e)
 {
     
-    if(fov >= 1.0f && fov <= 45.0f)
+    if(fov >= 1.0f && fov <= 90.0f)
         fov -= e.GetScrollY();
     if(fov <= 1.0f)
         fov = 1.0f;
-    if(fov >= 45.0f)
-        fov = 45.0f;
-
+    if(fov >= 90.0f)
+        fov = 90.0f;
 
 }

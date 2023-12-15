@@ -1,7 +1,7 @@
 #pragma once
 #include <rapidxml.hpp>
-#include <rapidxml/rapidxml_print.hpp>
-#include <rapidxml/rapidxml_utils.hpp>
+#include <rapidxml_print.hpp>
+#include <rapidxml_utils.hpp>
 #include <string>
 
 
@@ -9,7 +9,9 @@
 
 class Material
 {
+public:
     void Parse(std::string material_path);
+    Material():Model_name_("null"),vshader_path_("null"),fshader_path_("null") {};
 
 public:
     const char* Model_name_;

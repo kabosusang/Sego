@@ -1,35 +1,53 @@
 #include "Core/Mesh/Mesh.h"
+//texture
+#include <stb_image.h>
 
-using namespace std;
 MeshFilter::~MeshFilter()
 {
     delete mesh_;
 }
-
-void MeshFilter::LoadMesh(string mesh_file_path)
+#include <iostream>
+void MeshFilter::LoadMesh(std::string mesh_file_path)
 {
     //读取 Mesh文件头
-    ifstream input_file_stream(mesh_file_path,ios::in | ios::binary);
+    std::ifstream input_file_stream(mesh_file_path,std::ios::in | std::ios::binary);
     MeshFileHead mesh_file_head;
 
     //读取文件头
     input_file_stream.read((char*)&mesh_file_head,sizeof(mesh_file_head)); 
     //读取顶点数据
-    unsigned char* vertex_data = (unsigned char*)malloc(mesh_file_head.vertex_num_*sizeof(Msh_Vertex));
-    input_file_stream.read((char*)vertex_data,mesh_file_head.vertex_index_num_*sizeof(Msh_Vertex));
+
+    std::vector<Vertex> vertex_data(mesh_file_head.vertex_num_);
+    input_file_stream.read(reinterpret_cast<char*>(vertex_data.data()), 
+    mesh_file_head.vertex_num_ * sizeof(Vertex));
+
+#ifdef GLFW_INCLUDE_VULKAN
+    // Step 1: Flip Y-axis
+    //vertex_data.y = 1.0f - texCoord.y;
+    // Step 2: Change origin from top-left to bottom-left
+    //texCoord.y = 1.0f - texCoord.y;
+    for (auto data = vertex_data.begin(); data != vertex_data.end(); data++ )
+    {
+        data->texCoord.y = 1.0f - data->texCoord.y;
+    }
+    
+#endif
 
     //读取顶点索引数据  
-    unsigned short* vertex_index_data = (unsigned short*)malloc(mesh_file_head.vertex_index_num_*sizeof(unsigned short));
-    input_file_stream.read((char*)vertex_index_data,mesh_file_head.vertex_index_num_*sizeof(unsigned short));
+    std::vector<unsigned short> vertex_index_data(mesh_file_head.vertex_index_num_);
+    input_file_stream.read(reinterpret_cast<char*>(vertex_index_data.data()), 
+    mesh_file_head.vertex_index_num_ * sizeof(unsigned short));
 
-    input_file_stream.close();
 
     mesh_ = new Mesh();
-    mesh_->vertex_num_=mesh_file_head.vertex_num_;
-    mesh_->vertex_index_num_=mesh_file_head.vertex_index_num_;
-    mesh_->vertex_data_=(Msh_Vertex*)vertex_data;
-    mesh_->vertex_index_data_=vertex_index_data;
+    mesh_->vertex_num_ = mesh_file_head.vertex_num_;
+    mesh_->vertex_index_num_ = mesh_file_head.vertex_index_num_;
+    std::cout << "vertex_num_:" <<  mesh_->vertex_num_ << std::endl;
+    std::cout << "vertex_index_num_:" <<  mesh_->vertex_index_num_ << std::endl;
 
+    mesh_->vertex_data_ = std::move(vertex_data);
+    mesh_->vertex_index_data_ = std::move(vertex_index_data);
+        
 }
 
 Texture2D* Texture2D::LoadFromFile(std::string& image_file_path)
@@ -47,17 +65,17 @@ Texture2D* Texture2D::LoadFromFile(std::string& image_file_path)
         switch (channels_in_file) {
             case 1:
             {
-                texture2d->texture_format_ = GL_ALPHA;
+                texture2d->texture_format_ = texformat::TX_ALPHA;
                 break;
             }
             case 3:
             {
-                texture2d->texture_format_ = GL_RGB;
+                texture2d->texture_format_ = texformat::TX_RGB;
                 break;
             }
             case 4:
             {
-                texture2d->texture_format_ = GL_RGBA;
+                texture2d->texture_format_ = texformat::TX_RGBA;
                 break;
             }
         }

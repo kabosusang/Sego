@@ -67,23 +67,6 @@ std::vector<const char*> getRequiredExtensions() {
 
 
 
-/** Choose Function
- * SGvk_Device_Choose_QueueFamilies
- * Vk_Device_Status_PhysicalDevice
- * Vk_Device_Status_CheckDeviceExtensionSupport
- * Vk_Device_Status_QuerySwapChainSupport
- * SGvk_Device_Choose_SwapSurfaceFormat
- * SGvk_Device_Choose_SwapPresentMode
- * SGvk_Device_Choose_Choose_SwapExtent
- * SGvk_Device_Choose_FindDepthFormat
- * 
- * 
- * 
- * 
- * 
-*/
-//寻找队列
-
 QueueFamilyIndices Application_Device::SGvk_Device_Choose_QueueFamilies(VkPhysicalDevice device)
 {
      QueueFamilyIndices indices;
@@ -249,35 +232,6 @@ VkFormat Application_Device::SGvk_Device_Choose_FindSupportedFormat(const std::v
 
 }
 
-/** Create Function
- * SGvk_Device_Create_Instance
- * SGvk_Device_Create_Surface
- * SGvk_Device_Choose_Create_PhysicalDevice
- * SGvk_Device_Create_LogicalDevice
- * SGvk_Device_Create_SwapChain
- * SGvk_Device_Create_ImageViews  SGvk_Device_Create_ImageView_AttachFuc
- * SGvk_Device_Create_RenderPass
- * SGvk_Device_Create_DescriptorSetLayout
- * SGvk_Device_Create_GraphicsPipeline
- * SGvk_Device_Create_ShaderModule
- * SGvk_Device_Create_DepthResources
- * SGvk_Device_Create_Image   findMemoryType
- * SGvk_Device_Create_ImageView  
- * SGvk_Device_Create_Framebuffers
- * SGvk_Device_Create_CommandPool
- * SGvk_Device_Create_TextureImage SGvk_Device_Create_Buffer
- * SGvk_Device_Create_TextureImageView
- * SGvk_Device_Create_TransitionImageLayout
- * SGvk_Device_Create_TextureSampler
- * SGvk_Device_Create_VertexBuffer
- * SGvk_Device_Create_IndexBuffer
- * SGvk_Device_Create_UniformBuffers
- * SGvk_Device_Create_DescriptorPool
- * SGvk_Device_Create_DescriptorSets
- * SGvk_Device_Create_CommandBuffer
- * SGvk_Device_Create_SyncObjects
- * 
-*/
 //ins
 void Application_Device::SGvk_Device_Create_Instance()
 {
