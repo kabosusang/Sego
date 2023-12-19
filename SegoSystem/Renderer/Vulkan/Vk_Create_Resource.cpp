@@ -32,14 +32,34 @@ VkCommandPool& commandPool,
 VkQueue& graQue
 )
 {
+int texChannels;
 
-int texWidth,texHeight,texChannels;
+stbi_uc* pixels = stbi_load(Te_it->Texture_Path.c_str(),
+&Te_it->Texture_Attribute.wdith_,&Te_it->Texture_Attribute.height_,&texChannels,
+STBI_rgb_alpha);
 
-stbi_uc* pixels = stbi_load(Te_it->Texture_Path.c_str(),&texWidth,&texHeight,&texChannels,STBI_rgb_alpha);
-VkDeviceSize imageSize = texWidth * texHeight * 4;
+VkDeviceSize imageSize = Te_it->Texture_Attribute.wdith_ * Te_it->Texture_Attribute.height_ * 4;
     if (!pixels) {
         SG_CORE_ERROR("failed to load texture image!");
     }
+        //根据颜色通道数，判断颜色格式。
+        switch (texChannels) {
+            case 1:
+            {
+                Te_it->Texture_Attribute.texture_format_ = texformat::TX_ALPHA;
+                break;
+            }
+            case 3:
+            {
+                Te_it->Texture_Attribute.texture_format_ = texformat::TX_RGB;
+                break;
+            }
+            case 4:
+            {
+                Te_it->Texture_Attribute.texture_format_ = texformat::TX_RGBA;
+                break;
+            }
+        }
 
 VkBuffer stagingBuffer;
 VkDeviceMemory stagingBufferMemory;
@@ -59,15 +79,15 @@ stbi_image_free(pixels);
 //设置纹理数据
 
 //设置mip层数
-Te_it->mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth,texHeight)))) + 1;
+Te_it->mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(Te_it->Texture_Attribute.wdith_,Te_it->Texture_Attribute.height_)))) + 1;
 
-SG_Allocate::SGvk_Device_Create_Image(physicalDevice,device,texWidth, texHeight,VK_FORMAT_R8G8B8A8_SRGB, 
+SG_Allocate::SGvk_Device_Create_Image(physicalDevice,device,Te_it->Texture_Attribute.wdith_, Te_it->Texture_Attribute.height_,VK_FORMAT_R8G8B8A8_SRGB, 
 VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT
  | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
  Te_it->textureImage, Te_it->textureImageMemory);
 
 SG_Allocate::SGvk_Device_Create_TransitionImageLayout(graQue,device,commandPool,Te_it->textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-SG_Allocate::copyBufferToImage(graQue,device,commandPool,stagingBuffer, Te_it->textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+SG_Allocate::copyBufferToImage(graQue,device,commandPool,stagingBuffer, Te_it->textureImage, static_cast<uint32_t>(Te_it->Texture_Attribute.wdith_), static_cast<uint32_t>(Te_it->Texture_Attribute.height_));
 SG_Allocate::SGvk_Device_Create_TransitionImageLayout(graQue,device,commandPool,Te_it->textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
  
 vkDestroyBuffer(device, stagingBuffer, nullptr);

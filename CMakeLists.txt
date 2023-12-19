@@ -24,6 +24,7 @@ include_directories(${PROJECT_SOURCE_DIR}/vendor/tinyobjloader)
 include_directories(${PROJECT_SOURCE_DIR}/vendor/rapidxml)
 include_directories(${PROJECT_SOURCE_DIR}/vendor/stb)
 include_directories(${PROJECT_SOURCE_DIR}/SegoUI/imgui)
+include_directories(${PROJECT_SOURCE_DIR}/vendor/rttr/src)
 
 
 #add subdirectory
@@ -45,6 +46,11 @@ link_directories(D:/Vulkan1.3.246.1/Lib)
 # glfw
 link_libraries(vulkan-1)
 link_libraries(glfw3)
+
+
+#rttr
+link_directories(${PROJECT_SOURCE_DIR}/vendor/rttr/build/src/rttr)
+
 
 #源文件src
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/Resource/Editor SRC_LIST)
@@ -90,7 +96,7 @@ list(APPEND SRC_LIST ${MATERIAL})
 add_executable(editor  ${SRC_LIST})
 
 #add link
-target_link_libraries(editor PRIVATE imgui glfw3)
+target_link_libraries(editor PRIVATE imgui glfw3 rttr_core)
 
 
 

@@ -13,7 +13,6 @@ enum class Modeltype
     mesh
 };
 
-
 /**-----------------------DATA---------------------------- 
 *  SG_Texture
 *  SG_Models
@@ -23,13 +22,12 @@ class SG_Texture
 public:
     std::string Texture_Path;
     std::string Texture_Name;
-    Texture2D* Texture_Attribute;
+    Texture2D Texture_Attribute;
 
     //Texture
     uint32_t mipLevels;//mipmaplevel
     uint32_t layerCount; //用于天空可
-
-
+    
     VkImage textureImage;
     VkDescriptorImageInfo descriptor;
     VkDeviceMemory textureImageMemory;

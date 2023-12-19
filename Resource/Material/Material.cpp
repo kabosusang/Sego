@@ -42,7 +42,6 @@ void Material::Parse(string material_path)
         std::string image_path=texture_image_attribute->value();
         textures_.push_back(std::make_pair(texture_name_attribute->value(), Texture2D::LoadFromFile(image_path)));
         material_texture_node=material_texture_node->next_sibling("texture");
-
     }
 }
 

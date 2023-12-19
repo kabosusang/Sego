@@ -3,7 +3,7 @@
 bin
 build
 vendor/Vulkan
-
+.vs
 # 
 
 

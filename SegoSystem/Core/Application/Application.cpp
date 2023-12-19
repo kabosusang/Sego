@@ -54,7 +54,7 @@ Application::Application()
     if(m_it != m_Model.end())
     {
        //CreateTexture(m_it,"../SegoSystem/Renderer/models/viking_room.png","ClosetTexture");
-       //CreateTexture(m_it,"../Resource/Texture/Diffuse_FishSoup_Pot_1.jpg","PotTexture");
+       CreateTexture(m_it,"../Resource/Texture/Diffuse_FishSoup_Pot_1.jpg","PotTexture");
     }
     
     app_device.SGvk_Device_Create_UniformBuffers();
