@@ -10,3 +10,6 @@
 [submodule "rapidxml-new"]
 	path = vendor/rapidxml
 	url = https://github.com/dwd/rapidxml
+[submodule "vendor/rttr"]
+	path = vendor/rttr
+	url = https://github.com/rttrorg/rttr
