@@ -1,5 +1,5 @@
 #pragma once 
-#define GLM_ENABLE_EXPERIMENTAL
+
 #include <glm/gtx/hash.hpp>
 #include <fstream>
 #include "Data/Vertex.h"
@@ -21,11 +21,10 @@ struct MeshFileHead{
     unsigned short vertex_index_num_; //索引个数
 };
 
-
 class MeshFilter
 {
 public:
-
+    
     void LoadMesh(std::string mesh_file_path);
     Mesh* mesh(){return mesh_;};
     ~MeshFilter();
@@ -50,6 +49,8 @@ public:
     int height_;
     texformat texture_format_;
 };
+
+
 
 
 

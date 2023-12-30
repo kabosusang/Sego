@@ -41,10 +41,10 @@ QueueFamilyIndices Sg_UI::FindQueueFamilies(VkPhysicalDevice device)
     return indices;
 }
 
-
+#include "Resource/Data/UI/ini.h"
 void Sg_UI::Init_Sg_Imgui()
 {
-IMGUI_CHECKVERSION();
+    IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
 
@@ -60,8 +60,11 @@ IMGUI_CHECKVERSION();
 
     io.Fonts->AddFontFromFileTTF("../Resource/ziti.ttf",18,NULL,io.Fonts->GetGlyphRangesChineseFull());
 
+    ImGui::GetIO().IniFilename = IMGUI_INI; //ImGui Layout 
+
     ImGui::StyleColorsDark();
     ImGuiStyle& style = ImGui::GetStyle();
+    
     style.WindowRounding = 4;
     style.FrameRounding = 4;
     style.GrabRounding = 3;
@@ -129,6 +132,10 @@ IMGUI_CHECKVERSION();
     init_info.DescriptorPool = uiDescriptorPool;
     init_info.MinImageCount = MinImageCount;
     init_info.ImageCount = MinImageCount;
+    init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+	init_info.Allocator = nullptr;
+	init_info.CheckVkResultFn = nullptr;
+
     ImGui_ImplVulkan_Init(&init_info, uiRenderPass);
 
     // Upload the fonts for DearImgui
@@ -376,6 +383,7 @@ std::vector<VkImageView>& swapimviews,VkExtent2D Extent)
     swapChainImages = swapimage;
     swapChainImageViews = swapimviews;
     swapChainExtent = Extent;
+    
 
     ImGui_ImplVulkan_SetMinImageCount(MinImageCount);
     createUICommandBuffers();

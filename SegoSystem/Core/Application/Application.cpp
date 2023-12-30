@@ -2,10 +2,21 @@
 #include "Renderer/Vulkan/Vk_Device_Init.h"
 
 #include "Renderer/SgUI/GUI.h"
-#include "VKimgui.h"
+#include "Editor/VKimgui.h"
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+
+#include "SGComponent/game_object.h"
+#include "SGComponent/component.h"
+#include "SGComponent/transform.h"
 //Main Window Instance
+#include "Camera/camera.h"
+#include "Object/object.h"
+
+//创建Object UI 和 Scene UI
+Object_Attr obj_ui("ObjectUI",0);
+App_Attr scene_ui("Scene",1);
+
 Application::Application()
 {
     glfwInit();
@@ -28,21 +39,7 @@ Application::Application()
     SG_CORE_INFO("Hello World {0} , {1}",m_Window->GetWidth(),m_Window->GetHeight());
 
     app_device.InputWindow(m_Window->GetWindow());
-    app_device.SGvk_Device_Create_Instance();// ins
-    app_device.setupDebugMessenger();
-    app_device.SGvk_Device_Create_Surface();// sur
-    app_device.SGvk_Device_Choose_Create_PhysicalDevice();//phy
-    app_device.SGvk_Device_Create_LogicalDevice();//log
-    app_device.SGvk_Device_Create_SwapChain();//swp
-    app_device.SGvk_Device_Create_ImageViews();//img
-    app_device.SGvk_Device_Create_RenderPass();//Ren
-    app_device.SGvk_Device_Create_DescriptorSetLayout();//des
-    app_device.SGvk_Device_Create_GraphicsPipeline("../SegoSystem/Renderer/shaders/vert.spv",
-    "../SegoSystem/Renderer/shaders/frag.spv");
-    app_device.SGvk_Device_Create_DepthResources();
-    app_device.SGvk_Device_Create_Framebuffers();
-    app_device.SGvk_Device_Create_CommandPool();
-
+    app_device.InitVulkan();
     std::string ModelName = "Pot";
     //CreateModel("../SegoSystem/Renderer/models/viking_room.obj","haha");
     //CreateModel("../Resource/Model/obj/pot.obj",ModelName);
@@ -56,7 +53,7 @@ Application::Application()
        //CreateTexture(m_it,"../SegoSystem/Renderer/models/viking_room.png","ClosetTexture");
        CreateTexture(m_it,"../Resource/Texture/Diffuse_FishSoup_Pot_1.jpg","PotTexture");
     }
-    
+    //Create Resource
     app_device.SGvk_Device_Create_UniformBuffers();
     app_device.SGvk_Device_Create_DescriptorPool();
     app_device.SGvk_Device_Create_DescriptorSets(m_it->m_Texture);
@@ -67,11 +64,39 @@ Application::Application()
     ,app_device.device,app_device.swapChainImageFormat,app_device.swapChainImages,app_device.swapChainImageViews
     ,app_device.swapChainExtent,app_device.graphicsqueue,app_device.presentQueue);
     Sg_ui.Init_Sg_Imgui(); //初始化imgui
-
     MinImageCount = app_device.image_count;
+    
+    //初始化UI class
+    int width,height;
+    glfwGetWindowPos(m_Window->GetWindow(),&width,&height);
+    m_Window->SetWindowPos(width,height);
+   
+
+
+    //创建GameObject
+    GameObject* go = new GameObject("GO");
+    //挂上 Transform
+    transform_obj = dynamic_cast<Transform*>(go->AddComponent("Transform"));
+    transform_obj->set_position(glm::vec3(0.0f));
+    transform_obj->set_rotation(glm::vec3(0.0f,0.0f,0.0f));
+    transform_obj->set_scale(glm::vec3(1.0f));
+    //挂上 SG_Object
+    sg_obj = dynamic_cast<SG_Object*>(go->AddComponent("SG_Object"));
+    
+
+
+    //创建相机Object
+    auto go_camera = new GameObject("main_camera");
+    //挂上 Transform组件
+    transform_camera = dynamic_cast<Transform*>(go_camera->AddComponent("Transform"));
+    transform_camera->set_position(glm::vec3(0.0f,0.0f,4.0f));
+    //挂上Camera组件
+    camera =dynamic_cast<Camera*>(go_camera->AddComponent("Camera"));
+  
+
+
 
 }
-
 
 void Application::Run()
 {
@@ -81,7 +106,7 @@ void Application::Run()
         Application_DrawFrame();
     }
     vkDeviceWaitIdle(app_device.GetDevice());
-    initnumber = true; //重置Imgui位置
+   
 }
 #include "Events/KeyEvent.h"
 #include "Camera/camera.h"
@@ -195,7 +220,6 @@ if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR
 
 //前进下一帧
 currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-
     //camera相关
     float currentFrame = glfwGetTime();
     deltaTime = currentFrame - lastFrame;
@@ -205,14 +229,17 @@ currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
 
 
+//IMGUI
 void Application::drawUI()
-{
-    // Resize swap chain?
+{   
+    //WindowPos Updata
     
+    // Resize swap chain?
         if (g_SwapChainRebuild)
         {
             int width, height;
             glfwGetFramebufferSize(m_Window->GetWindow(), &width, &height);
+
             if (width > 0 && height > 0)
             {
                 ImGui_ImplVulkan_SetMinImageCount(MinImageCount);
@@ -220,6 +247,13 @@ void Application::drawUI()
                 g_MainWindowData.FrameIndex = 0;
                 g_SwapChainRebuild = false;
             }
+            //Window updata size
+            glfwGetWindowPos(m_Window->GetWindow(),&width,&height);
+            m_Window->SetWindowPos(width,height);
+
+            glfwGetWindowSize(m_Window->GetWindow(),&width,&height);
+            m_Window->SetWindowSize(width,height);
+         
         }
 
     // Start the Dear ImGui frame
@@ -227,9 +261,11 @@ void Application::drawUI()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
    // ImGui::DockSpaceOverViewport(); 使得imgui主窗口停靠但是渲染被遮挡了
+    ImGui::DockSpaceOverViewport(nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
+    obj_ui.Run_UI();
+    scene_ui.Run_UI();
 
-    DrawGUI(app_device.wd);
- 
+
     // Render Dear ImGui
     ImGuiIO& io = ImGui::GetIO();
     ImGui::Render();
@@ -241,20 +277,24 @@ void Application::drawUI()
 }
 }
 
-#include "Camera/camera.h"
+
 //更新统一数据
 void Application::updateUniformBuffer(uint32_t currentImage)
 {
-static auto startTime = std::chrono::high_resolution_clock::now();
 
-auto currentTime = std::chrono::high_resolution_clock::now();
-float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+//camera
+transform_camera->set_position(cameraPos);
+camera->SetView(cameraPos + cameraFront,cameraUp);
+camera->SetProjection(fov,app_device.swapChainExtent.width / (float) app_device.swapChainExtent.height, 0.1f, 10.0f);
+
+//object
+sg_obj->ChangeModelPosition(); //接收变换后的position
 
 UniformBufferObject ubo{};
-ubo.model = glm::mat4(1.0f);
-ubo.view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+ubo.model = sg_obj->Model_mat4();
+ubo.view = camera->view_mat4();
 //ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-ubo.proj = glm::perspective(glm::radians(fov), app_device.swapChainExtent.width / (float) app_device.swapChainExtent.height, 0.1f, 10.0f);
+ubo.proj = camera->projection_mat4();
 ubo.proj[1][1] *= -1;
 
 memcpy(app_device.uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));

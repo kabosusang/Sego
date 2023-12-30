@@ -93,6 +93,8 @@ class Application_Device
 public:
     //Window
     inline void InputWindow(GLFWwindow* window){ wd = window;}
+    void InitVulkan();
+    void InitResource();
 
     //create
     void SGvk_Device_Create_Instance(); //instance

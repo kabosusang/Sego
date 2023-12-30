@@ -1,8 +1,13 @@
 #include "camera/camera.h"
-
-
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_ENABLE_EXPERIMENTAL
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include "camera.h"
+#define GLM_DISABLE_GTX_HASH
+
+
 //lookat
 //摄像机位置
 glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f, 4.0f);
@@ -85,8 +90,6 @@ bool GetcameraRepeateInput(KeyDownRepeate& e)
         }
     }
 
-    
-
     return true;
 }
 
@@ -156,5 +159,30 @@ bool GetCursorScrollInput(MouseScrollEvent& e)
         fov = 1.0f;
     if(fov >= 90.0f)
         fov = 90.0f;
-
 }
+
+#include <rttr/registration>
+#include "SGComponent/game_object.h"
+
+using namespace rttr;
+RTTR_REGISTRATION//注册反射
+{
+    registration::class_<Camera>("Camera")
+            .constructor<>()(rttr::policy::ctor::as_raw_ptr);
+}
+
+void Camera::SetView(const glm::vec3 &camerForward, const glm::vec3 &camerUp)
+{
+    auto transform = dynamic_cast<Transform*>(game_object()->GetComponent("Transform"));
+    view_mat4_ = glm::lookAt(transform->position(), camerForward, cameraUp);
+}
+
+void Camera::SetProjection(float fovDegrees, float aspectRatio, float nearClip, float farClip)
+{
+    projection_mat4_ = glm::perspective(glm::radians(fovDegrees),aspectRatio,nearClip,farClip);
+}
+
+Camera* camera;
+Transform* transform_camera;
+
+

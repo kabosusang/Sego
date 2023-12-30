@@ -1,9 +1,8 @@
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#pragma once
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "SGobject/component.h"
+#include "SGComponent/component.h"
 
 class Transform : public Component
 {

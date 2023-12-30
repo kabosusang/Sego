@@ -2,6 +2,20 @@
 //texture
 #include <stb_image.h>
 
+//注册MeshFilter
+
+#include <rttr/registration>
+
+using namespace rttr;
+RTTR_REGISTRATION//注册反射
+{
+    registration::class_<MeshFilter>("MeshFilter")
+            .constructor<>()(rttr::policy::ctor::as_raw_ptr);
+            
+}
+
+
+
 MeshFilter::~MeshFilter()
 {
     delete mesh_;
@@ -47,7 +61,12 @@ void MeshFilter::LoadMesh(std::string mesh_file_path)
 
     mesh_->vertex_data_ = std::move(vertex_data);
     mesh_->vertex_index_data_ = std::move(vertex_index_data);
+    
+
+
         
+
+
 }
 
 Texture2D* Texture2D::LoadFromFile(std::string& image_file_path)
@@ -87,6 +106,9 @@ Texture2D* Texture2D::LoadFromFile(std::string& image_file_path)
     stbi_image_free(data);
     return texture2d;
 }
+
+
+
 
 
 

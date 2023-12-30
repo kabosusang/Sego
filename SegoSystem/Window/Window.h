@@ -26,7 +26,7 @@ struct WindowData
 public:
 void Init();
 
-SegoWindow(GLFWwindow* gwindow,int w,int h) : GLwindow(gwindow), Window_Width(w),Window_Height(h)
+SegoWindow(GLFWwindow* gwindow,int w,int h) : GLwindow(gwindow), Window_Width_(w),Window_Height_(h)
 {
 GLFWimage images[1]; 
 images[0].pixels = stbi_load("../SegoSystem/image/Sego.png", &images[0].width, &images[0].height, 0, 4); //rgba channels 
@@ -43,15 +43,25 @@ inline void SetEventCallback(const EventCallbackFn& callback)
 }
 
 inline void DestorySegowindow() {glfwDestroyWindow(GLwindow);glfwTerminate();}
-inline int GetHeight() { return Window_Height;}
-inline int GetWidth() { return Window_Width;}
+inline int GetHeight() { return Window_Height_;}
+inline int GetWidth() { return Window_Width_;}
+inline int GetXpos() {return Window_Posx_;}
+inline int GetYpos() {return Window_Posy_;}
+
+inline void SetWindowSize(int w,int h) {  Window_Width_ = w; Window_Height_ = h;}
+inline void SetWindowPos(int x,int y) {  Window_Posx_ = x; Window_Posy_ = y;}
+
 inline GLFWwindow* GetWindow() {return GLwindow ;}
-
-
 private:
 GLFWwindow* GLwindow;
-int Window_Width;
-int Window_Height;
+//不包含标题栏的大小
+int Window_Width_;
+int Window_Height_;
+
+//窗口位置
+int Window_Posx_;
+int Window_Posy_;
+
 
 WindowData m_Data;
 };

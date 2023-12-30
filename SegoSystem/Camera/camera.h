@@ -1,7 +1,6 @@
 #pragma once
 //定义UBO
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "Log/Log.h"
@@ -26,7 +25,6 @@ extern glm::vec3 cameraPos;
 extern glm::vec3 cameraFront ;
 extern glm::vec3 cameraUp ;
 
-
 extern glm::vec3 cameraTarget;
 extern glm::vec3 cameraDirection ;
 
@@ -43,3 +41,47 @@ extern float lastY ;
 //scroll
 extern float fov;
 extern bool FPSmode;
+
+#include "SGComponent/component.h"
+class Camera: public Component
+{
+public:
+//camerForward 相机超前方向
+//camerUp 相机朝上方向
+void SetView(const glm::vec3& camerForward,const glm::vec3& camerUp);
+
+//设置相机视野
+/// param fovDegrees   相机视野 可视角度
+/// param aspectRatio  宽高比
+/// param nearClip 近裁剪面
+/// param farClip  远裁剪面
+void SetProjection(float fovDegrees,float aspectRatio,float nearClip,float farClip);
+
+///遍历所有Camera
+/// param func
+static void Foreach(std::function<void()> func);
+
+/// 选中camera
+static Camera* current_camera() {return current_camera_;}
+
+
+
+glm::mat4& view_mat4(){return view_mat4_;}
+glm::mat4& projection_mat4(){return projection_mat4_;}
+
+
+private:
+    glm::mat4 view_mat4_;//指定相机坐标和朝向
+    glm::mat4 projection_mat4_;//指定相机范围
+    glm::vec4 clear_color; //清屏颜色
+    std::vector<Camera*> all_camera_; //每一帧遍历所有Camera, 设置current_camera_
+    static Camera* current_camera_;
+
+};
+#include "SGComponent/transform.h"
+extern Camera* camera;
+extern Transform* transform_camera;
+
+
+
+

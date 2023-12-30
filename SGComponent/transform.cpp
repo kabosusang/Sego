@@ -1,6 +1,6 @@
 #include <rttr/registration>
 
-#include "SGobject/transform.h"
+#include "SGComponent/transform.h"
 
 using namespace rttr;
 RTTR_REGISTRATION//注册反射
@@ -10,11 +10,7 @@ RTTR_REGISTRATION//注册反射
             .property("position", &Transform::position, &Transform::set_position)
             .property("rotation", &Transform::rotation, &Transform::set_rotation)
             .property("scale", &Transform::scale, &Transform::set_scale);
-
-
-
-
-
+            
 }
 
 Transform::Transform()

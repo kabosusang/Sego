@@ -44,7 +44,7 @@ private:
     std::unique_ptr<SegoWindow> m_Window;//Main Window
     //Device
     Application_Device app_device;
-    //UI
+    //UI Init Function
     Sg_UI Sg_ui;
 
     uint32_t currentFrame = 0;//帧索引
@@ -54,5 +54,7 @@ private:
 
     //Model
     std::vector<SG_Model> m_Model;
+    //Imgui n
+   
 
 };

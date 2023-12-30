@@ -8,6 +8,7 @@
 #include <set>
 #include <string>
 #include <array>
+#include "Vk_Device_Init.h"
 
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
@@ -64,8 +65,24 @@ std::vector<const char*> getRequiredExtensions() {
     }
     return extensions;
 }
+void Application_Device::InitVulkan()
+{
+    SGvk_Device_Create_Instance();// ins
+    setupDebugMessenger();
+    SGvk_Device_Create_Surface();// sur
+    SGvk_Device_Choose_Create_PhysicalDevice();//phy
+    SGvk_Device_Create_LogicalDevice();//log
+    SGvk_Device_Create_SwapChain();//swp
+    SGvk_Device_Create_ImageViews();//img
+    SGvk_Device_Create_RenderPass();//Ren
+    SGvk_Device_Create_DescriptorSetLayout();//des
+    SGvk_Device_Create_GraphicsPipeline("../SegoSystem/Renderer/shaders/vert.spv",
+    "../SegoSystem/Renderer/shaders/frag.spv");
+    SGvk_Device_Create_DepthResources();
+    SGvk_Device_Create_Framebuffers();
+    SGvk_Device_Create_CommandPool();
 
-
+}
 
 QueueFamilyIndices Application_Device::SGvk_Device_Choose_QueueFamilies(VkPhysicalDevice device)
 {
@@ -167,11 +184,17 @@ SwapChainSupportDetails Application_Device::Vk_Device_Status_QuerySwapChainSuppo
 //choose best SurfaceFormat
 VkSurfaceFormatKHR Application_Device::SGvk_Device_Choose_SwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) 
 {
+    if (availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED)
+		{
+			return { VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
+		}
+
     for (const auto& availableFormat : availableFormats) {
     if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
         return availableFormat;
     }
-}
+    }
+
     return availableFormats[0];//如果不满足上面的条件则默认选择第一个
 
 }
@@ -233,17 +256,18 @@ VkFormat Application_Device::SGvk_Device_Choose_FindSupportedFormat(const std::v
 }
 
 //ins
-void Application_Device::SGvk_Device_Create_Instance()
+void Application_Device::SGvk_Device_Create_Instance() 
 {
+
    if(enableValidationLayers && !checkValidationLayerSupport()){
-        throw std::runtime_error("validation layers requested, but not available!");
+        SG_CORE_ERROR("validation layers requested, but not available!");
     }
 
     VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = "Hello Triangle";
+    appInfo.pApplicationName = "Sego";
     appInfo.applicationVersion = VK_MAKE_VERSION(1,0,0);
-    appInfo.pEngineName = "No Engine";
+    appInfo.pEngineName = "Sego Engine";
     appInfo.engineVersion = VK_MAKE_VERSION(1,0,0);
     appInfo.apiVersion = VK_API_VERSION_1_0;
     

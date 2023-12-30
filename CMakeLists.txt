@@ -12,8 +12,8 @@ set(EXECUTABLE_OUTPUT_PATH ${output_bin})
 
 #头文件
 #SegoHead
+include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/SegoSystem)
-include_directories(${PROJECT_SOURCE_DIR}/Resource/Editor)
 include_directories(${PROJECT_SOURCE_DIR}/Resource)
 #
 include_directories(${PROJECT_SOURCE_DIR}/vendor/)
@@ -33,15 +33,16 @@ add_subdirectory(vendor/imgui)
 
 
 #Vulkan
-include_directories(D:/Vulkan1.3.246.1/Include)
+set(VULKAN_PATH $ENV{VULKAN_SDK})
+
+message("VULKAN_SDK: ${VULKAN_PATH}")
+include_directories(${VULKAN_PATH}/Include)
+link_directories(${VULKAN_PATH}/Lib)
+
 
 #lib  
 # 包含库路径
 link_directories(${PROJECT_SOURCE_DIR}/vendor/glfw/build/src) # 静态
-
-#Vulkan lib
-link_directories(D:/Vulkan1.3.246.1/Lib)
-
 
 # glfw
 link_libraries(vulkan-1)
@@ -64,7 +65,6 @@ file(GLOB THREAD "SegoSystem/ThreadPool/*.cpp")
 file(GLOB WINDOW "SegoSystem/Window/*.cpp")
 file(GLOB CAMERA "SegoSystem/camera/*.cpp")
 
-
 #添加vulkan渲染源文件
 file(GLOB APPLICATION "SegoSystem/Core/Application/*.cpp")
 file(GLOB VULKAN "SegoSystem/Renderer/Vulkan/*.cpp")
@@ -74,6 +74,10 @@ file(GLOB SGUI "SegoSystem/Renderer/SgUI/*.cpp")
 file(GLOB MESH "SegoSystem/Core/Mesh/*.cpp")
 file(GLOB MATERIAL "Resource/Material/*.cpp")
 
+#添加OBJECT
+file(GLOB OBJECT "SegoSystem/Object/*.cpp")
+#添加Component
+file(GLOB COMPONENT "SGComponent/*.cpp")
 
 
 #APPEND LIST
@@ -90,6 +94,8 @@ list(APPEND SRC_LIST ${SGUI})
 #Data 
 list(APPEND SRC_LIST ${MESH})
 list(APPEND SRC_LIST ${MATERIAL})
+list(APPEND SRC_LIST ${COMPONENT})
+list(APPEND SRC_LIST ${OBJECT})
 
 
 #add exe
