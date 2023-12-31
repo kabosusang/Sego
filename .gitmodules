@@ -13,3 +13,6 @@
 [submodule "vendor/rttr"]
 	path = vendor/rttr
 	url = https://github.com/rttrorg/rttr
+[submodule "vendor/freetype-2.13.2"]
+	path = vendor/freetype-2.13.2
+	url = https://github.com/freetype/freetype
