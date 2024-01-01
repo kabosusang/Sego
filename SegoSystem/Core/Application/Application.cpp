@@ -1,5 +1,6 @@
 #include "Core/Application/Application.h"
 #include "Renderer/Vulkan/Vk_Device_Init.h"
+#include "VK_Global_Data.h"
 
 #include "Renderer/SgUI/GUI.h"
 #include "Editor/VKimgui.h"
@@ -60,8 +61,8 @@ Application::Application()
     app_device.SGvk_Device_Create_CommandBuffer();
     app_device.SGvk_Device_Create_SyncObjects();
 
-    Sg_ui.SgUI_Input(m_Window->GetWindow(),app_device.instance,app_device.surface,app_device.physicalDevice
-    ,app_device.device,app_device.swapChainImageFormat,app_device.swapChainImages,app_device.swapChainImageViews
+    Sg_ui.SgUI_Input(m_Window->GetWindow(),app_device.instance,app_device.surface,g_physicalDevice
+    ,g_device,app_device.swapChainImageFormat,app_device.swapChainImages,app_device.swapChainImageViews
     ,app_device.swapChainExtent,app_device.graphicsqueue,app_device.presentQueue);
     Sg_ui.Init_Sg_Imgui(); //初始化imgui
     MinImageCount = app_device.image_count;
@@ -105,7 +106,7 @@ void Application::Run()
         drawUI();
         Application_DrawFrame();
     }
-    vkDeviceWaitIdle(app_device.GetDevice());
+    vkDeviceWaitIdle(g_Device);
    
 }
 #include "Events/KeyEvent.h"
@@ -140,10 +141,10 @@ Application::~Application()
 
 void Application::Application_DrawFrame()
 {
-vkWaitForFences(app_device.device,1,&app_device.inFlightFences[currentFrame],VK_TRUE,UINT64_MAX);
+vkWaitForFences(g_device,1,&app_device.inFlightFences[currentFrame],VK_TRUE,UINT64_MAX);
 
 uint32_t imageIndex;
-VkResult result = vkAcquireNextImageKHR(app_device.device,app_device.swapChain,UINT64_MAX,app_device.imageAvailableSemaphores[currentFrame],VK_NULL_HANDLE,&imageIndex);
+VkResult result = vkAcquireNextImageKHR(g_device,app_device.swapChain,UINT64_MAX,app_device.imageAvailableSemaphores[currentFrame],VK_NULL_HANDLE,&imageIndex);
 if(result == VK_ERROR_OUT_OF_DATE_KHR)//交换链已与 表面，不能再用于渲染。通常发生在调整窗口大小后
 {
     g_SwapChainRebuild = true;
@@ -157,7 +158,7 @@ if(result == VK_ERROR_OUT_OF_DATE_KHR)//交换链已与 表面，不能再用于
     SG_CORE_ERROR("failed to acquire swap chain image!");
 }
 
-vkResetFences(app_device.device, 1, &app_device.inFlightFences[currentFrame]);
+vkResetFences(g_device, 1, &app_device.inFlightFences[currentFrame]);
 // Record UI draw data
 Sg_ui.recordUICommands(imageIndex);
 
@@ -243,7 +244,7 @@ void Application::drawUI()
             if (width > 0 && height > 0)
             {
                 ImGui_ImplVulkan_SetMinImageCount(MinImageCount);
-                ImGui_ImplVulkanH_CreateOrResizeWindow(app_device.instance, app_device.physicalDevice, app_device.device, &g_MainWindowData, Sg_ui.queueIndices.graphicsFamily.value(), nullptr, width, height, MinImageCount);
+                ImGui_ImplVulkanH_CreateOrResizeWindow(app_device.instance, g_physicalDevice, g_device, &g_MainWindowData, Sg_ui.queueIndices.graphicsFamily.value(), nullptr, width, height, MinImageCount);
                 g_MainWindowData.FrameIndex = 0;
                 g_SwapChainRebuild = false;
             }
@@ -327,17 +328,17 @@ void Application::CreateModel(std::string ModelPath,std::string ModelName)
     if(m_it != m_Model.end() && m_it->model_type == Modeltype::obj)
     {
         SG_CRes::loadModel_tiny_obj(m_it);
-        SG_CRes::SGvk_Device_Create_VertexBuffer(m_it,app_device.device,app_device.physicalDevice,
+        SG_CRes::SGvk_Device_Create_VertexBuffer(m_it,g_device,g_physicalDevice,
         app_device.commandPool,app_device.presentQueue);
-        SG_CRes::SGvk_Device_Create_IndexBuffer(m_it,app_device.device,app_device.physicalDevice,
+        SG_CRes::SGvk_Device_Create_IndexBuffer(m_it,g_device,g_physicalDevice,
         app_device.commandPool,app_device.presentQueue);
     }
     else if(m_it != m_Model.end() && m_it->model_type == Modeltype::mesh)
     {
         SG_CRes::loadModel_mesh(m_it);
-        SG_CRes::SGvk_Device_Create_VertexBuffer(m_it,app_device.device,app_device.physicalDevice,
+        SG_CRes::SGvk_Device_Create_VertexBuffer(m_it,g_device,g_physicalDevice,
         app_device.commandPool,app_device.presentQueue);
-        SG_CRes::SGvk_Device_Create_IndexBuffer(m_it,app_device.device,app_device.physicalDevice,
+        SG_CRes::SGvk_Device_Create_IndexBuffer(m_it,g_device,g_physicalDevice,
         app_device.commandPool,app_device.presentQueue);
         
     }
@@ -360,15 +361,15 @@ std::string Texture_Path,std::string Tex_Name)
     if(Tex_it != m_it->m_Texture.end())
     {
         SG_CRes::CreateTexture(Tex_it,
-        app_device.device,
-        app_device.physicalDevice,
+        g_device,
+        g_physicalDevice,
         app_device.commandPool,
         app_device.graphicsqueue);
 
-        SG_CRes::CreateTextureView(app_device.device,Tex_it->textureImage,
-        Tex_it->textureImageView);
-        SG_CRes::SGvk_Device_Create_TextureSampler(app_device.device,app_device.physicalDevice,
-        Tex_it->textureSampler);
+        SG_CRes::CreateTextureView(g_device,Tex_it->textureImage,
+        Tex_it->textureImageView,Tex_it->mipLevels);
+        SG_CRes::SGvk_Device_Create_TextureSampler(g_device,g_physicalDevice,
+        Tex_it->textureSampler,Tex_it->mipLevels);
         
         VkDescriptorImageInfo imageInfo{};
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;

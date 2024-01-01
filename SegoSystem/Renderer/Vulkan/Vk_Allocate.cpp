@@ -54,9 +54,10 @@ SG_CORE_ERROR("failed to find suitable memory type!");
 
 }
 
-void SG_Allocate::SGvk_Device_Create_Image(VkPhysicalDevice& phys,VkDevice& device,uint32_t width, uint32_t height, VkFormat format, 
-    VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, 
-    VkImage& image, VkDeviceMemory& imageMemory)
+void SG_Allocate::SGvk_Device_Create_Image(VkPhysicalDevice& phys,VkDevice& device,
+uint32_t width, uint32_t height,uint32_t mipLevels,VkFormat format, 
+VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, 
+VkImage& image, VkDeviceMemory& imageMemory)
 {
 VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -64,7 +65,7 @@ VkImageCreateInfo imageInfo{};
     imageInfo.extent.width = width;
     imageInfo.extent.height = height;
     imageInfo.extent.depth = 1;
-    imageInfo.mipLevels = 1;
+    imageInfo.mipLevels = mipLevels;
     imageInfo.arrayLayers = 1;
     imageInfo.format = format;
     imageInfo.tiling = tiling;
@@ -91,13 +92,16 @@ VkImageCreateInfo imageInfo{};
 
     vkBindImageMemory(device, image, imageMemory, 0);
 
-
 }
 
-void SG_Allocate::SGvk_Device_Create_TransitionImageLayout(VkQueue& endque,VkDevice& device,VkCommandPool& commandPool,VkImage& image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
+void SG_Allocate::SGvk_Device_Create_TransitionImageLayout(VkQueue& endque,VkDevice& device,
+VkCommandPool& commandPool,VkImage& image, VkFormat format, VkImageLayout oldLayout, 
+VkImageLayout newLayout, uint32_t mipLevels)
+
 {
 VkCommandBuffer commandBuffer = SG_COMD::beginSingleTimeCommands(device,commandPool);
 
+//同步资源访问 可以被用来变换图像布局
 VkImageMemoryBarrier barrier{};
 barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 barrier.oldLayout = oldLayout;
@@ -109,7 +113,7 @@ barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 barrier.image = image;
 barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 barrier.subresourceRange.baseMipLevel = 0;
-barrier.subresourceRange.levelCount = 1;
+barrier.subresourceRange.levelCount = mipLevels;
 barrier.subresourceRange.baseArrayLayer = 0;
 barrier.subresourceRange.layerCount = 1;
 
@@ -138,7 +142,7 @@ if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANS
     sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
     destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 } else {
-    throw std::invalid_argument("unsupported layout transition!");
+    SG_CORE_ERROR("unsupported layout transition!");
 }
 //
 if(newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL){
@@ -162,7 +166,6 @@ vkCmdPipelineBarrier(
 SG_COMD::endSingleTimeCommands(endque,device,commandBuffer,commandPool);
 
 }
-
 
 void SG_Allocate::copyBufferToImage(VkQueue& endque,VkDevice& device,VkCommandPool& cmdPool,
 VkBuffer buffer, VkImage& image,uint32_t width,uint32_t height)

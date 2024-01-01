@@ -69,43 +69,6 @@ void MeshFilter::LoadMesh(std::string mesh_file_path)
 
 }
 
-Texture2D* Texture2D::LoadFromFile(std::string& image_file_path)
-{
-    Texture2D* texture2d = new Texture2D();
-
-    int channels_in_file;//通道数
-    
-    unsigned char* data = stbi_load(image_file_path.c_str(),&(texture2d->wdith_),&(texture2d->height_),
-    &channels_in_file,0);
-
-    if(data != nullptr)
-    {
-        //根据颜色通道数，判断颜色格式。
-        switch (channels_in_file) {
-            case 1:
-            {
-                texture2d->texture_format_ = texformat::TX_ALPHA;
-                break;
-            }
-            case 3:
-            {
-                texture2d->texture_format_ = texformat::TX_RGB;
-                break;
-            }
-            case 4:
-            {
-                texture2d->texture_format_ = texformat::TX_RGBA;
-                break;
-            }
-        }
-
-    }
-
-
-//释放图片文件内存
-    stbi_image_free(data);
-    return texture2d;
-}
 
 
 

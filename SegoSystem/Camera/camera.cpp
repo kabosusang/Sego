@@ -182,6 +182,12 @@ void Camera::SetProjection(float fovDegrees, float aspectRatio, float nearClip, 
     projection_mat4_ = glm::perspective(glm::radians(fovDegrees),aspectRatio,nearClip,farClip);
 }
 
+
+void Camera::Clear()
+{
+    
+}
+
 Camera* camera;
 Transform* transform_camera;
 

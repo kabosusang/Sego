@@ -5,7 +5,8 @@
 #include <string>
 
 #include "Data/Vertex.h"
-#include "Material/Material.h"
+#include "Core/Material/Material.h"
+
 
 enum class Modeltype
 {
@@ -17,8 +18,10 @@ enum class Modeltype
 *  SG_Texture
 *  SG_Models
 */
+
 class SG_Texture
 {
+ 
 public:
     std::string Texture_Path;
     std::string Texture_Name;
@@ -26,7 +29,7 @@ public:
 
     //Texture
     uint32_t mipLevels;//mipmaplevel
-    uint32_t layerCount; //用于天空可
+    uint32_t layerCount; //用于天空盒
     
     VkImage textureImage;
     VkDescriptorImageInfo descriptor;
@@ -35,10 +38,11 @@ public:
     VkImageView textureImageView;
     VkSampler textureSampler;//采样器
 
+
 public:
 SG_Texture(std::string texturePath,std::string textureName):Texture_Path(texturePath),Texture_Name(textureName){}
 SG_Texture() {}
-~SG_Texture() { }
+~SG_Texture() {}
 
 };
 //TextureImage
@@ -74,10 +78,18 @@ namespace SG_CRes
     VkDevice& device,VkPhysicalDevice& physicalDevice,VkCommandPool& commandPool,
     VkQueue& graQue);
 
-    void CreateTextureView(VkDevice& device,VkImage& textureImage,VkImageView& textureImageView);
-    VkImageView SGvk_Device_Create_ImageView_AttachFuc(VkDevice& device,VkImage& image, VkFormat format,VkImageAspectFlags aspectFlags);
+    
+    void GenerateMipmaps(VkDevice& device,VkCommandPool& commandPool,VkQueue& graQue,
+    VkImage image,VkFormat imageFormat,VkPhysicalDevice& physicalDevice,
+     int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 
-    void SGvk_Device_Create_TextureSampler(VkDevice& device,VkPhysicalDevice& physicalDevice,VkSampler& textureSampler);
+
+    void CreateTextureView(VkDevice& device,VkImage& textureImage,VkImageView& textureImageView,uint32_t mipLevels);
+    VkImageView SGvk_Device_Create_ImageView_AttachFuc(VkDevice& device,
+    VkImage& image, VkFormat format,VkImageAspectFlags aspectFlags,uint32_t mipLevels);
+
+    void SGvk_Device_Create_TextureSampler(VkDevice& device,
+    VkPhysicalDevice& physicalDevice,VkSampler& textureSampler,uint32_t mipLevels);
 
     //LoadModel
     void loadModel_tiny_obj(std::vector<SG_Model>::iterator m_it);

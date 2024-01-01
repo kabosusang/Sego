@@ -128,6 +128,7 @@ void Object_Attr::Run_UI()
             ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
         }
        
+       
      }
    
     

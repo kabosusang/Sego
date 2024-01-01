@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "Log/Log.h"
+#include <vector>
 //模型UBO
 struct UniformBufferObject{
     alignas(16) glm::mat4 model;
@@ -57,13 +58,10 @@ void SetView(const glm::vec3& camerForward,const glm::vec3& camerUp);
 /// param farClip  远裁剪面
 void SetProjection(float fovDegrees,float aspectRatio,float nearClip,float farClip);
 
-///遍历所有Camera
-/// param func
-static void Foreach(std::function<void()> func);
 
-/// 选中camera
-static Camera* current_camera() {return current_camera_;}
 
+/// 刷帧清屏
+void Clear();
 
 
 glm::mat4& view_mat4(){return view_mat4_;}
@@ -74,9 +72,7 @@ private:
     glm::mat4 view_mat4_;//指定相机坐标和朝向
     glm::mat4 projection_mat4_;//指定相机范围
     glm::vec4 clear_color; //清屏颜色
-    std::vector<Camera*> all_camera_; //每一帧遍历所有Camera, 设置current_camera_
-    static Camera* current_camera_;
-
+ 
 };
 #include "SGComponent/transform.h"
 extern Camera* camera;

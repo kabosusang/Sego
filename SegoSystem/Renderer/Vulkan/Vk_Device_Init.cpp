@@ -10,6 +10,10 @@
 #include <array>
 #include "Vk_Device_Init.h"
 
+//Vulkan Global Data
+#include "VK_Global_Data.h"
+
+
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
     if (func != nullptr) {
@@ -84,16 +88,16 @@ void Application_Device::InitVulkan()
 
 }
 
-QueueFamilyIndices Application_Device::SGvk_Device_Choose_QueueFamilies(VkPhysicalDevice device)
+QueueFamilyIndices Application_Device::SGvk_Device_Choose_QueueFamilies(VkPhysicalDevice g_device)
 {
      QueueFamilyIndices indices;
     //检索队列 期望并且使用的队列
     uint32_t queueFamilyCount = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(device,&queueFamilyCount,nullptr);
+    vkGetPhysicalDeviceQueueFamilyProperties(g_device,&queueFamilyCount,nullptr);
 
     std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
     std::cout <<"Has queue " << queueFamilyCount<<std::endl;
-    vkGetPhysicalDeviceQueueFamilyProperties(device,&queueFamilyCount,queueFamilies.data());
+    vkGetPhysicalDeviceQueueFamilyProperties(g_device,&queueFamilyCount,queueFamilies.data());
     //需要至少一个队列支持的familes
     int i = 0;
     for (const auto& queueFamily : queueFamilies){
@@ -103,7 +107,7 @@ QueueFamilyIndices Application_Device::SGvk_Device_Choose_QueueFamilies(VkPhysic
         }
         //找出呈现队列
     VkBool32 presentSupport = false;
-    vkGetPhysicalDeviceSurfaceSupportKHR(device,i,surface,&presentSupport);
+    vkGetPhysicalDeviceSurfaceSupportKHR(g_device,i,surface,&presentSupport);
         if(presentSupport){
             indices.presentFamily = i;
         }
@@ -118,35 +122,35 @@ QueueFamilyIndices Application_Device::SGvk_Device_Choose_QueueFamilies(VkPhysic
     return indices;
 }
 //检查物理设备是否适合我们想要执行的操作
-bool Application_Device::Vk_Device_Status_PhysicalDevice(VkPhysicalDevice device)
+bool Application_Device::Vk_Device_Status_PhysicalDevice(VkPhysicalDevice g_device)
 {
     VkPhysicalDeviceProperties deviceProperties;  //显卡详细信息
     VkPhysicalDeviceFeatures  deviceFeatures;//查询各种特性
     
-    vkGetPhysicalDeviceProperties(device,&deviceProperties);
-    vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+    vkGetPhysicalDeviceProperties(g_device,&deviceProperties);
+    vkGetPhysicalDeviceFeatures(g_device, &deviceFeatures);
     std::cout <<"Your GPU is " << deviceProperties.deviceName << std::endl;
    
-    QueueFamilyIndices indices = SGvk_Device_Choose_QueueFamilies(device);
+    QueueFamilyIndices indices = SGvk_Device_Choose_QueueFamilies(g_device);
     
     //检查是否支持交换链
-    bool extensionsSupported = Vk_Device_Status_CheckDeviceExtensionSupport(device);
+    bool extensionsSupported = Vk_Device_Status_CheckDeviceExtensionSupport(g_device);
     bool swapChainAdequate = false;
     //检查SwapChainSupportDetails结构体是否填充
     if (extensionsSupported) {
-        SwapChainSupportDetails swapChainSupport = Vk_Device_Status_QuerySwapChainSupport(device);
+        SwapChainSupportDetails swapChainSupport = Vk_Device_Status_QuerySwapChainSupport(g_device);
         swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
     }
 
     return indices.isComplete() && deviceFeatures.samplerAnisotropy && swapChainAdequate; 
 }
 //检查是否支持交换链
-bool Application_Device::Vk_Device_Status_CheckDeviceExtensionSupport(VkPhysicalDevice device) {
+bool Application_Device::Vk_Device_Status_CheckDeviceExtensionSupport(VkPhysicalDevice g_device) {
     uint32_t extensionCount;
-    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+    vkEnumerateDeviceExtensionProperties(g_device, nullptr, &extensionCount, nullptr);
 
     std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+    vkEnumerateDeviceExtensionProperties(g_device, nullptr, &extensionCount, availableExtensions.data());
 
     std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
     
@@ -158,26 +162,26 @@ bool Application_Device::Vk_Device_Status_CheckDeviceExtensionSupport(VkPhysical
 }
 
 //交换链详情
-SwapChainSupportDetails Application_Device::Vk_Device_Status_QuerySwapChainSupport(VkPhysicalDevice device) 
+SwapChainSupportDetails Application_Device::Vk_Device_Status_QuerySwapChainSupport(VkPhysicalDevice g_device) 
 {
     SwapChainSupportDetails details;
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(g_device, surface, &details.capabilities);
 
     //查询表面格式
     uint32_t formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(g_device, surface, &formatCount, nullptr);
 
     if (formatCount != 0) {
         details.formats.resize(formatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
+        vkGetPhysicalDeviceSurfaceFormatsKHR(g_device, surface, &formatCount, details.formats.data());
     }
     //查询支持的演示模式
     uint32_t presentModeCount;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(g_device, surface, &presentModeCount, nullptr);
 
     if (presentModeCount != 0) {
         details.presentModes.resize(presentModeCount);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
+        vkGetPhysicalDeviceSurfacePresentModesKHR(g_device, surface, &presentModeCount, details.presentModes.data());
     }   
     return details;
 }
@@ -243,7 +247,7 @@ VkFormat Application_Device::SGvk_Device_Choose_FindSupportedFormat(const std::v
 {
     for (VkFormat format : candidates){
         VkFormatProperties props;
-        vkGetPhysicalDeviceFormatProperties(physicalDevice,format,&props);
+        vkGetPhysicalDeviceFormatProperties(g_physicalDevice,format,&props);
 
        if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
          return format;
@@ -278,7 +282,7 @@ void Application_Device::SGvk_Device_Create_Instance()
     auto extensions = getRequiredExtensions();//使用消息回调扩展
     createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
     createInfo.ppEnabledExtensionNames = extensions.data();
-
+    
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};//变量放置在 if 语句之外，以确保在 vkCreateInstance 调用之前不会销毁它
     
     //添加验证层
@@ -338,19 +342,19 @@ void Application_Device::SGvk_Device_Choose_Create_PhysicalDevice()
     {
         if(Vk_Device_Status_PhysicalDevice(device))
         {
-            physicalDevice = device;
+            g_physicalDevice = device;
             break;
         }
     }
-    if(physicalDevice == VK_NULL_HANDLE){
+    if(g_physicalDevice == VK_NULL_HANDLE){
        SG_CORE_ERROR("failed to find a suitable GPU!");
     }
     
 }
-//log device
+//log g_device
 void Application_Device::SGvk_Device_Create_LogicalDevice()
 {
-    QueueFamilyIndices indices = SGvk_Device_Choose_QueueFamilies(physicalDevice);
+    QueueFamilyIndices indices = SGvk_Device_Choose_QueueFamilies(g_physicalDevice);
 
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     
@@ -383,19 +387,19 @@ void Application_Device::SGvk_Device_Create_LogicalDevice()
     createInfo.ppEnabledExtensionNames = deviceExtensions.data();
     
 //创建逻辑设备
-if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
-    SG_CORE_ERROR("failed to create logical device!");
+if (vkCreateDevice(g_physicalDevice, &createInfo, nullptr, &g_device) != VK_SUCCESS) {
+    SG_CORE_ERROR("failed to create logical g_device!");
 }
 //队列与逻辑设备一起自动创建
-vkGetDeviceQueue(device,indices.graphicsFamily.value(),0,&graphicsqueue);
-vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
+vkGetDeviceQueue(g_device,indices.graphicsFamily.value(),0,&graphicsqueue);
+vkGetDeviceQueue(g_device, indices.presentFamily.value(), 0, &presentQueue);
 
 }
 
 //swapchain
 void Application_Device::SGvk_Device_Create_SwapChain()
 {
-    SwapChainSupportDetails swapChainSupport = Vk_Device_Status_QuerySwapChainSupport(physicalDevice);//需要检查的三种属性1.表面格式（像素格式、色彩空间）
+    SwapChainSupportDetails swapChainSupport = Vk_Device_Status_QuerySwapChainSupport(g_physicalDevice);//需要检查的三种属性1.表面格式（像素格式、色彩空间）
     //2.可用的演示模式
 
     VkSurfaceFormatKHR surfaceFormat = SGvk_Device_Choose_SwapSurfaceFormat(swapChainSupport.formats);
@@ -423,7 +427,7 @@ void Application_Device::SGvk_Device_Create_SwapChain()
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    QueueFamilyIndices indices = SGvk_Device_Choose_QueueFamilies(physicalDevice);
+    QueueFamilyIndices indices = SGvk_Device_Choose_QueueFamilies(g_physicalDevice);
     uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 
     //假设图形队列和法向量队列是相同的
@@ -446,13 +450,13 @@ void Application_Device::SGvk_Device_Create_SwapChain()
 
     createInfo.oldSwapchain = VK_NULL_HANDLE;
 //创建交换链
-if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
+if (vkCreateSwapchainKHR(g_device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
     SG_CORE_ERROR("failed to create swap chain!");
 }
     
-    vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
+    vkGetSwapchainImagesKHR(g_device, swapChain, &imageCount, nullptr);
     swapChainImages.resize(imageCount);
-    vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data());
+    vkGetSwapchainImagesKHR(g_device, swapChain, &imageCount, swapChainImages.data());
 
     swapChainImageFormat = surfaceFormat.format;
     swapChainExtent = extent;
@@ -483,7 +487,7 @@ VkImageView Application_Device::SGvk_Device_Create_ImageView_AttachFuc(VkImage i
     viewInfo.subresourceRange.layerCount = 1;
 
     VkImageView imageView;
-    if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+    if (vkCreateImageView(g_device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
         SG_CORE_ERROR("failed to create texture image view!");
     }
 
@@ -557,7 +561,7 @@ dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPT
 renderPassInfo.dependencyCount = 1;
 renderPassInfo.pDependencies = &dependency;
 
-if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
+if (vkCreateRenderPass(g_device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
     SG_CORE_ERROR("failed to create render pass!");
 }
 }
@@ -587,7 +591,7 @@ layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
 layoutInfo.pBindings = bindings.data();
 
 
-if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
+if (vkCreateDescriptorSetLayout(g_device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
     SG_CORE_ERROR("failed to create descriptor set layout!");
 }
 }
@@ -721,7 +725,7 @@ pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout; // Optional
 pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
-if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+if (vkCreatePipelineLayout(g_device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
     SG_CORE_ERROR("failed to create pipeline layout!");
 }
 //深度
@@ -758,12 +762,12 @@ pipelineInfo.subpass = 0;
 pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 pipelineInfo.basePipelineIndex = -1; // Optional
 
-if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
+if (vkCreateGraphicsPipelines(g_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
     SG_CORE_ERROR("failed to create graphics pipeline!");
 }
     //销毁着色器模块
-    vkDestroyShaderModule(device,fragShaderModule,nullptr);
-    vkDestroyShaderModule(device,vertShaderMoudle,nullptr);
+    vkDestroyShaderModule(g_device,fragShaderModule,nullptr);
+    vkDestroyShaderModule(g_device,vertShaderMoudle,nullptr);
 
 }
 //shadermodule
@@ -776,7 +780,7 @@ VkShaderModule Application_Device::SGvk_Device_Create_ShaderModule(const std::ve
     createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
     
     VkShaderModule shaderModule;
-if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+if (vkCreateShaderModule(g_device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
     SG_CORE_ERROR("failed to create shader module!");
     }
     return shaderModule;
@@ -807,30 +811,30 @@ void Application_Device::SGvk_Device_Create_Image(uint32_t width, uint32_t heigh
     imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    if (vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
+    if (vkCreateImage(g_device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
         SG_CORE_ERROR("failed to create image!");
     }
     //缓冲区分配
     VkMemoryRequirements memRequirements;
-    vkGetImageMemoryRequirements(device, image, &memRequirements);//获取到图像对象image所需的内存类型索引和内存大小等信息
+    vkGetImageMemoryRequirements(g_device, image, &memRequirements);//获取到图像对象image所需的内存类型索引和内存大小等信息
 
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
 
-    if (vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
+    if (vkAllocateMemory(g_device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
         SG_CORE_ERROR("failed to allocate image memory!");
     }
 
-    vkBindImageMemory(device, image, imageMemory, 0);
+    vkBindImageMemory(g_device, image, imageMemory, 0);
 }
 
 //缓冲区类型分配findMemoryType
 uint32_t Application_Device::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
 //查询可用关于内存类型的信息
 VkPhysicalDeviceMemoryProperties memProperties;
-vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+vkGetPhysicalDeviceMemoryProperties(g_physicalDevice, &memProperties);
 
 for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
     if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
@@ -856,7 +860,7 @@ VkImageView Application_Device::SGvk_Device_Create_ImageView(VkImage image, VkFo
     viewInfo.subresourceRange.layerCount = 1;
 
     VkImageView imageView;
-    if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+    if (vkCreateImageView(g_device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
         SG_CORE_ERROR("failed to create texture image view!");
     }
 
@@ -883,7 +887,7 @@ void Application_Device::SGvk_Device_Create_Framebuffers()
             framebufferInfo.height = swapChainExtent.height;
             framebufferInfo.layers = 1;
 
-            if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
+            if (vkCreateFramebuffer(g_device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
                 SG_CORE_ERROR("failed to create framebuffer!");
             }
         }
@@ -892,14 +896,14 @@ void Application_Device::SGvk_Device_Create_Framebuffers()
 //pool
 void Application_Device::SGvk_Device_Create_CommandPool()
 {
-QueueFamilyIndices queueFamilyIndices = SGvk_Device_Choose_QueueFamilies(physicalDevice);
+QueueFamilyIndices queueFamilyIndices = SGvk_Device_Choose_QueueFamilies(g_physicalDevice);
 
 VkCommandPoolCreateInfo poolInfo{};
 poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;//表示命令池中的命令缓冲可以被重置
 poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 
-if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+if (vkCreateCommandPool(g_device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
     SG_CORE_ERROR("failed to create command pool!");
 }
 }
@@ -915,9 +919,9 @@ uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
 for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 {
     SG_Allocate::SGvk_Device_Create_Buffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-    , uniformBuffers[i], uniformBuffersMemory[i],device,physicalDevice);
+    , uniformBuffers[i], uniformBuffersMemory[i],g_device,g_physicalDevice);
 
-    vkMapMemory(device, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
+    vkMapMemory(g_device, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
 }
 
 }
@@ -939,7 +943,7 @@ poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
 poolInfo.pPoolSizes = poolSizes.data();
 poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
-if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+if (vkCreateDescriptorPool(g_device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
     SG_CORE_ERROR("failed to create descriptor pool!");
 }
 
@@ -956,7 +960,7 @@ allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 allocInfo.pSetLayouts = layouts.data();
 
 descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-if (vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
+if (vkAllocateDescriptorSets(g_device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
     SG_CORE_ERROR("failed to allocate descriptor sets!");
 }
 
@@ -997,7 +1001,7 @@ descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 descriptorWrites[1].descriptorCount = static_cast<uint32_t>(imageInfos.size());
 descriptorWrites[1].pImageInfo = imageInfos.data();
 
-vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+vkUpdateDescriptorSets(g_device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 
 }
 }
@@ -1012,7 +1016,7 @@ allocInfo.commandPool = commandPool;
 allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;//表示命令缓冲为主要级别
 allocInfo.commandBufferCount = (uint32_t)commandBuffers.size();//命令缓冲数量
 
-if (vkAllocateCommandBuffers(device, &allocInfo,commandBuffers.data()) != VK_SUCCESS) {
+if (vkAllocateCommandBuffers(g_device, &allocInfo,commandBuffers.data()) != VK_SUCCESS) {
     SG_CORE_ERROR("failed to allocate command buffers!");
 }
 }
@@ -1033,9 +1037,9 @@ fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;//第一次调用立即返回
 
 for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 {
-if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
-    vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
-    vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
+if (vkCreateSemaphore(g_device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
+    vkCreateSemaphore(g_device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
+    vkCreateFence(g_device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
     SG_CORE_ERROR("failed to create semaphores!");
 }
 
@@ -1058,7 +1062,7 @@ while (width == 0 || height == 0) {
     glfwGetFramebufferSize(wd, &width, &height);
     glfwWaitEvents();
 }
-vkDeviceWaitIdle(device);
+vkDeviceWaitIdle(g_device);
 
 cleanSwapChain();
 //Imgui
@@ -1079,28 +1083,28 @@ SGvk_Device_Create_CommandBuffer();
 void Application_Device::cleanSwapChain()
 {
 //清除depth
-vkDestroyImageView(device, depthImageView, nullptr);
-vkDestroyImage(device, depthImage, nullptr);
-vkFreeMemory(device, depthImageMemory, nullptr);
+vkDestroyImageView(g_device, depthImageView, nullptr);
+vkDestroyImage(g_device, depthImage, nullptr);
+vkFreeMemory(g_device, depthImageMemory, nullptr);
 //清除CommandBuffer
-vkFreeCommandBuffers(device, commandPool, static_cast<uint32_t>(commandBuffers.size()),
+vkFreeCommandBuffers(g_device, commandPool, static_cast<uint32_t>(commandBuffers.size()),
                          commandBuffers.data());
 
-vkDestroyPipeline(device, graphicsPipeline, nullptr);
-vkDestroyRenderPass(device, renderPass, nullptr);
+vkDestroyPipeline(g_device, graphicsPipeline, nullptr);
+vkDestroyRenderPass(g_device, renderPass, nullptr);
 
 
 for(size_t i = 0; i < swapChainFramebuffers.size();i++)
 {
-    vkDestroyFramebuffer(device,swapChainFramebuffers[i],nullptr);
+    vkDestroyFramebuffer(g_device,swapChainFramebuffers[i],nullptr);
 }
 
 for(size_t i = 0; i <swapChainImageViews.size();i++)
 {
-    vkDestroyImageView(device,swapChainImageViews[i],nullptr);
+    vkDestroyImageView(g_device,swapChainImageViews[i],nullptr);
 }
 
- vkDestroySwapchainKHR(device, swapChain, nullptr);
+ vkDestroySwapchainKHR(g_device, swapChain, nullptr);
 
 }
 
@@ -1187,50 +1191,50 @@ void Application_Device::cleanup(std::vector<SG_Model>& models)
     for (auto model : models)
     {
         //Models
-        vkDestroyBuffer(device,model.indexBuffer,nullptr);
-        vkFreeMemory(device, model.indexBufferMemory , nullptr);
+        vkDestroyBuffer(g_device,model.indexBuffer,nullptr);
+        vkFreeMemory(g_device, model.indexBufferMemory , nullptr);
 
-        vkDestroyBuffer(device, model.vertexBuffer, nullptr);//清理缓冲区
-        vkFreeMemory(device, model.vertexBufferMemory, nullptr);
+        vkDestroyBuffer(g_device, model.vertexBuffer, nullptr);//清理缓冲区
+        vkFreeMemory(g_device, model.vertexBufferMemory, nullptr);
 
         //texture
         for (auto tex : model.m_Texture)
         {
-            vkDestroySampler(device,tex.textureSampler,nullptr);
-            vkDestroyImageView(device,tex.textureImageView,nullptr);
-            vkDestroyImage(device, tex.textureImage, nullptr);
-            vkFreeMemory(device, tex.textureImageMemory, nullptr);
+            vkDestroySampler(g_device,tex.textureSampler,nullptr);
+            vkDestroyImageView(g_device,tex.textureImageView,nullptr);
+            vkDestroyImage(g_device, tex.textureImage, nullptr);
+            vkFreeMemory(g_device, tex.textureImageMemory, nullptr);
         }
     }
 
     
     //清理均匀缓冲区
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        vkDestroyBuffer(device, uniformBuffers[i], nullptr);
-        vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
+        vkDestroyBuffer(g_device, uniformBuffers[i], nullptr);
+        vkFreeMemory(g_device, uniformBuffersMemory[i], nullptr);
     }
 
-    vkDestroyDescriptorPool(device,descriptorPool,nullptr);
-    vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
+    vkDestroyDescriptorPool(g_device,descriptorPool,nullptr);
+    vkDestroyDescriptorSetLayout(g_device, descriptorSetLayout, nullptr);
 
 
-    vkDestroyPipeline(device, graphicsPipeline, nullptr);
-    vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+    vkDestroyPipeline(g_device, graphicsPipeline, nullptr);
+    vkDestroyPipelineLayout(g_device, pipelineLayout, nullptr);
 
-    vkDestroyRenderPass(device, renderPass, nullptr);
+    vkDestroyRenderPass(g_device, renderPass, nullptr);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
-        vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
-        vkDestroyFence(device, inFlightFences[i], nullptr);
+        vkDestroySemaphore(g_device, renderFinishedSemaphores[i], nullptr);
+        vkDestroySemaphore(g_device, imageAvailableSemaphores[i], nullptr);
+        vkDestroyFence(g_device, inFlightFences[i], nullptr);
     }
 
-    vkDestroyCommandPool(device, commandPool, nullptr);
+    vkDestroyCommandPool(g_device, commandPool, nullptr);
 
 
   
     vkDestroySurfaceKHR(instance, surface, nullptr);
-    vkDestroyDevice(device, nullptr);
+    vkDestroyDevice(g_device, nullptr);
     vkDestroyInstance(instance, nullptr);
 
     glfwDestroyWindow(wd);

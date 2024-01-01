@@ -160,20 +160,14 @@ public:
     void cleanSwapChain();
     void cleanup(std::vector<SG_Model>& models);
 
-    //OUTPUT DATA
-    /*************************/
-    inline VkDevice& GetDevice() {return device;}
-    
-
-
+   
 
 public:
     GLFWwindow* wd;
     VkInstance instance;
     VkDebugUtilsMessengerEXT debugMessenger;
     VkSurfaceKHR surface;
-    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    VkDevice device;
+   
     std::vector<VkImageView> swapChainImageViews; // views
     std::vector<VkImage> swapChainImages; //images
     VkSwapchainKHR swapChain; //交换链

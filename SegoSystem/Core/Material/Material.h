@@ -6,6 +6,7 @@
 
 
 #include "Core/Mesh/Mesh.h"
+#include "Core/Texture2D/Texture2d.h"
 
 class Material
 {

@@ -33,23 +33,6 @@ private:
 Mesh* mesh_ ;
 };
 
-enum class texformat
-{
-	TX_ALPHA = 1,
-	TX_RGB = 3,
-	TX_RGBA = 4
-};
-
-class Texture2D
-{
-public:
-static Texture2D* LoadFromFile(std::string& image_file_path);
-public:
-    int wdith_;
-    int height_;
-    texformat texture_format_;
-};
-
 
 
 
