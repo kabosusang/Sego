@@ -952,26 +952,32 @@ if (vkCreateDescriptorPool(g_device, &poolInfo, nullptr, &descriptorPool) != VK_
 //DescriptorSets
 void Application_Device::SGvk_Device_Create_DescriptorSets(std::vector<SG_Texture>& textures)
 {
+descriptorSets.clear();  
+SG_CORE_INFO("Runing00");
 std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
 VkDescriptorSetAllocateInfo allocInfo{};
 allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 allocInfo.descriptorPool = descriptorPool;
 allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 allocInfo.pSetLayouts = layouts.data();
-
+SG_CORE_INFO("Runing01");
 descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-if (vkAllocateDescriptorSets(g_device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
+VkResult err;
+err = vkAllocateDescriptorSets(g_device, &allocInfo, descriptorSets.data());
+if (err != VK_SUCCESS) {
     SG_CORE_ERROR("failed to allocate descriptor sets!");
+    SG_CORE_ERROR("Error CODE : {0}",err);
 }
 
-SG_CORE_INFO("Texture Name : {0}",textures[0].Texture_Name.c_str());
-SG_CORE_INFO("Texture Path : {0}",textures[0].Texture_Path.c_str());
+SG_CORE_INFO("Runing02");
 
 std::vector<VkDescriptorImageInfo> imageInfos;
 
 for (auto tex : textures)
 {
     imageInfos.push_back(tex.descriptor);
+    SG_CORE_INFO("Texture Name : {0}",tex.Texture_Name.c_str());
+    SG_CORE_INFO("Texture Path : {0}",tex.Texture_Path.c_str());
 }
 
 for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -1153,8 +1159,8 @@ vkCmdBindPipeline(commandBuffer,VK_PIPELINE_BIND_POINT_GRAPHICS,graphicsPipeline
     scissor.extent = swapChainExtent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
     
-std::vector<VkBuffer> vertexBuffers;
-std::vector<VkBuffer> indexBuffers;
+std::vector<VkBuffer> vertexBuffers(0);
+std::vector<VkBuffer> indexBuffers(0);
 
 for (auto model : models)
 {
@@ -1173,7 +1179,6 @@ vkCmdBindIndexBuffer(commandBuffer, indexBuffers[i], 0, VK_INDEX_TYPE_UINT32);
 vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(models[i].indices.size()), 1, 0, 0, 0);
 }
 //绑定描述符集
-
 vkCmdEndRenderPass(commandBuffer);//结束渲染通风道
 
 if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
@@ -1188,7 +1193,7 @@ void Application_Device::cleanup(std::vector<SG_Model>& models)
     cleanSwapChain();
 
     //清理models 和 texture
-    for (auto model : models)
+    for (auto& model : models)
     {
         //Models
         vkDestroyBuffer(g_device,model.indexBuffer,nullptr);
@@ -1198,7 +1203,7 @@ void Application_Device::cleanup(std::vector<SG_Model>& models)
         vkFreeMemory(g_device, model.vertexBufferMemory, nullptr);
 
         //texture
-        for (auto tex : model.m_Texture)
+        for (auto& tex : model.m_Texture)
         {
             vkDestroySampler(g_device,tex.textureSampler,nullptr);
             vkDestroyImageView(g_device,tex.textureImageView,nullptr);

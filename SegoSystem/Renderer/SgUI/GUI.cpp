@@ -154,12 +154,13 @@ App_Attr::App_Attr(const char *name, uint32_t id):SGUI_Imgui(name,id)
 {
 
 }
+
+
 void App_Attr::Run_UI()
 {
 
-std::string Text = "Hello Imgui";
+    std::string Text = "Hello Imgui";
     
-   
     //Object 窗口
     ImGui::Begin(u8"Scene");
     
@@ -195,23 +196,7 @@ std::string Text = "Hello Imgui";
         }
     
     }
-    //窗口跟随
     
-    if(ImGui::Button(WINDOW_FOLLOW.c_str()))
-    {
-        FollowbuttonState = !FollowbuttonState;
-    }
-    if(!FollowbuttonState)
-    {
-        WINDOW_FOLLOW = u8"窗口跟随 : 已开启";
-        Windowfollow = true; 
-    }
-    else
-    {
-        WINDOW_FOLLOW = u8"窗口跟随 : 未开启";\
-        Windowfollow = false;
-    }
-    ImGui::SameLine;
     //fps 视角
     if(ImGui::Button(FPS_MODE.c_str()))
     {
@@ -227,6 +212,11 @@ std::string Text = "Hello Imgui";
         FPS_MODE = u8"FPS:未开启";
         FPSmode = false;
     } 
+
+    if(ImGui::Button("ChangeModel"))
+    {
+        
+    }
 
     ImGui::End();
 

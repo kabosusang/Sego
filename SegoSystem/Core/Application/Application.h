@@ -32,6 +32,9 @@ public:
     
     void CreateTexture(std::vector<SG_Model>::iterator m_it,std::string Texture_Path,std::string Texturte_Name);
     
+    void ChangeModel();
+
+
     //处理窗口大小改变
     inline static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
     {

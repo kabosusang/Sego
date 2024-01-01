@@ -43,7 +43,6 @@ Application::Application()
     app_device.InitVulkan();
     std::string ModelName = "Pot";
     //CreateModel("../SegoSystem/Renderer/models/viking_room.obj","haha");
-    //CreateModel("../Resource/Model/obj/pot.obj",ModelName);
     CreateModel("../Resource/Model/mesh/pot.mesh",ModelName);
     auto m_it = std::find_if(m_Model.begin(),m_Model.end(),[&ModelName](const SG_Model& modl)
     {
@@ -111,6 +110,7 @@ void Application::Run()
 }
 #include "Events/KeyEvent.h"
 #include "Camera/camera.h"
+#include "Application.h"
 #define BIND_EVENT_FN(x) [this](auto&&... args) -> decltype(auto) { return this->x(std::forward<decltype(args)>(args)...); }
 
 void Application::OnEvent(Event& e)
@@ -264,8 +264,70 @@ void Application::drawUI()
    // ImGui::DockSpaceOverViewport(); 使得imgui主窗口停靠但是渲染被遮挡了
     ImGui::DockSpaceOverViewport(nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
     obj_ui.Run_UI();
-    scene_ui.Run_UI();
 
+
+
+    //scene_ui.Run_UI();
+    std::string Text = "Hello Imgui";
+    
+    //Object 窗口
+    ImGui::Begin(u8"Scene");
+    
+    if(ImGui::BeginCombo(u8"哈哈",Text.c_str()))
+    {
+        for (size_t i =0; i< 100 ; i++)
+        {
+            if(ImGui::Selectable(std::to_string(i).c_str()))
+            {
+                Text = std::to_string(i);
+            }
+        }
+        ImGui::EndCombo();
+    }
+    if(ImGui::IsKeyDown(ImGuiKey_Q) && ImGui::IsItemHovered())
+    {
+        ImGui::Text(u8"按下了Q");
+    }
+
+    for(size_t i =0 ; i<5 ; i++)
+    {
+        ImGui::Button(std::to_string(i).c_str());
+        if (i+1 < 5)
+        {
+            ImGui::SameLine();
+        }
+        if (ImGui::BeginDragDropSource()) //拖撤事件
+        {
+            ImGui::Text(std::string("Drag :").append(std::to_string(i)).c_str());
+
+            ImGui::SetDragDropPayload("DragIndexButton",&i,sizeof(int));
+            ImGui::EndDragDropSource();
+        }
+    
+    }
+    
+    //fps 视角
+    if(ImGui::Button(FPS_MODE.c_str()))
+    {
+        FpsbuttonState = !FpsbuttonState;
+    }
+    if(FpsbuttonState)
+    {
+        FPS_MODE = u8"FPS:已开启";
+        FPSmode = true;
+    }
+    else
+    {
+        FPS_MODE = u8"FPS:未开启";
+        FPSmode = false;
+    } 
+
+    if(ImGui::Button("ChangeModel"))
+    {
+        ChangeModel();
+    }
+
+    ImGui::End();
 
     // Render Dear ImGui
     ImGuiIO& io = ImGui::GetIO();
@@ -381,6 +443,42 @@ std::string Texture_Path,std::string Tex_Name)
     else{
         SG_CORE_ERROR("No Find Texture in CreateTexture");
     }
-  
+}
+
+void Application::ChangeModel()
+{
+    for (auto& model : m_Model)
+    {
+        //Models
+        vkDestroyBuffer(g_device,model.indexBuffer,nullptr);
+        vkFreeMemory(g_device, model.indexBufferMemory , nullptr);
+
+        vkDestroyBuffer(g_device, model.vertexBuffer, nullptr);//清理缓冲区
+        vkFreeMemory(g_device, model.vertexBufferMemory, nullptr);
+
+        //texture
+        for (auto& tex : model.m_Texture)
+        {
+            vkDestroySampler(g_device,tex.textureSampler,nullptr);
+            vkDestroyImageView(g_device,tex.textureImageView,nullptr);
+            vkDestroyImage(g_device, tex.textureImage, nullptr);
+            vkFreeMemory(g_device, tex.textureImageMemory, nullptr);
+        }
+    }
+    m_Model.clear();
+    std::string ModelName = u8"haha";
+    CreateModel("../SegoSystem/Renderer/models/viking_room.obj","haha");
+    auto m_it = std::find_if(m_Model.begin(),m_Model.end(),[&ModelName](const SG_Model& modl)
+    {
+        return modl.Model_Name == ModelName;
+    });
+    if(m_it != m_Model.end())
+    {
+        m_it->m_Texture.clear();
+        CreateTexture(m_it,"../SegoSystem/Renderer/models/viking_room.png","ClosetTexture");
+    }
+    vkDestroyDescriptorPool(g_device,app_device.descriptorPool,nullptr);
+    app_device.SGvk_Device_Create_DescriptorPool();
+    app_device.SGvk_Device_Create_DescriptorSets(m_it->m_Texture);
 
 }
