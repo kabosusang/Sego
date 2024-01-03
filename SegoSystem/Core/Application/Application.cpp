@@ -84,7 +84,6 @@ Application::Application()
     sg_obj = dynamic_cast<SG_Object*>(go->AddComponent("SG_Object"));
     
 
-
     //创建相机Object
     auto go_camera = new GameObject("main_camera");
     //挂上 Transform组件
@@ -254,7 +253,6 @@ void Application::drawUI()
 
             glfwGetWindowSize(m_Window->GetWindow(),&width,&height);
             m_Window->SetWindowSize(width,height);
-         
         }
 
     // Start the Dear ImGui frame
@@ -265,8 +263,7 @@ void Application::drawUI()
     ImGui::DockSpaceOverViewport(nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
     obj_ui.Run_UI();
 
-
-
+    
     //scene_ui.Run_UI();
     std::string Text = "Hello Imgui";
     
@@ -338,6 +335,7 @@ void Application::drawUI()
         ImGui::RenderPlatformWindowsDefault();
         glfwMakeContextCurrent(backuo_current_context);
 }
+  
 }
 
 

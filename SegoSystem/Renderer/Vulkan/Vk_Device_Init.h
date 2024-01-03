@@ -19,6 +19,7 @@ const std::vector<const char*> validationLayers = {
 };
 const std::vector<const char*> deviceExtensions = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME //交换链
+    ,VK_KHR_MAINTENANCE1_EXTENSION_NAME//更改NDC朝向
 };
 //-----------------------------------
 #ifdef NDEBUG

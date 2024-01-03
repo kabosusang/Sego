@@ -6,7 +6,7 @@
 #include <GLFW/glfw3.h>
 #include "camera.h"
 #define GLM_DISABLE_GTX_HASH
-
+#include "imgui.h"
 
 //lookat
 //摄像机位置
@@ -151,14 +151,18 @@ bool GetCursorInput(MouseMoveEvent& e)
 //fov 
 float fov = 45.0f;
 bool GetCursorScrollInput(MouseScrollEvent& e)
-{
+{  
+    ImGuiIO& io = ImGui::GetIO();
+    if (!io.WantCaptureMouse) // 检查是否鼠标在ImGui窗口上
+    {
+        if(fov >= 1.0f && fov <= 90.0f)
+            fov -= e.GetScrollY();
+        if(fov <= 1.0f)
+            fov = 1.0f;
+        if(fov >= 90.0f)
+            fov = 90.0f;
+    }
     
-    if(fov >= 1.0f && fov <= 90.0f)
-        fov -= e.GetScrollY();
-    if(fov <= 1.0f)
-        fov = 1.0f;
-    if(fov >= 90.0f)
-        fov = 90.0f;
 }
 
 #include <rttr/registration>
