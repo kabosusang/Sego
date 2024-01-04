@@ -30,7 +30,8 @@ public:
     //Model Create
     void CreateModel(std::string Model_Path,std::string name);
     
-    void CreateTexture(std::vector<SG_Model>::iterator m_it,std::string Texture_Path,std::string Texturte_Name);
+    void CreateTexture(std::vector<SG_Model>::iterator m_it,
+    std::string Texture_Path,std::string Texturte_Name);
     
     void ChangeModel();
 

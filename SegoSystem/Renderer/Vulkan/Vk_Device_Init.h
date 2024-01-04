@@ -83,7 +83,7 @@ static std::vector<char>readFile(const std::string& filename) {
 
 
 
-#define MAX_FRAMES_IN_FLIGHT 2
+
 /*-------------------------------------------------------*/
 ////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////
@@ -95,7 +95,6 @@ public:
     //Window
     inline void InputWindow(GLFWwindow* window){ wd = window;}
     void InitVulkan();
-    void InitResource();
 
     //create
     void SGvk_Device_Create_Instance(); //instance
@@ -130,9 +129,9 @@ public:
     //void SGvk_Device_Create_IndexBuffer();
     /// @ ////////////////////////////////////////////////////////
 
-    void SGvk_Device_Create_UniformBuffers();
+   
     void SGvk_Device_Create_DescriptorPool();
-    void SGvk_Device_Create_DescriptorSets(std::vector<SG_Texture>& textures);
+   
     void SGvk_Device_Create_CommandBuffer();
     void SGvk_Device_Create_SyncObjects();
 
@@ -197,16 +196,9 @@ public:
     VkQueue graphicsqueue;//渲染队列
     VkQueue presentQueue;//呈现队列
     
-    //均匀缓冲区
-    std::vector<VkBuffer> uniformBuffers;
-    std::vector<VkDeviceMemory> uniformBuffersMemory;
-    std::vector<void*> uniformBuffersMapped;
-
     //描述符池
     VkDescriptorPool descriptorPool;
-    //描述符集
-    std::vector<VkDescriptorSet> descriptorSets;
-
+  
     //信号量和fence
     std::vector<VkSemaphore> imageAvailableSemaphores;
     std::vector<VkSemaphore> renderFinishedSemaphores;

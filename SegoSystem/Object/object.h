@@ -2,7 +2,7 @@
 #include "SGComponent/transform.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
+#include <vector>
 
 class SG_Object : public Component
 {
@@ -16,10 +16,7 @@ private:
 
 };
 
-
-extern Transform* transform_obj;
-extern SG_Object* sg_obj;
-
-
+extern std::vector<Transform*> transform_obj;
+extern std::vector<SG_Object*> sg_obj;
 
 

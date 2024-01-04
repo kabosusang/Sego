@@ -6,11 +6,7 @@
 #include "Log/Log.h"
 #include <vector>
 //模型UBO
-struct UniformBufferObject{
-    alignas(16) glm::mat4 model;
-    alignas(16) glm::mat4 view;
-    alignas(16) glm::mat4 proj;
-};
+
 
 
 #include "Events/KeyEvent.h"

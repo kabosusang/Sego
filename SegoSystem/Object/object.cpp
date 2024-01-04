@@ -2,8 +2,11 @@
 
 
 
-Transform* transform_obj;
-SG_Object* sg_obj;
+std::vector<Transform*> transform_obj;
+std::vector<SG_Object*> sg_obj;
+
+
+
 #include <rttr/registration>
 #include "SGComponent/game_object.h"
 #include "object.h"

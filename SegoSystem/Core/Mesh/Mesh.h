@@ -2,7 +2,7 @@
 
 #include <glm/gtx/hash.hpp>
 #include <fstream>
-#include "Data/Vertex.h"
+#include "Vertex/Vertex.h"
 #include <cstdlib>
 
 #include <vector>

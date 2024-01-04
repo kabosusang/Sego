@@ -1,6 +1,11 @@
+#include "core.h"
+
 #include "Core/Application/Application.h"
 #include "Renderer/Vulkan/Vk_Device_Init.h"
 #include "VK_Global_Data.h"
+
+
+
 
 #include "Renderer/SgUI/GUI.h"
 #include "Editor/VKimgui.h"
@@ -42,8 +47,8 @@ Application::Application()
     app_device.InputWindow(m_Window->GetWindow());
     app_device.InitVulkan();
     std::string ModelName = "Pot";
-    //CreateModel("../SegoSystem/Renderer/models/viking_room.obj","haha");
-    CreateModel("../Resource/Model/mesh/pot.mesh",ModelName);
+    std::string ModelName2 = "clost";
+    CreateModel(SG_DATA_PATH("Model/mesh/pot.mesh"),ModelName);
     auto m_it = std::find_if(m_Model.begin(),m_Model.end(),[&ModelName](const SG_Model& modl)
     {
         return modl.Model_Name == ModelName;
@@ -51,14 +56,31 @@ Application::Application()
     if(m_it != m_Model.end())
     {
        //CreateTexture(m_it,"../SegoSystem/Renderer/models/viking_room.png","ClosetTexture");
-       CreateTexture(m_it,"../Resource/Texture/Diffuse_FishSoup_Pot_1.jpg","PotTexture");
+       CreateTexture(m_it,SG_DATA_PATH("Texture/Diffuse_FishSoup_Pot_1.jpg"),"PotTexture");
     }
+
+    CreateModel(SG_DATA_PATH("Model/obj/viking_room.obj"),ModelName2);
+    m_it = std::find_if(m_Model.begin(),m_Model.end(),[&ModelName2](const SG_Model& modl)
+    {
+        return modl.Model_Name == ModelName2;
+    });
+    if(m_it != m_Model.end())
+    {
+       CreateTexture(m_it,SG_DATA_PATH("Texture/viking_room.png"),"ClosetTexture");
+    }
+
+
     //Create Resource
-    app_device.SGvk_Device_Create_UniformBuffers();
+    SG_CRes::SGvk_CreateUniformBuffers(m_Model);
     app_device.SGvk_Device_Create_DescriptorPool();
-    app_device.SGvk_Device_Create_DescriptorSets(m_it->m_Texture);
+    //this
+    SG_CRes::SGvk_CreateDescriptorSets(app_device.descriptorSetLayout,
+    app_device.descriptorPool,m_Model);
+   
     app_device.SGvk_Device_Create_CommandBuffer();
     app_device.SGvk_Device_Create_SyncObjects();
+    
+
 
     Sg_ui.SgUI_Input(m_Window->GetWindow(),app_device.instance,app_device.surface,g_physicalDevice
     ,g_device,app_device.swapChainImageFormat,app_device.swapChainImages,app_device.swapChainImageViews
@@ -72,17 +94,28 @@ Application::Application()
     m_Window->SetWindowPos(width,height);
    
 
-
     //创建GameObject
     GameObject* go = new GameObject("GO");
     //挂上 Transform
-    transform_obj = dynamic_cast<Transform*>(go->AddComponent("Transform"));
-    transform_obj->set_position(glm::vec3(0.0f));
-    transform_obj->set_rotation(glm::vec3(0.0f,0.0f,0.0f));
-    transform_obj->set_scale(glm::vec3(1.0f));
+    transform_obj.push_back(dynamic_cast<Transform*>(go->AddComponent("Transform")));
+    transform_obj[0]->set_position(glm::vec3(0.0f));
+    transform_obj[0]->set_rotation(glm::vec3(0.0f,0.0f,0.0f));
+    transform_obj[0]->set_scale(glm::vec3(1.0f));
+
     //挂上 SG_Object
-    sg_obj = dynamic_cast<SG_Object*>(go->AddComponent("SG_Object"));
+    sg_obj.push_back(dynamic_cast<SG_Object*>(go->AddComponent("SG_Object")));
     
+    //第2个GameObject
+    GameObject* go2 = new GameObject("Pot");
+    //挂上 Transform
+    transform_obj.push_back(dynamic_cast<Transform*>(go2->AddComponent("Transform")));
+    transform_obj[1]->set_position(glm::vec3(2.0f,0.0f,0.0f));
+    transform_obj[1]->set_rotation(glm::vec3(0.0f,0.0f,0.0f));
+    transform_obj[1]->set_scale(glm::vec3(1.0f));
+
+    //挂上 SG_Object
+    sg_obj.push_back(dynamic_cast<SG_Object*>(go2->AddComponent("SG_Object")));
+
 
     //创建相机Object
     auto go_camera = new GameObject("main_camera");
@@ -92,9 +125,6 @@ Application::Application()
     //挂上Camera组件
     camera =dynamic_cast<Camera*>(go_camera->AddComponent("Camera"));
   
-
-
-
 }
 
 void Application::Run()
@@ -141,7 +171,7 @@ Application::~Application()
 void Application::Application_DrawFrame()
 {
 vkWaitForFences(g_device,1,&app_device.inFlightFences[currentFrame],VK_TRUE,UINT64_MAX);
-
+ 
 uint32_t imageIndex;
 VkResult result = vkAcquireNextImageKHR(g_device,app_device.swapChain,UINT64_MAX,app_device.imageAvailableSemaphores[currentFrame],VK_NULL_HANDLE,&imageIndex);
 if(result == VK_ERROR_OUT_OF_DATE_KHR)//交换链已与 表面，不能再用于渲染。通常发生在调整窗口大小后
@@ -191,7 +221,7 @@ if (err!= VK_SUCCESS) {
    SG_CORE_ERROR("failed to submit draw command buffer!");
     
 }//将命令缓冲区提交到图形队列
-
+ 
 //将结果提交回交换链 让它最终出现在屏幕上
 VkPresentInfoKHR presentInfo{};
 presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -341,24 +371,27 @@ void Application::drawUI()
 
 //更新统一数据
 void Application::updateUniformBuffer(uint32_t currentImage)
-{
-
+{   
 //camera
 transform_camera->set_position(cameraPos);
 camera->SetView(cameraPos + cameraFront,cameraUp);
 camera->SetProjection(fov,app_device.swapChainExtent.width / (float) app_device.swapChainExtent.height, 0.1f, 10.0f);
 
-//object
-sg_obj->ChangeModelPosition(); //接收变换后的position
+int i = 0;
+for (auto obj:sg_obj)
+{
+obj->ChangeModelPosition(); //接收变换后的position
 
 UniformBufferObject ubo{};
-ubo.model = sg_obj->Model_mat4();
+ubo.model = obj->Model_mat4();
 ubo.view = camera->view_mat4();
 //ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 ubo.proj = camera->projection_mat4();
 ubo.proj[1][1] *= -1;
+memcpy(m_Model[i].Obj_uniformBuffersMapped_[currentImage], &ubo, sizeof(ubo));
+i++;
+}
 
-memcpy(app_device.uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
 }
 
 //CreateResourceFunction
@@ -418,6 +451,7 @@ std::string Texture_Path,std::string Tex_Name)
     {
     return tex.Texture_Name == Tex_Name;
     }); //找到对应texture
+    
     if(Tex_it != m_it->m_Texture.end())
     {
         SG_CRes::CreateTexture(Tex_it,
@@ -436,7 +470,6 @@ std::string Texture_Path,std::string Tex_Name)
         imageInfo.imageView = Tex_it->textureImageView;
         imageInfo.sampler = Tex_it->textureSampler;
         Tex_it->descriptor = imageInfo;
-
     }
     else{
         SG_CORE_ERROR("No Find Texture in CreateTexture");
@@ -465,7 +498,7 @@ void Application::ChangeModel()
     }
     m_Model.clear();
     std::string ModelName = u8"haha";
-    CreateModel("../SegoSystem/Renderer/models/viking_room.obj","haha");
+    CreateModel(SG_DATA_PATH("Texure/viking_room.obj"), ModelName);
     auto m_it = std::find_if(m_Model.begin(),m_Model.end(),[&ModelName](const SG_Model& modl)
     {
         return modl.Model_Name == ModelName;
@@ -473,10 +506,14 @@ void Application::ChangeModel()
     if(m_it != m_Model.end())
     {
         m_it->m_Texture.clear();
-        CreateTexture(m_it,"../SegoSystem/Renderer/models/viking_room.png","ClosetTexture");
+        CreateTexture(m_it,SG_DATA_PATH("Texure/viking_room.png"),"ClosetTexture");
     }
+
+
     vkDestroyDescriptorPool(g_device,app_device.descriptorPool,nullptr);
+    SG_CRes::SGvk_CreateUniformBuffers(m_Model);
     app_device.SGvk_Device_Create_DescriptorPool();
-    app_device.SGvk_Device_Create_DescriptorSets(m_it->m_Texture);
+    SG_CRes::SGvk_CreateDescriptorSets(app_device.descriptorSetLayout
+    ,app_device.descriptorPool,m_Model);
 
 }

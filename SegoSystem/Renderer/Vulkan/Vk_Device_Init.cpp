@@ -908,23 +908,6 @@ if (vkCreateCommandPool(g_device, &poolInfo, nullptr, &commandPool) != VK_SUCCES
 }
 }
 
-void Application_Device::SGvk_Device_Create_UniformBuffers()
-{
-VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-
-uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
-uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
-
-for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-{
-    SG_Allocate::SGvk_Device_Create_Buffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-    , uniformBuffers[i], uniformBuffersMemory[i],g_device,g_physicalDevice);
-
-    vkMapMemory(g_device, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
-}
-
-}
 
 //DescriptorPool
 void Application_Device::SGvk_Device_Create_DescriptorPool()
@@ -941,7 +924,7 @@ VkDescriptorPoolCreateInfo poolInfo{};
 poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
 poolInfo.pPoolSizes = poolSizes.data();
-poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT) * 2;
 
 if (vkCreateDescriptorPool(g_device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
     SG_CORE_ERROR("failed to create descriptor pool!");
@@ -949,68 +932,6 @@ if (vkCreateDescriptorPool(g_device, &poolInfo, nullptr, &descriptorPool) != VK_
 
 }
 
-//DescriptorSets
-void Application_Device::SGvk_Device_Create_DescriptorSets(std::vector<SG_Texture>& textures)
-{
-descriptorSets.clear();  
-SG_CORE_INFO("Runing00");
-std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
-VkDescriptorSetAllocateInfo allocInfo{};
-allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-allocInfo.descriptorPool = descriptorPool;
-allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-allocInfo.pSetLayouts = layouts.data();
-SG_CORE_INFO("Runing01");
-descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-VkResult err;
-err = vkAllocateDescriptorSets(g_device, &allocInfo, descriptorSets.data());
-if (err != VK_SUCCESS) {
-    SG_CORE_ERROR("failed to allocate descriptor sets!");
-    SG_CORE_ERROR("Error CODE : {0}",err);
-}
-
-SG_CORE_INFO("Runing02");
-
-std::vector<VkDescriptorImageInfo> imageInfos;
-
-for (auto tex : textures)
-{
-    imageInfos.push_back(tex.descriptor);
-    SG_CORE_INFO("Texture Name : {0}",tex.Texture_Name.c_str());
-    SG_CORE_INFO("Texture Path : {0}",tex.Texture_Path.c_str());
-}
-
-for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    VkDescriptorBufferInfo bufferInfo{};
-    bufferInfo.buffer = uniformBuffers[i];
-    bufferInfo.offset = 0;
-    bufferInfo.range = sizeof(UniformBufferObject);
-
-std::array<VkWriteDescriptorSet,2> descriptorWrites{};
-descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-descriptorWrites[0].dstSet = descriptorSets[i];
-descriptorWrites[0].dstBinding = 0;
-descriptorWrites[0].dstArrayElement = 0;
-
-descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-descriptorWrites[0].descriptorCount = 1;
-
-descriptorWrites[0].pBufferInfo = &bufferInfo;
-descriptorWrites[0].pImageInfo = nullptr; // Optional
-descriptorWrites[0].pTexelBufferView = nullptr; // Optional
-
-descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-descriptorWrites[1].dstSet = descriptorSets[i];
-descriptorWrites[1].dstBinding = 1;
-descriptorWrites[1].dstArrayElement = 0;
-descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-descriptorWrites[1].descriptorCount = static_cast<uint32_t>(imageInfos.size());
-descriptorWrites[1].pImageInfo = imageInfos.data();
-
-vkUpdateDescriptorSets(g_device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
-
-}
-}
 
 void Application_Device::SGvk_Device_Create_CommandBuffer()
 {
@@ -1159,28 +1080,25 @@ vkCmdBindPipeline(commandBuffer,VK_PIPELINE_BIND_POINT_GRAPHICS,graphicsPipeline
     scissor.extent = swapChainExtent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
     
-std::vector<VkBuffer> vertexBuffers(0);
-std::vector<VkBuffer> indexBuffers(0);
-
-for (auto model : models)
-{
-    vertexBuffers.push_back(model.vertexBuffer);
-    indexBuffers.push_back(model.indexBuffer);
-}
 
 VkDeviceSize offsets[] = {0};
-
-//使用索引缓冲区
-vkCmdBindVertexBuffers(commandBuffer, 0, vertexBuffers.size(), vertexBuffers.data(), offsets);
-vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
-for (size_t i = 0; i < models.size(); i++)
+for (auto& model : models)
 {
-vkCmdBindIndexBuffer(commandBuffer, indexBuffers[i], 0, VK_INDEX_TYPE_UINT32);
-vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(models[i].indices.size()), 1, 0, 0, 0);
+     // 绑定顶点缓冲区
+   
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, &model.vertexBuffer ,offsets);
+    // 绑定描述符集
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &model.Obj_DescriptorSets_[currentFrame] ,0, nullptr);
+    
+    // 绑定索引缓冲区并绘制模型
+    vkCmdBindIndexBuffer(commandBuffer, model.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+    
+    vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(model.indices.size()), 1, 0, 0, 0);
 }
-//绑定描述符集
-vkCmdEndRenderPass(commandBuffer);//结束渲染通风道
 
+SG_CORE_INFO("Runing05");
+// 结束渲染通道
+vkCmdEndRenderPass(commandBuffer);
 if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
     SG_CORE_ERROR("failed to record command buffer!");
 }
@@ -1202,6 +1120,12 @@ void Application_Device::cleanup(std::vector<SG_Model>& models)
         vkDestroyBuffer(g_device, model.vertexBuffer, nullptr);//清理缓冲区
         vkFreeMemory(g_device, model.vertexBufferMemory, nullptr);
 
+         //清理均匀缓冲区
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+            vkDestroyBuffer(g_device, model.Obj_uniformBuffers_[i], nullptr);
+            vkFreeMemory(g_device, model.Obj_uniformBuffersMemory_[i], nullptr);
+            }
+
         //texture
         for (auto& tex : model.m_Texture)
         {
@@ -1210,14 +1134,10 @@ void Application_Device::cleanup(std::vector<SG_Model>& models)
             vkDestroyImage(g_device, tex.textureImage, nullptr);
             vkFreeMemory(g_device, tex.textureImageMemory, nullptr);
         }
+
     }
 
     
-    //清理均匀缓冲区
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        vkDestroyBuffer(g_device, uniformBuffers[i], nullptr);
-        vkFreeMemory(g_device, uniformBuffersMemory[i], nullptr);
-    }
 
     vkDestroyDescriptorPool(g_device,descriptorPool,nullptr);
     vkDestroyDescriptorSetLayout(g_device, descriptorSetLayout, nullptr);

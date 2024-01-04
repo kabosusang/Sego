@@ -41,7 +41,7 @@ QueueFamilyIndices Sg_UI::FindQueueFamilies(VkPhysicalDevice device)
     return indices;
 }
 
-#include "Resource/Data/UI/ini.h"
+#include "SGData/UI/ini.h"
 void Sg_UI::Init_Sg_Imgui()
 {
     IMGUI_CHECKVERSION();
@@ -58,7 +58,7 @@ void Sg_UI::Init_Sg_Imgui()
     // Setup Dear ImGui style
     //ImGui::StyleColorsLight();
 
-    io.Fonts->AddFontFromFileTTF("../Resource/ziti.ttf",18,NULL,io.Fonts->GetGlyphRangesChineseFull());
+    io.Fonts->AddFontFromFileTTF("../SGData/Fonts/ziti.ttf",18,NULL,io.Fonts->GetGlyphRangesChineseFull());
 
     ImGui::GetIO().IniFilename = IMGUI_INI; //ImGui Layout 
 
