@@ -237,8 +237,13 @@ VkExtent2D Application_Device::SGvk_Device_Choose_Choose_SwapExtent(const VkSurf
 
 //辅助选择具有深度的组件格式
 VkFormat Application_Device::SGvk_Device_Choose_FindDepthFormat() {
+    std::vector<VkFormat> candidates;
+    candidates.push_back(VK_FORMAT_D32_SFLOAT_S8_UINT);
+    candidates.push_back(VK_FORMAT_D24_UNORM_S8_UINT);
+    candidates.push_back(VK_FORMAT_D16_UNORM_S8_UINT);
+    
     return SGvk_Device_Choose_FindSupportedFormat(
-        {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
+        candidates,
         VK_IMAGE_TILING_OPTIMAL,
         VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
     );
@@ -735,7 +740,8 @@ depthStencil.depthTestEnable = VK_TRUE;
 depthStencil.depthWriteEnable = VK_TRUE;
 depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
 depthStencil.depthBoundsTestEnable = VK_FALSE;
-depthStencil.stencilTestEnable = VK_FALSE;
+depthStencil.stencilTestEnable = VK_TRUE;
+
 
 
 VkGraphicsPipelineCreateInfo pipelineInfo{};

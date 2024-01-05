@@ -13,6 +13,11 @@ public:
     /// param font_file_path ttf路径
     /// return
     static Font* GetFont(std::string font_file_path);
+    //freetype 为字符生成bitmap
+    void LoadCharacter(char ch);
+
+ Texture2D* font_texture(){return font_texture_;}
+
 private:
     uint16_t font_size_ = 20;//默认字体大小
     char* font_file_buffer_ = nullptr; //ttf字体加载到内存

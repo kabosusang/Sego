@@ -101,7 +101,7 @@ Application::Application()
     transform_obj[0]->set_position(glm::vec3(0.0f));
     transform_obj[0]->set_rotation(glm::vec3(0.0f,0.0f,0.0f));
     transform_obj[0]->set_scale(glm::vec3(1.0f));
-
+    
     //挂上 SG_Object
     sg_obj.push_back(dynamic_cast<SG_Object*>(go->AddComponent("SG_Object")));
     
@@ -115,7 +115,7 @@ Application::Application()
 
     //挂上 SG_Object
     sg_obj.push_back(dynamic_cast<SG_Object*>(go2->AddComponent("SG_Object")));
-
+    
 
     //创建相机Object
     auto go_camera = new GameObject("main_camera");
@@ -375,7 +375,7 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 //camera
 transform_camera->set_position(cameraPos);
 camera->SetView(cameraPos + cameraFront,cameraUp);
-camera->SetProjection(fov,app_device.swapChainExtent.width / (float) app_device.swapChainExtent.height, 0.1f, 10.0f);
+camera->SetProjection(fov,app_device.swapChainExtent.width / (float) app_device.swapChainExtent.height, 0.1f, 100.0f);
 
 int i = 0;
 for (auto obj:sg_obj)
