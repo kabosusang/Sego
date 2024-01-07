@@ -54,8 +54,6 @@ void SetView(const glm::vec3& camerForward,const glm::vec3& camerUp);
 /// param farClip  远裁剪面
 void SetProjection(float fovDegrees,float aspectRatio,float nearClip,float farClip);
 
-
-
 /// 刷帧清屏
 void Clear();
 

@@ -8,6 +8,8 @@
 * [spdlog](https://github.com/gabime/spdlog): Log
 * [glm](https://github.com/g-truc/glm): Math Library
 * [rttr](https://github.com/rttrorg/rttr): refelect library
+* [Lua](https://github.com/lua/lua): lua
+
 ---
 ## 运行截图
 

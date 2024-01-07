@@ -11,6 +11,7 @@ struct Vertex {
     glm::vec3 pos;
     glm::vec4 color;
     glm::vec2 texCoord;
+    
     //绑定说明
     static VkVertexInputBindingDescription getBindingDescription() {
         VkVertexInputBindingDescription bindingDescription{};

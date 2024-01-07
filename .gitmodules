@@ -16,3 +16,6 @@
 [submodule "vendor/freetype-2.13.2"]
 	path = vendor/freetype-2.13.2
 	url = https://github.com/freetype/freetype
+[submodule "vendor/lua"]
+	path = vendor/lua
+	url = https://github.com/lua/lua

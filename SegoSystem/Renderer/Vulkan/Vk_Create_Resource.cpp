@@ -305,7 +305,7 @@ void SG_CRes::loadModel_tiny_obj(std::vector<SG_Model>::iterator m_it)
             attrib.vertices[3 * index.vertex_index + 1],
             attrib.vertices[3 * index.vertex_index + 2]
         };
-
+       
 #ifdef GLFW_INCLUDE_VULKAN
    vertex.texCoord = {
             attrib.texcoords[2 * index.texcoord_index + 0],
