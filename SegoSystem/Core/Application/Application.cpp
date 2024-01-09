@@ -69,14 +69,12 @@ Application::Application()
        CreateTexture(m_it,SG_DATA_PATH("Texture/viking_room.png"),"ClosetTexture");
     }
 
-
     //Create Resource
     SG_CRes::SGvk_CreateUniformBuffers(m_Model);
     app_device.SGvk_Device_Create_DescriptorPool();
     //this
     SG_CRes::SGvk_CreateDescriptorSets(app_device.descriptorSetLayout,
     app_device.descriptorPool,m_Model);
-   
     app_device.SGvk_Device_Create_CommandBuffer();
     app_device.SGvk_Device_Create_SyncObjects();
     
@@ -101,7 +99,6 @@ Application::Application()
     transform_obj[0]->set_position(glm::vec3(0.0f));
     transform_obj[0]->set_rotation(glm::vec3(0.0f,0.0f,0.0f));
     transform_obj[0]->set_scale(glm::vec3(1.0f));
-    
     //挂上 SG_Object
     sg_obj.push_back(dynamic_cast<SG_Object*>(go->AddComponent("SG_Object")));
     
@@ -112,7 +109,6 @@ Application::Application()
     transform_obj[1]->set_position(glm::vec3(2.0f,0.0f,0.0f));
     transform_obj[1]->set_rotation(glm::vec3(0.0f,0.0f,0.0f));
     transform_obj[1]->set_scale(glm::vec3(1.0f));
-
     //挂上 SG_Object
     sg_obj.push_back(dynamic_cast<SG_Object*>(go2->AddComponent("SG_Object")));
     
@@ -125,6 +121,14 @@ Application::Application()
     //挂上Camera组件
     camera =dynamic_cast<Camera*>(go_camera->AddComponent("Camera"));
   
+
+
+
+
+
+
+
+
 }
 
 void Application::Run()
@@ -508,7 +512,6 @@ void Application::ChangeModel()
         m_it->m_Texture.clear();
         CreateTexture(m_it,SG_DATA_PATH("Texure/viking_room.png"),"ClosetTexture");
     }
-
 
     vkDestroyDescriptorPool(g_device,app_device.descriptorPool,nullptr);
     SG_CRes::SGvk_CreateUniformBuffers(m_Model);

@@ -1,6 +1,8 @@
 #include "Renderer/Vulkan/Vk_Device_Init.h"
 #include "Log/Log.h"
 
+#include "core.h"
+
 //C++
 #include <iostream>
 
@@ -80,8 +82,8 @@ void Application_Device::InitVulkan()
     SGvk_Device_Create_ImageViews();//img
     SGvk_Device_Create_RenderPass();//Ren
     SGvk_Device_Create_DescriptorSetLayout();//des
-    SGvk_Device_Create_GraphicsPipeline("../SegoSystem/Renderer/shaders/vert.spv",
-    "../SegoSystem/Renderer/shaders/frag.spv");
+    SGvk_Device_Create_GraphicsPipeline(SG_DATA_PATH("Shader/vert.spv"),
+    SG_DATA_PATH("Shader/frag.spv"));
     SGvk_Device_Create_DepthResources();
     SGvk_Device_Create_Framebuffers();
     SGvk_Device_Create_CommandPool();
@@ -740,7 +742,7 @@ depthStencil.depthTestEnable = VK_TRUE;
 depthStencil.depthWriteEnable = VK_TRUE;
 depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
 depthStencil.depthBoundsTestEnable = VK_FALSE;
-depthStencil.stencilTestEnable = VK_TRUE;
+depthStencil.stencilTestEnable = VK_FALSE;
 
 
 
@@ -1005,8 +1007,8 @@ SGvk_Device_Create_SwapChain();
 SGvk_Device_Create_ImageViews();
 SGvk_Device_Create_DepthResources();
 SGvk_Device_Create_RenderPass();
-SGvk_Device_Create_GraphicsPipeline("../SegoSystem/Renderer/shaders/vert.spv",
-"../SegoSystem/Renderer/shaders/frag.spv");
+SGvk_Device_Create_GraphicsPipeline(SG_DATA_PATH("Shader/vert.spv"),
+SG_DATA_PATH("Shader/frag.spv"));
 SGvk_Device_Create_Framebuffers();
 SGvk_Device_Create_DescriptorPool();
 SGvk_Device_Create_CommandBuffer();
@@ -1102,7 +1104,6 @@ for (auto& model : models)
     vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(model.indices.size()), 1, 0, 0, 0);
 }
 
-SG_CORE_INFO("Runing05");
 // 结束渲染通道
 vkCmdEndRenderPass(commandBuffer);
 if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {

@@ -9,7 +9,8 @@
 * [glm](https://github.com/g-truc/glm): Math Library
 * [rttr](https://github.com/rttrorg/rttr): refelect library
 * [Lua](https://github.com/lua/lua): lua
-
+* [sol2](https://github.com/sol2/sol2): sol2
+* [Assimp](https://github.com/assimp/assimp): Load Model 
 ---
 ## 运行截图
 

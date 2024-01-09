@@ -19,3 +19,9 @@
 [submodule "vendor/lua"]
 	path = vendor/lua
 	url = https://github.com/lua/lua
+[submodule "vendor/sol2"]
+	path = vendor/sol2
+	url = https://github.com/ThePhD/sol2
+[submodule "Assimp"]
+	path = vendor/Assimp
+	url = https://github.com/assimp/assimp

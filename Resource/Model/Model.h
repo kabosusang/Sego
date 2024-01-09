@@ -71,7 +71,7 @@ public:
     Modeltype model_type = Modeltype::obj;
 //Material
     Material Model_Material;
-//Vulkan Data
+//Vulkan Vertex Data
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
     VkBuffer indexBuffer;
@@ -85,5 +85,4 @@ public:
 //state
     VkBool32 cfg_isBlend_;
     VkBool32 cfg_isDepthTest_;
-
 };

@@ -62,6 +62,15 @@ link_directories(${PROJECT_SOURCE_DIR}/vendor/rttr/build/src/rttr)
 include_directories(${PROJECT_SOURCE_DIR}/vendor/freetype-2.13.2/include)
 link_directories(${PROJECT_SOURCE_DIR}/vendor/freetype-2.13.2/build)
 
+#lua5.3
+include_directories(${PROJECT_SOURCE_DIR}/vendor/lua/src)
+link_directories(${PROJECT_SOURCE_DIR}/vendor/lua/build)
+
+
+#Assimp
+include_directories(${PROJECT_SOURCE_DIR}/vendor/vendor/Assimp)
+link_directories(${PROJECT_SOURCE_DIR}/vendor/Assimp/build/lib)
+
 #源文件src
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/Resource/Editor SRC_LIST)
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/SegoSystem/Core DATA_LIST)
@@ -118,7 +127,7 @@ list(APPEND DATA_LIST ${RESOURCE})
 add_executable(editor  ${SRC_LIST} ${DATA_LIST})
 
 #add link
-target_link_libraries(editor PRIVATE imgui glfw3 rttr_core freetype)
+target_link_libraries(editor PRIVATE imgui glfw3 rttr_core freetype lua assimp-5)
 
 
 

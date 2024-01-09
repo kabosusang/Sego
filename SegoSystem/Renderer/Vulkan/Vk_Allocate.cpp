@@ -49,9 +49,8 @@ for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
         return i;
     }
 }
-
 SG_CORE_ERROR("failed to find suitable memory type!");
-
+return -1;
 }
 
 void SG_Allocate::SGvk_Device_Create_Image(VkPhysicalDevice& phys,VkDevice& device,
