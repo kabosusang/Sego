@@ -1,7 +1,6 @@
-#include "Core/Mesh/Mesh.h"
-//texture
-#include <stb_image.h>
+#include "pch.h"
 
+#include "Core/Mesh/Mesh.h"
 //注册MeshFilter
 
 #include <rttr/registration>
@@ -20,7 +19,7 @@ MeshFilter::~MeshFilter()
 {
     delete mesh_;
 }
-#include <iostream>
+
 void MeshFilter::LoadMesh(std::string mesh_file_path)
 {
     //读取 Mesh文件头

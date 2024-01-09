@@ -11,8 +11,6 @@ set(output_bin ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${output_bin})
 
 
-
-
 #头文件
 #SegoHead
 include_directories(${PROJECT_SOURCE_DIR})
@@ -126,8 +124,13 @@ list(APPEND DATA_LIST ${RESOURCE})
 #add exe
 add_executable(editor  ${SRC_LIST} ${DATA_LIST})
 
+set(PCH_HEADER "Resource/pch.h")  # 设置预编译头文件的路径
+set(PCH_SOURCE "Resource/pch.cpp")
+# 添加预编译头
+target_precompile_headers(editor PRIVATE ${PCH_HEADER} ${PCH_SOURCE})
+
+
 #add link
 target_link_libraries(editor PRIVATE imgui glfw3 rttr_core freetype lua assimp-5)
-
 
 

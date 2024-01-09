@@ -1,12 +1,10 @@
 #pragma once
-
+#include "pch.h"
 #include "Renderer/SgUI/Sg_UI.h"
 //input imgui
 #include <imgui_impl_vulkan.h>
 #include <imgui_impl_glfw.h>
-#include "Log/Log.h"
 
-#include <iostream>
 QueueFamilyIndices Sg_UI::FindQueueFamilies(VkPhysicalDevice device)
 {
     QueueFamilyIndices indices;

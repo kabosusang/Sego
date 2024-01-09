@@ -1,8 +1,6 @@
 #pragma once
 
-#include <vector>
-#include <optional>
-#include <string>
+#include "pch.h"
 
 #include "Vertex/Vertex.h"
 #include "Model/Model.h"

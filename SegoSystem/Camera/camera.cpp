@@ -1,11 +1,8 @@
+#include "pch.h"
+
+
 #include "camera/camera.h"
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#define GLM_ENABLE_EXPERIMENTAL
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
 #include "camera.h"
-#define GLM_DISABLE_GTX_HASH
 #include "imgui.h"
 
 //lookat

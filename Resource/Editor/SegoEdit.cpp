@@ -1,7 +1,7 @@
+#include "pch.h"
 
 #include "Window/Window.h"
 #include <ThreadPool/imguiThread.h>
-#include "Log/Log.h"
 #include "Core/Application/Application.h"
 #include "Device/SgDeviceAttri.h"
 

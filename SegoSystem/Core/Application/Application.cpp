@@ -1,17 +1,12 @@
-#include "core.h"
+#include "pch.h"
+
 
 #include "Core/Application/Application.h"
 #include "Renderer/Vulkan/Vk_Device_Init.h"
 #include "VK_Global_Data.h"
 
-
-
-
 #include "Renderer/SgUI/GUI.h"
 #include "Editor/VKimgui.h"
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-
 #include "SGComponent/game_object.h"
 #include "SGComponent/component.h"
 #include "SGComponent/transform.h"

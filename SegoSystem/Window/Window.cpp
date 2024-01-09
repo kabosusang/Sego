@@ -1,9 +1,7 @@
+#include "pch.h"
+
+
 #include "Window/Window.h"
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-
-
-#include "Log/Log.h"
 #include "Events/KeyEvent.h"
 #include "Events/MouseEvent.h"
 #include "Events/WindowEvent.h"

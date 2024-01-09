@@ -1,15 +1,13 @@
+#include "pch.h"
+
 #include "Renderer/Vulkan/Vk_Create_Resource.h"
 #include "Renderer/Vulkan/Vk_Allocate.h"
 #include "VK_Global_Data.h"
-
-
 //TextureImage
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #endif
 #include <stb_image.h>
-
-#include <Log/Log.h>
 
 
 //

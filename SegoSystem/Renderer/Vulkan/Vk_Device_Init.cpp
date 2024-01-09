@@ -1,17 +1,7 @@
+#include "pch.h"
+
 #include "Renderer/Vulkan/Vk_Device_Init.h"
-#include "Log/Log.h"
-
-#include "core.h"
-
-//C++
-#include <iostream>
-
-#include <optional>
-#include <set>
-#include <string>
-#include <array>
 #include "Vk_Device_Init.h"
-
 //Vulkan Global Data
 #include "VK_Global_Data.h"
 
