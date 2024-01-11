@@ -15,7 +15,7 @@ class Texture2D
 {
 public:
 static Texture2D* Create(uint16_t Width,uint16_t height);
-static Texture2D* LoadFromFile(std::string& image_file_path,VkBuffer& stagingBuffer,VkDeviceMemory& stagingBufferMemory);
+static Texture2D* LoadFromFile(std::string& image_file_path);
 public:
     int wdith_;
     int height_;

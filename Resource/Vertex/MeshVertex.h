@@ -47,9 +47,6 @@ struct MeshVertex {
             ,tangent(tx,ty,tz)
             ,texCoord(u,v){}   
 
-
-
-
     //绑定说明
     static VkVertexInputBindingDescription getBindingDescription() {
         VkVertexInputBindingDescription bindingDescription{};
@@ -90,8 +87,6 @@ struct MeshVertex {
 
         return attributeDescriptions;
     }
-
-
 
 bool operator==(const MeshVertex& other) const {
         return this->pos == other.pos 

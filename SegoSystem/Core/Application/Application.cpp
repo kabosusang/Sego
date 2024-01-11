@@ -43,7 +43,7 @@ Application::Application()
     app_device.InitVulkan();
     std::string ModelName = "Pot";
     std::string ModelName2 = "clost";
-    CreateModel(SG_DATA_PATH("Model/mesh/pot.mesh"),ModelName);
+    CreateModel("../SGData/model/mesh/pot.mesh",ModelName);
     auto m_it = std::find_if(m_Model.begin(),m_Model.end(),[&ModelName](const SG_Model& modl)
     {
         return modl.Model_Name == ModelName;
@@ -73,8 +73,6 @@ Application::Application()
     app_device.SGvk_Device_Create_CommandBuffer();
     app_device.SGvk_Device_Create_SyncObjects();
     
-
-
     Sg_ui.SgUI_Input(m_Window->GetWindow(),app_device.instance,app_device.surface,g_physicalDevice
     ,g_device,app_device.swapChainImageFormat,app_device.swapChainImages,app_device.swapChainImageViews
     ,app_device.swapChainExtent,app_device.graphicsqueue,app_device.presentQueue);
@@ -218,7 +216,6 @@ err = vkQueueSubmit(app_device.graphicsqueue, 1, &submitInfo, app_device.inFligh
 if (err!= VK_SUCCESS) {
     std::cout << "Error Code:" << err ;
    SG_CORE_ERROR("failed to submit draw command buffer!");
-    
 }//将命令缓冲区提交到图形队列
  
 //将结果提交回交换链 让它最终出现在屏幕上

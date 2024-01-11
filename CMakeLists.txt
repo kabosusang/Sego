@@ -16,6 +16,7 @@ set(EXECUTABLE_OUTPUT_PATH ${output_bin})
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/SegoSystem)
 include_directories(${PROJECT_SOURCE_DIR}/Resource)
+include_directories(${PROJECT_SOURCE_DIR}/SGComponent)
 #
 include_directories(${PROJECT_SOURCE_DIR}/vendor/)
 include_directories(${PROJECT_SOURCE_DIR}/vendor/glfw/include)

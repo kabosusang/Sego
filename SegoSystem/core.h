@@ -22,7 +22,6 @@
 #define SG_DATA_PATH(x) "../SGData/" x
 
 
-
 #define SG_RESOUCE_PATH(x) "../Resource/" x
 
 

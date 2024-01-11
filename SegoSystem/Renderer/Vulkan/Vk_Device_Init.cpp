@@ -72,8 +72,8 @@ void Application_Device::InitVulkan()
     SGvk_Device_Create_ImageViews();//img
     SGvk_Device_Create_RenderPass();//Ren
     SGvk_Device_Create_DescriptorSetLayout();//des
-    SGvk_Device_Create_GraphicsPipeline(SG_DATA_PATH("Shader/vert.spv"),
-    SG_DATA_PATH("Shader/frag.spv"));
+    SGvk_Device_Create_GraphicsPipeline(SG_DATA_PATH("Shader/vikingroom/vert.spv"),
+    SG_DATA_PATH("Shader/vikingroom/frag.spv"));
     SGvk_Device_Create_DepthResources();
     SGvk_Device_Create_Framebuffers();
     SGvk_Device_Create_CommandPool();
@@ -997,8 +997,8 @@ SGvk_Device_Create_SwapChain();
 SGvk_Device_Create_ImageViews();
 SGvk_Device_Create_DepthResources();
 SGvk_Device_Create_RenderPass();
-SGvk_Device_Create_GraphicsPipeline(SG_DATA_PATH("Shader/vert.spv"),
-SG_DATA_PATH("Shader/frag.spv"));
+SGvk_Device_Create_GraphicsPipeline(SG_DATA_PATH("Shader/vikingroom/vert.spv"),
+SG_DATA_PATH("Shader/vikingroom/frag.spv"));
 SGvk_Device_Create_Framebuffers();
 SGvk_Device_Create_DescriptorPool();
 SGvk_Device_Create_CommandBuffer();
@@ -1083,7 +1083,6 @@ VkDeviceSize offsets[] = {0};
 for (auto& model : models)
 {
      // 绑定顶点缓冲区
-   
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, &model.vertexBuffer ,offsets);
     // 绑定描述符集
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &model.Obj_DescriptorSets_[currentFrame] ,0, nullptr);

@@ -141,7 +141,7 @@ bool GetCursorInput(MouseMoveEvent& e)
         cameraFront = glm::normalize(front);
     }
 
-    
+      return true;
 }
 
 
@@ -160,10 +160,7 @@ bool GetCursorScrollInput(MouseScrollEvent& e)
             fov = 90.0f;
     }
 
-
-
-    
-    
+  return true;
 }
 
 #include <rttr/registration>
