@@ -1,10 +1,10 @@
 #include "pch.h"
 
 #include "Renderer/Vulkan/Vk_Device_Init.h"
-#include "Vk_Device_Init.h"
 //Vulkan Global Data
 #include "VK_Global_Data.h"
-
+Application_Device* Application_Device::ins = nullptr;
+Application_Device* app_device = Application_Device::getInstance();
 
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");

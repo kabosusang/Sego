@@ -66,8 +66,28 @@ for(uint32_t i = 0; i < scene->mNumMeshes ; i++)
         }
     }
 }
+
+CreateVulkanData();
+
 }
+#include "Renderer/Vulkan/Vk_Create_Resource.h"
+#include "Renderer/Vulkan/Vk_Device_Init.h"
+#include "VK_Global_Data.h"
+
+void MeshFilter::CreateVulkanData()
+{
+SG_CRes::SGvk_Device_Create_VertexBuffer(mesh_->vertices,vertexBuffer,vertexBufferMemory,
+g_device,g_physicalDevice,
+app_device->commandPool,app_device->presentQueue);
+
+SG_CRes::SGvk_Device_Create_IndexBuffer(mesh_->GetIndices32(),
+indexBuffer,indexBufferMemory,
+g_device,g_physicalDevice,
+app_device->commandPool,app_device->presentQueue);
+
+SG_CRes::SGvk_CreateUniformBuffers(Obj_uniformBuffers_,Obj_uniformBuffersMemory_,Obj_uniformBuffersMapped_);
 
 
+}
 
 

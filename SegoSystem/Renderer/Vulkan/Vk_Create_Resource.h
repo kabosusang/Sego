@@ -4,10 +4,11 @@
 
 #include "Vertex/Vertex.h"
 #include "Model/Model.h"
+#include "Vertex/MeshVertex.h"
 
 #define MAX_FRAMES_IN_FLIGHT 2
 
-namespace SG_CRes
+namespace  SG_CRes
 {   
     void CreateTexture(std::vector<SG_Texture>::iterator it,
     VkDevice& device,VkPhysicalDevice& physicalDevice,VkCommandPool& commandPool,
@@ -38,9 +39,10 @@ namespace SG_CRes
 
 
 
+    
+
 
 //Uniform
-
     void SGvk_CreateUniformBuffers(std::vector<SG_Model>& models);
     void SGvk_CreateDescriptorSets(VkDescriptorSetLayout& descriptorSetLayout,
     VkDescriptorPool& descriptorPool,std::vector<SG_Model>& models);
@@ -50,9 +52,28 @@ namespace SG_CRes
 
 
 
+void SGvk_Device_Create_VertexBuffer(std::vector<MeshVertex>& vertices,
+    VkBuffer& vertexBuffer,VkDeviceMemory& vertexBufferMemory,
+    VkDevice& device,
+    VkPhysicalDevice& physicalDevice,
+    VkCommandPool& cmdPool, 
+    VkQueue &endque);
+
+    void SGvk_Device_Create_IndexBuffer(std::vector<uint32_t>& indices32,
+    VkBuffer& indexBuffer,VkDeviceMemory& indexBufferMemory,
+    VkDevice& device,
+    VkPhysicalDevice& physicaldevice,
+    VkCommandPool &cmdPool, 
+    VkQueue &endque);
 
 
+void SGvk_CreateUniformBuffers(std::vector<VkBuffer>& Obj_uniformBuffers_,
+std::vector<VkDeviceMemory>& Obj_uniformBuffersMemory_,
+std::vector<void*>& Obj_uniformBuffersMapped_);
 
+void SGvk_CreateDescriptorSets(VkDescriptorSetLayout& descriptorSetLayout,
+VkDescriptorPool& descriptorPool,std::vector<VkDescriptorSet>& Obj_DescriptorSets,
+std::vector<Texture2D*>& texs);
 
 
 

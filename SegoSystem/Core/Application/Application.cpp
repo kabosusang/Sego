@@ -18,6 +18,7 @@
 Object_Attr obj_ui("ObjectUI",0);
 App_Attr scene_ui("Scene",1);
 
+
 Application::Application()
 {
     glfwInit();
@@ -39,8 +40,8 @@ Application::Application()
     Sego::Log::Log_Init(); //初始化日志
     SG_CORE_INFO("Hello World {0} , {1}",m_Window->GetWidth(),m_Window->GetHeight());
 
-    app_device.InputWindow(m_Window->GetWindow());
-    app_device.InitVulkan();
+    app_device->InputWindow(m_Window->GetWindow());
+    app_device->InitVulkan();
     std::string ModelName = "Pot";
     std::string ModelName2 = "clost";
     CreateModel("../SGData/model/mesh/pot.mesh",ModelName);
@@ -66,18 +67,18 @@ Application::Application()
 
     //Create Resource
     SG_CRes::SGvk_CreateUniformBuffers(m_Model);
-    app_device.SGvk_Device_Create_DescriptorPool();
+    app_device->SGvk_Device_Create_DescriptorPool();
     //this
-    SG_CRes::SGvk_CreateDescriptorSets(app_device.descriptorSetLayout,
-    app_device.descriptorPool,m_Model);
-    app_device.SGvk_Device_Create_CommandBuffer();
-    app_device.SGvk_Device_Create_SyncObjects();
+    SG_CRes::SGvk_CreateDescriptorSets(app_device->descriptorSetLayout,
+    app_device->descriptorPool,m_Model);
+    app_device->SGvk_Device_Create_CommandBuffer();
+    app_device->SGvk_Device_Create_SyncObjects();
     
-    Sg_ui.SgUI_Input(m_Window->GetWindow(),app_device.instance,app_device.surface,g_physicalDevice
-    ,g_device,app_device.swapChainImageFormat,app_device.swapChainImages,app_device.swapChainImageViews
-    ,app_device.swapChainExtent,app_device.graphicsqueue,app_device.presentQueue);
+    Sg_ui.SgUI_Input(m_Window->GetWindow(),app_device->instance,app_device->surface,g_physicalDevice
+    ,g_device,app_device->swapChainImageFormat,app_device->swapChainImages,app_device->swapChainImageViews
+    ,app_device->swapChainExtent,app_device->graphicsqueue,app_device->presentQueue);
     Sg_ui.Init_Sg_Imgui(); //初始化imgui
-    MinImageCount = app_device.image_count;
+    MinImageCount = app_device->image_count;
     
     //初始化UI class
     int width,height;
@@ -114,9 +115,6 @@ Application::Application()
     //挂上Camera组件
     camera =dynamic_cast<Camera*>(go_camera->AddComponent("Camera"));
   
-
-
-
 
 
 
@@ -160,36 +158,37 @@ bool Application::OnWindowClose(WindowCloseEvent& e)
 
 Application::~Application()
 {
-    app_device.cleanup(m_Model);
+    app_device->cleanup(m_Model);
     Sg_ui.cleanup();
     m_Window->DestorySegowindow();
+ 
 }
 
 void Application::Application_DrawFrame()
 {
-vkWaitForFences(g_device,1,&app_device.inFlightFences[currentFrame],VK_TRUE,UINT64_MAX);
+vkWaitForFences(g_device,1,&app_device->inFlightFences[currentFrame],VK_TRUE,UINT64_MAX);
  
 uint32_t imageIndex;
-VkResult result = vkAcquireNextImageKHR(g_device,app_device.swapChain,UINT64_MAX,app_device.imageAvailableSemaphores[currentFrame],VK_NULL_HANDLE,&imageIndex);
+VkResult result = vkAcquireNextImageKHR(g_device,app_device->swapChain,UINT64_MAX,app_device->imageAvailableSemaphores[currentFrame],VK_NULL_HANDLE,&imageIndex);
 if(result == VK_ERROR_OUT_OF_DATE_KHR)//交换链已与 表面，不能再用于渲染。通常发生在调整窗口大小后
 {
     g_SwapChainRebuild = true;
-    app_device.recreateSwapChain();
+    app_device->recreateSwapChain();
     Sg_ui.cleanupUIResources();
-    Sg_ui.UpdataUiCleanDtata(app_device.swapChainImageFormat,app_device.swapChainImages
-    ,app_device.swapChainImageViews,app_device.swapChainExtent);
+    Sg_ui.UpdataUiCleanDtata(app_device->swapChainImageFormat,app_device->swapChainImages
+    ,app_device->swapChainImageViews,app_device->swapChainExtent);
     return ;
 }else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
 {
     SG_CORE_ERROR("failed to acquire swap chain image!");
 }
 
-vkResetFences(g_device, 1, &app_device.inFlightFences[currentFrame]);
+vkResetFences(g_device, 1, &app_device->inFlightFences[currentFrame]);
 // Record UI draw data
 Sg_ui.recordUICommands(imageIndex);
 
-vkResetCommandBuffer(app_device.commandBuffers[currentFrame], 0);
-app_device.recordCommandBuffer(m_Model,app_device.commandBuffers[currentFrame],imageIndex);
+vkResetCommandBuffer(app_device->commandBuffers[currentFrame], 0);
+app_device->recordCommandBuffer(m_Model,app_device->commandBuffers[currentFrame],imageIndex);
 
 updateUniformBuffer(currentFrame);
 
@@ -197,9 +196,9 @@ updateUniformBuffer(currentFrame);
 VkSubmitInfo submitInfo{};
 submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-VkSemaphore waitSemaphores[] = {app_device.imageAvailableSemaphores[currentFrame]};//指定信号量
+VkSemaphore waitSemaphores[] = {app_device->imageAvailableSemaphores[currentFrame]};//指定信号量
 VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};//指定等待管道的哪个阶段
-std::array<VkCommandBuffer, 2> cmdBuffers = {app_device.commandBuffers[imageIndex],Sg_ui.uiCommandBuffers[imageIndex],};
+std::array<VkCommandBuffer, 2> cmdBuffers = {app_device->commandBuffers[imageIndex],Sg_ui.uiCommandBuffers[imageIndex],};
 submitInfo.waitSemaphoreCount = 1;
 submitInfo.pWaitSemaphores = waitSemaphores;
 submitInfo.pWaitDstStageMask = waitStages;
@@ -207,12 +206,12 @@ submitInfo.pWaitDstStageMask = waitStages;
 submitInfo.commandBufferCount = static_cast<uint32_t>(cmdBuffers.size());
 submitInfo.pCommandBuffers = cmdBuffers.data();
 
-VkSemaphore signalSemaphores[] = {app_device.renderFinishedSemaphores[currentFrame]};
+VkSemaphore signalSemaphores[] = {app_device->renderFinishedSemaphores[currentFrame]};
 submitInfo.signalSemaphoreCount = 1;
 submitInfo.pSignalSemaphores = signalSemaphores;
 
 VkResult err;
-err = vkQueueSubmit(app_device.graphicsqueue, 1, &submitInfo, app_device.inFlightFences[currentFrame]);
+err = vkQueueSubmit(app_device->graphicsqueue, 1, &submitInfo, app_device->inFlightFences[currentFrame]);
 if (err!= VK_SUCCESS) {
     std::cout << "Error Code:" << err ;
    SG_CORE_ERROR("failed to submit draw command buffer!");
@@ -225,21 +224,21 @@ presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 presentInfo.waitSemaphoreCount = 1;
 presentInfo.pWaitSemaphores = signalSemaphores;//渲染完成触发该信号量
 
-VkSwapchainKHR swapChains[] = {app_device.swapChain};
+VkSwapchainKHR swapChains[] = {app_device->swapChain};
 presentInfo.swapchainCount = 1;
 presentInfo.pSwapchains = swapChains;
 presentInfo.pImageIndices = &imageIndex;
 
 presentInfo.pResults = nullptr; // Optional 
 
-result = vkQueuePresentKHR(app_device.presentQueue, &presentInfo);//真正提交到交换链
+result = vkQueuePresentKHR(app_device->presentQueue, &presentInfo);//真正提交到交换链
 if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR
 || framebufferResized) {
     framebufferResized = false;
-    app_device.recreateSwapChain();
+    app_device->recreateSwapChain();
     Sg_ui.cleanupUIResources();//清理
-    Sg_ui.UpdataUiCleanDtata(app_device.swapChainImageFormat,app_device.swapChainImages
-    ,app_device.swapChainImageViews,app_device.swapChainExtent);
+    Sg_ui.UpdataUiCleanDtata(app_device->swapChainImageFormat,app_device->swapChainImages
+    ,app_device->swapChainImageViews,app_device->swapChainExtent);
 } else if (result != VK_SUCCESS) {
     SG_CORE_ERROR("failed to present swap chain image!");
 }//如果交换链不是最佳的需要重新创建交换链
@@ -269,7 +268,7 @@ void Application::drawUI()
             if (width > 0 && height > 0)
             {
                 ImGui_ImplVulkan_SetMinImageCount(MinImageCount);
-                ImGui_ImplVulkanH_CreateOrResizeWindow(app_device.instance, g_physicalDevice, g_device, &g_MainWindowData, Sg_ui.queueIndices.graphicsFamily.value(), nullptr, width, height, MinImageCount);
+                ImGui_ImplVulkanH_CreateOrResizeWindow(app_device->instance, g_physicalDevice, g_device, &g_MainWindowData, Sg_ui.queueIndices.graphicsFamily.value(), nullptr, width, height, MinImageCount);
                 g_MainWindowData.FrameIndex = 0;
                 g_SwapChainRebuild = false;
             }
@@ -371,7 +370,7 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 //camera
 transform_camera->set_position(cameraPos);
 camera->SetView(cameraPos + cameraFront,cameraUp);
-camera->SetProjection(fov,app_device.swapChainExtent.width / (float) app_device.swapChainExtent.height, 0.1f, 100.0f);
+camera->SetProjection(fov,app_device->swapChainExtent.width / (float) app_device->swapChainExtent.height, 0.1f, 100.0f);
 
 int i = 0;
 for (auto obj:sg_obj)
@@ -418,17 +417,17 @@ void Application::CreateModel(std::string ModelPath,std::string ModelName)
     {
         SG_CRes::loadModel_tiny_obj(m_it);
         SG_CRes::SGvk_Device_Create_VertexBuffer(m_it,g_device,g_physicalDevice,
-        app_device.commandPool,app_device.presentQueue);
+        app_device->commandPool,app_device->presentQueue);
         SG_CRes::SGvk_Device_Create_IndexBuffer(m_it,g_device,g_physicalDevice,
-        app_device.commandPool,app_device.presentQueue);
+        app_device->commandPool,app_device->presentQueue);
     }
     else if(m_it != m_Model.end() && m_it->model_type == Modeltype::mesh)
     {
         SG_CRes::loadModel_mesh(m_it);
         SG_CRes::SGvk_Device_Create_VertexBuffer(m_it,g_device,g_physicalDevice,
-        app_device.commandPool,app_device.presentQueue);
+        app_device->commandPool,app_device->presentQueue);
         SG_CRes::SGvk_Device_Create_IndexBuffer(m_it,g_device,g_physicalDevice,
-        app_device.commandPool,app_device.presentQueue);
+        app_device->commandPool,app_device->presentQueue);
         
     }
     else
@@ -453,8 +452,8 @@ std::string Texture_Path,std::string Tex_Name)
         SG_CRes::CreateTexture(Tex_it,
         g_device,
         g_physicalDevice,
-        app_device.commandPool,
-        app_device.graphicsqueue);
+        app_device->commandPool,
+        app_device->graphicsqueue);
 
         SG_CRes::CreateTextureView(g_device,Tex_it->textureImage,
         Tex_it->textureImageView,Tex_it->mipLevels);
@@ -505,10 +504,10 @@ void Application::ChangeModel()
         CreateTexture(m_it,SG_DATA_PATH("Texure/viking_room.png"),"ClosetTexture");
     }
 
-    vkDestroyDescriptorPool(g_device,app_device.descriptorPool,nullptr);
+    vkDestroyDescriptorPool(g_device,app_device->descriptorPool,nullptr);
     SG_CRes::SGvk_CreateUniformBuffers(m_Model);
-    app_device.SGvk_Device_Create_DescriptorPool();
-    SG_CRes::SGvk_CreateDescriptorSets(app_device.descriptorSetLayout
-    ,app_device.descriptorPool,m_Model);
+    app_device->SGvk_Device_Create_DescriptorPool();
+    SG_CRes::SGvk_CreateDescriptorSets(app_device->descriptorSetLayout
+    ,app_device->descriptorPool,m_Model);
 
 }

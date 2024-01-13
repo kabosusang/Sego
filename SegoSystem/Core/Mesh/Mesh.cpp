@@ -13,8 +13,6 @@ RTTR_REGISTRATION//注册反射
             
 }
 
-
-
 MeshFilter::~MeshFilter()
 {
     delete mesh_;

@@ -46,8 +46,8 @@ public:
 
 private:
     std::unique_ptr<SegoWindow> m_Window;//Main Window
-    //Device
-    Application_Device app_device;
+
+ 
     //UI Init Function
     Sg_UI Sg_ui;
 
@@ -58,7 +58,6 @@ private:
 
     //Model
     std::vector<SG_Model> m_Model;
-    //Imgui n
    
 
 };

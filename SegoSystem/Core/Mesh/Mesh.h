@@ -21,13 +21,13 @@ struct MeshFileHead{
     unsigned short vertex_index_num_; //索引个数
 };
 
-class MeshFilter
+class MeshFilter2
 {
 public:
     
     void LoadMesh(std::string mesh_file_path);
     Mesh* mesh(){return mesh_;};
-    ~MeshFilter();
+    ~MeshFilter2();
 
 private:
 Mesh* mesh_ ;

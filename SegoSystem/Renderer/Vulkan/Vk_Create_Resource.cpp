@@ -331,7 +331,7 @@ vertex.texCoord = {
 void SG_CRes::loadModel_mesh(std::vector<SG_Model>::iterator m_it)
 {
     
-    MeshFilter ms;
+    MeshFilter2 ms;
     ms.LoadMesh(m_it->Model_Path);
     //Load 
     
@@ -349,7 +349,6 @@ void SG_CRes::loadModel_mesh(std::vector<SG_Model>::iterator m_it)
 
 }
 
-
 void SG_CRes::SGvk_Device_Create_VertexBuffer(std::vector<SG_Model>::iterator m_it,
 VkDevice& device,VkPhysicalDevice& physicalDevice,VkCommandPool& cmdPool, VkQueue &endque)
 {
@@ -361,7 +360,6 @@ SG_Allocate::SGvk_Device_Create_Buffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_
  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
 stagingBuffer, stagingBufferMemory,device,physicalDevice);
 
-
 void* data;
 vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
 memcpy(data, m_it->vertices.data(), (size_t) bufferSize);
@@ -369,7 +367,6 @@ vkUnmapMemory(device, stagingBufferMemory);
 
 SG_Allocate::SGvk_Device_Create_Buffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 
 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_it->vertexBuffer, m_it->vertexBufferMemory,device,physicalDevice);
-
 
 SG_Allocate::copyBuffer(stagingBuffer, m_it->vertexBuffer, bufferSize,device,cmdPool,endque);
 //清理
@@ -404,6 +401,168 @@ vkDestroyBuffer(device, stagingBuffer, nullptr);
 vkFreeMemory(device, stagingBufferMemory, nullptr);
 
 }
+
+
+//MeshVertex
+void SG_CRes::SGvk_Device_Create_VertexBuffer(std::vector<MeshVertex> &vertices, VkBuffer &vertexBuffer, VkDeviceMemory &vertexBufferMemory, VkDevice &device, VkPhysicalDevice &physicalDevice, VkCommandPool &cmdPool, VkQueue &endque)
+{
+    VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+    //临时缓冲区
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    SG_Allocate::SGvk_Device_Create_Buffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+    stagingBuffer, stagingBufferMemory,device,physicalDevice);
+
+    void* data;
+    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, vertices.data(), (size_t) bufferSize);
+    vkUnmapMemory(device, stagingBufferMemory);
+
+    SG_Allocate::SGvk_Device_Create_Buffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 
+    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory,device,physicalDevice);
+
+    SG_Allocate::copyBuffer(stagingBuffer, vertexBuffer, bufferSize,device,cmdPool,endque);
+    //清理
+    vkDestroyBuffer(device, stagingBuffer, nullptr);
+    vkFreeMemory(device, stagingBufferMemory, nullptr);
+
+}
+
+void SG_CRes::SGvk_Device_Create_IndexBuffer(std::vector<uint32_t> &indices32, VkBuffer &indexBuffer, VkDeviceMemory &indexBufferMemory, VkDevice &device, VkPhysicalDevice &physicaldevice, VkCommandPool &cmdPool, VkQueue &endque)
+{
+VkDeviceSize bufferSize = sizeof(indices32[0]) * indices32.size();
+
+VkBuffer stagingBuffer;
+VkDeviceMemory stagingBufferMemory;
+SG_Allocate::SGvk_Device_Create_Buffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory,device,physicaldevice);
+
+void* data;
+vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+memcpy(data, indices32.data(), (size_t) bufferSize);
+vkUnmapMemory(device, stagingBufferMemory);
+
+SG_Allocate::SGvk_Device_Create_Buffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 
+VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory,device,physicaldevice);
+
+SG_Allocate::copyBuffer(stagingBuffer, indexBuffer, bufferSize,device,cmdPool,endque);
+
+
+vkDestroyBuffer(device, stagingBuffer, nullptr);
+vkFreeMemory(device, stagingBufferMemory, nullptr);
+
+}
+
+void SG_CRes::SGvk_CreateUniformBuffers(std::vector<VkBuffer>& Obj_uniformBuffers,
+std::vector<VkDeviceMemory>& Obj_uniformBuffersMemory,
+std::vector<void*>& Obj_uniformBuffersMapped)
+{
+
+VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+
+Obj_uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+Obj_uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+Obj_uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+
+for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+{
+    SG_Allocate::SGvk_Device_Create_Buffer(bufferSize, 
+    VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
+    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+
+    , Obj_uniformBuffers[i],Obj_uniformBuffersMemory[i],g_device,g_physicalDevice);
+
+    vkMapMemory(g_device, Obj_uniformBuffersMemory[i], 0, bufferSize, 0, &Obj_uniformBuffersMapped[i]);
+}
+}
+
+//DescriptorSets
+void SG_CRes::SGvk_CreateDescriptorSets(VkDescriptorSetLayout& descriptorSetLayout,
+VkDescriptorPool& descriptorPool,std::vector<VkDescriptorSet>& Obj_DescriptorSets,
+std::vector<Texture2D*>& texs)
+{
+std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
+VkDescriptorSetAllocateInfo allocInfo{};
+allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+allocInfo.descriptorPool = descriptorPool;
+allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+allocInfo.pSetLayouts = layouts.data();
+Obj_DescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+VkResult err;
+err = vkAllocateDescriptorSets(g_device, &allocInfo, Obj_DescriptorSets_.data());
+if (err != VK_SUCCESS) {
+    SG_CORE_ERROR("failed to allocate descriptor sets!");
+    SG_CORE_ERROR("Error CODE : {0}",err);
+}
+
+
+std::vector<VkDescriptorImageInfo> imageInfos;
+
+for (auto tex : texs)
+{
+    imageInfos.push_back(tex->descriptor);
+    SG_CORE_INFO("Texture Name : {0}",tex.Texture_Name.c_str());
+    SG_CORE_INFO("Texture Path : {0}",tex.Texture_Path.c_str());
+}
+for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+VkDescriptorBufferInfo bufferInfo{};
+bufferInfo.buffer =  model.Obj_uniformBuffers_[i];
+bufferInfo.offset = 0;
+bufferInfo.range = sizeof(UniformBufferObject);
+
+std::array<VkWriteDescriptorSet,2> descriptorWrites{};
+descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+descriptorWrites[0].dstSet = model.Obj_DescriptorSets_[i];
+descriptorWrites[0].dstBinding = 0;
+descriptorWrites[0].dstArrayElement = 0;
+
+descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+descriptorWrites[0].descriptorCount = 1;
+
+descriptorWrites[0].pBufferInfo = &bufferInfo;
+descriptorWrites[0].pImageInfo = nullptr; // Optional
+descriptorWrites[0].pTexelBufferView = nullptr; // Optional
+
+descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+descriptorWrites[1].dstSet = model.Obj_DescriptorSets_[i];
+descriptorWrites[1].dstBinding = 1;
+descriptorWrites[1].dstArrayElement = 0;
+descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+descriptorWrites[1].descriptorCount = static_cast<uint32_t>(imageInfos.size());
+descriptorWrites[1].pImageInfo = imageInfos.data();
+
+vkUpdateDescriptorSets(g_device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+
+}
+}
+
+
+
+
+void SG_CRes::SGvk_CreateUniformBuffers(std::vector<SG_Model>& models)
+{
+VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+
+for(auto& model : models)
+{
+    model.Obj_uniformBuffers_.resize(MAX_FRAMES_IN_FLIGHT);
+    model.Obj_uniformBuffersMemory_.resize(MAX_FRAMES_IN_FLIGHT);
+    model.Obj_uniformBuffersMapped_.resize(MAX_FRAMES_IN_FLIGHT);
+
+for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+{
+    SG_Allocate::SGvk_Device_Create_Buffer(bufferSize, 
+    VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
+    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+
+    , model.Obj_uniformBuffers_[i], model.Obj_uniformBuffersMemory_[i],g_device,g_physicalDevice);
+
+    vkMapMemory(g_device, model.Obj_uniformBuffersMemory_[i], 0, bufferSize, 0, &model.Obj_uniformBuffersMapped_[i]);
+}
+}
+}
+
+
 
 void SG_CRes::SGvk_CreateUniformBuffers(std::vector<SG_Model>& models)
 {

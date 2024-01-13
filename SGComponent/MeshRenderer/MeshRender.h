@@ -26,5 +26,10 @@ Material* material_;
 
 glm::mat4 view_;
 glm::mat4 projection_;
+//VulkanData
+//Descriptor
+std::vector<VkDescriptorSet> Obj_DescriptorSets_;
+
+
 
 };

@@ -88,10 +88,21 @@ static std::vector<char>readFile(const std::string& filename) {
 ////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////
 
-
 class Application_Device
 {
+private:
+static Application_Device* ins;
+ Application_Device() {}
+~Application_Device() {}
 public:
+//Singleton 
+static Application_Device* getInstance() {
+        if (ins == nullptr) {
+            ins = new Application_Device();
+        }
+        return ins;
+    }
+
     //Window
     inline void InputWindow(GLFWwindow* window){ wd = window;}
     void InitVulkan();
@@ -160,8 +171,6 @@ public:
     void cleanSwapChain();
     void cleanup(std::vector<SG_Model>& models);
 
-   
-
 public:
     GLFWwindow* wd;
     VkInstance instance;
@@ -210,7 +219,7 @@ public:
     uint32_t image_count = 0;
 };
 
-
+extern Application_Device* app_device;
 
 
 
