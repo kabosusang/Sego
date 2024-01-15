@@ -1,0 +1,6 @@
+<material Model="pistol">
+    <shader Vertshader="../SGData/Shader/vikingroom/shader.vert" Fragshader="../SGData/Shader/vikingroom/shader.frag"/>
+    <texture name="pistol" image="../SGData/model/fbx/Pistol Beretta/Berreta M9_Material_BaseColor.png"/>
+</material>
+
+

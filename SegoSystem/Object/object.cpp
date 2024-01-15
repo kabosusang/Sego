@@ -2,7 +2,7 @@
 
 
 std::vector<Transform*> transform_obj;
-std::vector<SG_Object*> sg_obj;
+
 
 
 #include <rttr/registration>

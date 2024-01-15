@@ -326,28 +326,6 @@ vertex.texCoord = {
         }
     }
 }
-//mesh
-
-void SG_CRes::loadModel_mesh(std::vector<SG_Model>::iterator m_it)
-{
-    
-    MeshFilter2 ms;
-    ms.LoadMesh(m_it->Model_Path);
-    //Load 
-    
-    m_it->vertices = std::move(ms.mesh()->vertex_data_);
-    //m_it->indices = std::move(ms.mesh()->vertex_index_data_);
-    m_it->indices.resize(ms.mesh()->vertex_index_num_);
-    
-   std::transform(ms.mesh()->vertex_index_data_.begin(), ms.mesh()->vertex_index_data_.end(), 
-   std::back_inserter(m_it->indices),
-    [](unsigned short value) {
-        return static_cast<uint32_t>(value);
-    });
-    
-
-
-}
 
 void SG_CRes::SGvk_Device_Create_VertexBuffer(std::vector<SG_Model>::iterator m_it,
 VkDevice& device,VkPhysicalDevice& physicalDevice,VkCommandPool& cmdPool, VkQueue &endque)
@@ -476,10 +454,106 @@ for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 }
 }
 
+void SG_CRes::CreateTexture(
+Texture2D* texture2d,
+std::string Image_path,
+VkDevice& device,
+VkPhysicalDevice& physicalDevice,
+VkCommandPool& commandPool,
+VkQueue& graQue
+)
+{
+int texChannels;
+
+stbi_uc* pixels = stbi_load(Image_path.c_str(),
+&texture2d->wdith_,&texture2d->height_,&texChannels,
+STBI_rgb_alpha);
+
+VkDeviceSize imageSize = texture2d->wdith_ * texture2d->height_ * 4;
+    if (!pixels) {
+        SG_CORE_ERROR("failed to load texture image!");
+    }
+        //根据颜色通道数，判断颜色格式。
+        switch (texChannels) {
+            case 1:
+            {
+                texture2d->texture_format_ = texformat::TX_ALPHA;
+                break;
+            }
+            case 3:
+            {
+                texture2d->texture_format_ = texformat::TX_RGB;
+                break;
+            }
+            case 4:
+            {
+                texture2d->texture_format_ = texformat::TX_RGBA;
+                break;
+            }
+        }
+
+VkBuffer stagingBuffer;
+VkDeviceMemory stagingBufferMemory;
+SG_Allocate::SGvk_Device_Create_Buffer(imageSize, 
+VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
+VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | 
+VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+stagingBuffer, 
+stagingBufferMemory,device,physicalDevice);
+
+void* data;
+vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
+memcpy(data, pixels, static_cast<size_t>(imageSize));
+vkUnmapMemory(device, stagingBufferMemory);
+
+stbi_image_free(pixels);
+//设置纹理数据
+
+//设置mip层数
+texture2d->mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texture2d->wdith_,texture2d->height_)))) + 1;
+
+SG_Allocate::SGvk_Device_Create_Image(physicalDevice,device,texture2d->wdith_,
+texture2d->height_,texture2d->mipLevels,
+VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, 
+VK_IMAGE_USAGE_TRANSFER_SRC_BIT |VK_IMAGE_USAGE_TRANSFER_DST_BIT| VK_IMAGE_USAGE_SAMPLED_BIT, 
+VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
+texture2d->textureImage, texture2d->textureImageMemory);
+
+//opyBufferToImage
+SG_Allocate::SGvk_Device_Create_TransitionImageLayout(graQue,device,commandPool,
+texture2d->textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, 
+VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,texture2d->mipLevels);
+
+SG_Allocate::copyBufferToImage(graQue,device,commandPool,stagingBuffer, 
+texture2d->textureImage, static_cast<uint32_t>(texture2d->wdith_), 
+static_cast<uint32_t>(texture2d->height_));
+
+/*
+SG_Allocate::SGvk_Device_Create_TransitionImageLayout(graQue,device,commandPool,
+Te_it->textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
+VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,Te_it->mipLevels);
+ */
+
+vkDestroyBuffer(device, stagingBuffer, nullptr);
+vkFreeMemory(device, stagingBufferMemory, nullptr);
+
+//Mipmap
+GenerateMipmaps(device,commandPool,graQue,texture2d->textureImage, 
+VK_FORMAT_R8G8B8A8_SRGB,physicalDevice
+,static_cast<uint32_t>(texture2d->wdith_)
+,static_cast<uint32_t>(texture2d->height_),texture2d->mipLevels);
+
+}
+
 //DescriptorSets
-void SG_CRes::SGvk_CreateDescriptorSets(VkDescriptorSetLayout& descriptorSetLayout,
-VkDescriptorPool& descriptorPool,std::vector<VkDescriptorSet>& Obj_DescriptorSets,
-std::vector<Texture2D*>& texs)
+void SG_CRes::SGvk_CreateDescriptorSets(
+VkDescriptorSetLayout& descriptorSetLayout,
+VkDescriptorPool& descriptorPool,
+std::vector<VkDescriptorSet>& Obj_DescriptorSets,
+std::vector<Texture2D*>& texs,
+std::vector<VkBuffer>& Obj_uniformBuffers,
+std::vector<VkDeviceMemory>& Obj_uniformBuffersMemory,
+std::vector<void*>& Obj_uniformBuffersMapped)
 {
 std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
 VkDescriptorSetAllocateInfo allocInfo{};
@@ -489,30 +563,27 @@ allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 allocInfo.pSetLayouts = layouts.data();
 Obj_DescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
 VkResult err;
-err = vkAllocateDescriptorSets(g_device, &allocInfo, Obj_DescriptorSets_.data());
+err = vkAllocateDescriptorSets(g_device, &allocInfo, Obj_DescriptorSets.data());
 if (err != VK_SUCCESS) {
     SG_CORE_ERROR("failed to allocate descriptor sets!");
     SG_CORE_ERROR("Error CODE : {0}",err);
 }
-
 
 std::vector<VkDescriptorImageInfo> imageInfos;
 
 for (auto tex : texs)
 {
     imageInfos.push_back(tex->descriptor);
-    SG_CORE_INFO("Texture Name : {0}",tex.Texture_Name.c_str());
-    SG_CORE_INFO("Texture Path : {0}",tex.Texture_Path.c_str());
 }
 for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 VkDescriptorBufferInfo bufferInfo{};
-bufferInfo.buffer =  model.Obj_uniformBuffers_[i];
+bufferInfo.buffer =  Obj_uniformBuffers[i];
 bufferInfo.offset = 0;
 bufferInfo.range = sizeof(UniformBufferObject);
 
 std::array<VkWriteDescriptorSet,2> descriptorWrites{};
 descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-descriptorWrites[0].dstSet = model.Obj_DescriptorSets_[i];
+descriptorWrites[0].dstSet = Obj_DescriptorSets[i];
 descriptorWrites[0].dstBinding = 0;
 descriptorWrites[0].dstArrayElement = 0;
 
@@ -524,7 +595,7 @@ descriptorWrites[0].pImageInfo = nullptr; // Optional
 descriptorWrites[0].pTexelBufferView = nullptr; // Optional
 
 descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-descriptorWrites[1].dstSet = model.Obj_DescriptorSets_[i];
+descriptorWrites[1].dstSet = Obj_DescriptorSets[i];
 descriptorWrites[1].dstBinding = 1;
 descriptorWrites[1].dstArrayElement = 0;
 descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -539,28 +610,13 @@ vkUpdateDescriptorSets(g_device, static_cast<uint32_t>(descriptorWrites.size()),
 
 
 
-void SG_CRes::SGvk_CreateUniformBuffers(std::vector<SG_Model>& models)
-{
-VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
-for(auto& model : models)
-{
-    model.Obj_uniformBuffers_.resize(MAX_FRAMES_IN_FLIGHT);
-    model.Obj_uniformBuffersMemory_.resize(MAX_FRAMES_IN_FLIGHT);
-    model.Obj_uniformBuffersMapped_.resize(MAX_FRAMES_IN_FLIGHT);
 
-for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-{
-    SG_Allocate::SGvk_Device_Create_Buffer(bufferSize, 
-    VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
-    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 
-    , model.Obj_uniformBuffers_[i], model.Obj_uniformBuffersMemory_[i],g_device,g_physicalDevice);
 
-    vkMapMemory(g_device, model.Obj_uniformBuffersMemory_[i], 0, bufferSize, 0, &model.Obj_uniformBuffersMapped_[i]);
-}
-}
-}
+
+
+
 
 
 
@@ -586,6 +642,8 @@ for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 }
 }
 }
+
+
 
 
 //DescriptorSets
@@ -613,8 +671,6 @@ std::vector<VkDescriptorImageInfo> imageInfos;
 for (auto tex : model.m_Texture)
 {
     imageInfos.push_back(tex.descriptor);
-    SG_CORE_INFO("Texture Name : {0}",tex.Texture_Name.c_str());
-    SG_CORE_INFO("Texture Path : {0}",tex.Texture_Path.c_str());
 }
 for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 VkDescriptorBufferInfo bufferInfo{};

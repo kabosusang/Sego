@@ -169,7 +169,7 @@ static Application_Device* getInstance() {
     //Destruction
     void recreateSwapChain();
     void cleanSwapChain();
-    void cleanup(std::vector<SG_Model>& models);
+    void cleanup();
 
 public:
     GLFWwindow* wd;

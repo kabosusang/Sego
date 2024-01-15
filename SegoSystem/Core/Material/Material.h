@@ -4,8 +4,6 @@
 #include <rapidxml_utils.hpp>
 #include <string>
 
-
-#include "Core/Mesh/Mesh.h"
 #include "Texture/Texture2D/Texture2d.h"
 
 class Material
@@ -13,7 +11,7 @@ class Material
 public:
     void Parse(std::string material_path);
     Material():Model_name_("null"),vshader_path_("null"),fshader_path_("null") {};
-
+    ~Material();
 public:
     const char* Model_name_;
 

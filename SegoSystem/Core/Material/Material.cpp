@@ -1,7 +1,13 @@
-#include "Material/Material.h"
+#include "Core/Material/Material.h"
 
 #include <iostream>
 using namespace std;
+
+Material::~Material() {
+    for (auto& tex : textures_) {
+        delete tex.second; // 释放 Texture2D 对象的内存
+    }
+}
 
 void Material::Parse(string material_path)
 {
@@ -40,8 +46,14 @@ void Material::Parse(string material_path)
         texture_image_attribute=material_texture_node->first_attribute("image");
 
         std::string image_path=texture_image_attribute->value();
-        textures_.push_back(std::make_pair(texture_name_attribute->value(), Texture2D::LoadFromFile(image_path)));
+        textures_.push_back(std::make_pair(texture_name_attribute->value(), 
+        Texture2D::LoadFromFile(image_path)));
+        
         material_texture_node=material_texture_node->next_sibling("texture");
     }
+
+
+
+
 }
 

@@ -3,6 +3,8 @@
 #include "Renderer/Vulkan/Vk_Device_Init.h"
 //Vulkan Global Data
 #include "VK_Global_Data.h"
+#include "Vertex/MeshVertex.h"
+
 Application_Device* Application_Device::ins = nullptr;
 Application_Device* app_device = Application_Device::getInstance();
 
@@ -624,8 +626,8 @@ void Application_Device::SGvk_Device_Create_GraphicsPipeline(std::string vert,st
     //顶点输入
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    auto bindingDescription = Vertex::getBindingDescription();
-    auto attributeDescriptions = Vertex::getAttributeDescriptions();
+    auto bindingDescription = MeshVertex::getBindingDescription();
+    auto attributeDescriptions = MeshVertex::getAttributeDescriptions();
     vertexInputInfo.vertexBindingDescriptionCount = 1;
     vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
     vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
@@ -1033,7 +1035,8 @@ for(size_t i = 0; i <swapChainImageViews.size();i++)
 
 }
 
-void Application_Device::recordCommandBuffer(std::vector<SG_Model>& models,VkCommandBuffer commandBuffer,uint32_t imageIndex)
+void Application_Device::recordCommandBuffer(std::vector<SG_Model>& models,
+VkCommandBuffer commandBuffer,uint32_t imageIndex)
 {
 VkCommandBufferBeginInfo beginInfo{};
 beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -1100,38 +1103,12 @@ if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
 }
 }
 
-void Application_Device::cleanup(std::vector<SG_Model>& models)
+void Application_Device::cleanup()
 {
 
     //清理交换链 
     cleanSwapChain();
 
-    //清理models 和 texture
-    for (auto& model : models)
-    {
-        //Models
-        vkDestroyBuffer(g_device,model.indexBuffer,nullptr);
-        vkFreeMemory(g_device, model.indexBufferMemory , nullptr);
-
-        vkDestroyBuffer(g_device, model.vertexBuffer, nullptr);//清理缓冲区
-        vkFreeMemory(g_device, model.vertexBufferMemory, nullptr);
-
-         //清理均匀缓冲区
-        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-            vkDestroyBuffer(g_device, model.Obj_uniformBuffers_[i], nullptr);
-            vkFreeMemory(g_device, model.Obj_uniformBuffersMemory_[i], nullptr);
-            }
-
-        //texture
-        for (auto& tex : model.m_Texture)
-        {
-            vkDestroySampler(g_device,tex.textureSampler,nullptr);
-            vkDestroyImageView(g_device,tex.textureImageView,nullptr);
-            vkDestroyImage(g_device, tex.textureImage, nullptr);
-            vkFreeMemory(g_device, tex.textureImageMemory, nullptr);
-        }
-
-    }
 
     
 

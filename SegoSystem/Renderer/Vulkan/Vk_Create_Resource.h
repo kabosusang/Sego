@@ -17,7 +17,7 @@ namespace  SG_CRes
     
     void GenerateMipmaps(VkDevice& device,VkCommandPool& commandPool,VkQueue& graQue,
     VkImage image,VkFormat imageFormat,VkPhysicalDevice& physicalDevice,
-     int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
+    int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 
 
     void CreateTextureView(VkDevice& device,VkImage& textureImage,VkImageView& textureImageView,uint32_t mipLevels);
@@ -51,7 +51,7 @@ namespace  SG_CRes
 
 
 
-
+//Vertex
 void SGvk_Device_Create_VertexBuffer(std::vector<MeshVertex>& vertices,
     VkBuffer& vertexBuffer,VkDeviceMemory& vertexBufferMemory,
     VkDevice& device,
@@ -67,16 +67,30 @@ void SGvk_Device_Create_VertexBuffer(std::vector<MeshVertex>& vertices,
     VkQueue &endque);
 
 
+//texture
+    void CreateTexture(
+    Texture2D* texture2d,
+    std::string Image_path,
+    VkDevice& device,
+    VkPhysicalDevice& physicalDevice,
+    VkCommandPool& commandPool,
+    VkQueue& graQue
+    );
+
+
+
 void SGvk_CreateUniformBuffers(std::vector<VkBuffer>& Obj_uniformBuffers_,
 std::vector<VkDeviceMemory>& Obj_uniformBuffersMemory_,
 std::vector<void*>& Obj_uniformBuffersMapped_);
 
-void SGvk_CreateDescriptorSets(VkDescriptorSetLayout& descriptorSetLayout,
-VkDescriptorPool& descriptorPool,std::vector<VkDescriptorSet>& Obj_DescriptorSets,
-std::vector<Texture2D*>& texs);
-
-
-
+void SGvk_CreateDescriptorSets(
+VkDescriptorSetLayout& descriptorSetLayout,
+VkDescriptorPool& descriptorPool,
+std::vector<VkDescriptorSet>& Obj_DescriptorSets,
+std::vector<Texture2D*>& texs,
+std::vector<VkBuffer>& Obj_uniformBuffers,
+std::vector<VkDeviceMemory>& Obj_uniformBuffersMemory,
+std::vector<void*>& Obj_uniformBuffersMapped);
 };
 
 

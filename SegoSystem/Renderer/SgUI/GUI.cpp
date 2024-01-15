@@ -140,9 +140,9 @@ void Object_Attr::Run_UI()
     ImGui::End();
 
 
-    transform_obj[0]->set_position(transform);
-    transform_obj[0]->set_rotation((glm::vec3)rotation);
-    transform_obj[0]->set_scale(scale);
+    transform_obj[1]->set_position(transform);
+    transform_obj[1]->set_rotation((glm::vec3)rotation);
+    transform_obj[1]->set_scale(scale);
 
 }
 ///

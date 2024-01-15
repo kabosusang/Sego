@@ -27,14 +27,8 @@ public:
     void updateUniformBuffer(uint32_t currentImage); //更新数据
     inline SegoWindow& GetWindow() {return *m_Window;}
 
-    //Model Create
-    void CreateModel(std::string Model_Path,std::string name);
-    
-    void CreateTexture(std::vector<SG_Model>::iterator m_it,
-    std::string Texture_Path,std::string Texturte_Name);
-    
-    void ChangeModel();
-
+    //Record
+    void recordCommandBuffer( VkCommandBuffer commandBuffer,uint32_t imageIndex);
 
     //处理窗口大小改变
     inline static void framebufferResizeCallback(GLFWwindow* window, int width, int height)

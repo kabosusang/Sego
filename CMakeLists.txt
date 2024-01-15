@@ -66,13 +66,13 @@ include_directories(${PROJECT_SOURCE_DIR}/vendor/lua/src)
 link_directories(${PROJECT_SOURCE_DIR}/vendor/lua/build)
 
 
-#Assimp
-include_directories(${PROJECT_SOURCE_DIR}/vendor/vendor/Assimp)
+include_directories(${PROJECT_SOURCE_DIR}/vendor/Assimp/include)
 link_directories(${PROJECT_SOURCE_DIR}/vendor/Assimp/build/lib)
 
 #源文件src
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/Resource/Editor SRC_LIST)
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/SegoSystem/Core DATA_LIST)
+
 # 添加SegoUI文件夹下的源文件
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/SegoUI/imgui SEGOUI_SRC_LIST)
 # 添加SegoSystem文件夹下的源文件
@@ -89,16 +89,27 @@ file(GLOB SGUI "SegoSystem/Renderer/SgUI/*.cpp")
 
 #添加渲染数据文件
 file(GLOB MESH "SegoSystem/Core/Mesh/*.cpp")
-file(GLOB MATERIAL "Resource/Material/*.cpp")
-file(GLOB TEXTURE "SegoSystem/Core/Texture2D/*.cpp")
+file(GLOB MATERIAL "SegoSystem/Core/Material/*.cpp")
+file(GLOB TEXTURE "Resource/Texture/Texture2D/*.cpp")
 
 
 #添加OBJECT
 file(GLOB OBJECT "SegoSystem/Object/*.cpp")
-#添加Component
-file(GLOB COMPONENT "SGComponent/*.cpp")
+
 #添加Resource
 file(GLOB RESOURCE "Resource/*.cpp")
+
+
+#添加Component
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/SGComponent COMPONENT_LIST)
+file(GLOB MESHFILTER "SGComponent/MeshFilter/*.cpp")
+file(GLOB MESHRENDERER "SGComponent/MeshRenderer/*.cpp")
+file(GLOB COMPONENT "SGComponent/*.cpp")
+
+#Component List
+list(APPEND COMPONENT_LIST ${MESHFILTER})
+list(APPEND COMPONENT_LIST ${MESHRENDERER})
+list(APPEND COMPONENT_LIST ${COMPONENT})
 
 
 
@@ -123,7 +134,7 @@ list(APPEND DATA_LIST ${RESOURCE})
 
 
 #add exe
-add_executable(editor  ${SRC_LIST} ${DATA_LIST})
+add_executable(editor  ${SRC_LIST} ${DATA_LIST} ${COMPONENT_LIST})
 
 set(PCH_HEADER "Resource/pch.h")  # 设置预编译头文件的路径
 set(PCH_SOURCE "Resource/pch.cpp")

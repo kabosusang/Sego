@@ -7,12 +7,16 @@
 
 #include "Renderer/SgUI/GUI.h"
 #include "Editor/VKimgui.h"
+
 #include "SGComponent/game_object.h"
 #include "SGComponent/component.h"
 #include "SGComponent/transform.h"
+#include "SGComponent/MeshFilter/MeshFilter.h"
+#include "SGComponent/MeshRenderer/MeshRender.h"
 //Main Window Instance
 #include "Camera/camera.h"
 #include "Object/object.h"
+#include "Core/Material/Material.h"
 
 //创建Object UI 和 Scene UI
 Object_Attr obj_ui("ObjectUI",0);
@@ -42,35 +46,9 @@ Application::Application()
 
     app_device->InputWindow(m_Window->GetWindow());
     app_device->InitVulkan();
-    std::string ModelName = "Pot";
-    std::string ModelName2 = "clost";
-    CreateModel("../SGData/model/mesh/pot.mesh",ModelName);
-    auto m_it = std::find_if(m_Model.begin(),m_Model.end(),[&ModelName](const SG_Model& modl)
-    {
-        return modl.Model_Name == ModelName;
-    });
-    if(m_it != m_Model.end())
-    {
-       //CreateTexture(m_it,"../SegoSystem/Renderer/models/viking_room.png","ClosetTexture");
-       CreateTexture(m_it,SG_DATA_PATH("Texture/Diffuse_FishSoup_Pot_1.jpg"),"PotTexture");
-    }
-
-    CreateModel(SG_DATA_PATH("Model/obj/viking_room.obj"),ModelName2);
-    m_it = std::find_if(m_Model.begin(),m_Model.end(),[&ModelName2](const SG_Model& modl)
-    {
-        return modl.Model_Name == ModelName2;
-    });
-    if(m_it != m_Model.end())
-    {
-       CreateTexture(m_it,SG_DATA_PATH("Texture/viking_room.png"),"ClosetTexture");
-    }
-
+   
     //Create Resource
-    SG_CRes::SGvk_CreateUniformBuffers(m_Model);
     app_device->SGvk_Device_Create_DescriptorPool();
-    //this
-    SG_CRes::SGvk_CreateDescriptorSets(app_device->descriptorSetLayout,
-    app_device->descriptorPool,m_Model);
     app_device->SGvk_Device_Create_CommandBuffer();
     app_device->SGvk_Device_Create_SyncObjects();
     
@@ -84,41 +62,56 @@ Application::Application()
     int width,height;
     glfwGetWindowPos(m_Window->GetWindow(),&width,&height);
     m_Window->SetWindowPos(width,height);
-   
+    
 
-    //创建GameObject
+    //创建GameObject(Viki-room)
     GameObject* go = new GameObject("GO");
     //挂上 Transform
     transform_obj.push_back(dynamic_cast<Transform*>(go->AddComponent("Transform")));
     transform_obj[0]->set_position(glm::vec3(0.0f));
     transform_obj[0]->set_rotation(glm::vec3(0.0f,0.0f,0.0f));
     transform_obj[0]->set_scale(glm::vec3(1.0f));
-    //挂上 SG_Object
-    sg_obj.push_back(dynamic_cast<SG_Object*>(go->AddComponent("SG_Object")));
+   
+    //挂上MeshFilter
+    auto meshfilter = dynamic_cast<MeshFilter*>(go->AddComponent("MeshFilter"));
+    meshfilter->LoadMesh(SG_DATA_PATH("Model/obj/viking_room.obj"));
     
-    //第2个GameObject
-    GameObject* go2 = new GameObject("Pot");
+    //挂上MeshRenderer 组件
+    mesh_renderer.push_back(dynamic_cast<MeshRenderer*>(go->AddComponent("MeshRenderer")));
+    Material* material=new Material();//设置材质
+    material->Parse(SG_DATA_PATH("Material/viking_room.mat"));
+    mesh_renderer[0]->SetMaterial(material);
+    
+    //创建GameObject(Pistol)
+    GameObject* go2 = new GameObject("GO");
     //挂上 Transform
     transform_obj.push_back(dynamic_cast<Transform*>(go2->AddComponent("Transform")));
     transform_obj[1]->set_position(glm::vec3(2.0f,0.0f,0.0f));
     transform_obj[1]->set_rotation(glm::vec3(0.0f,0.0f,0.0f));
     transform_obj[1]->set_scale(glm::vec3(1.0f));
-    //挂上 SG_Object
-    sg_obj.push_back(dynamic_cast<SG_Object*>(go2->AddComponent("SG_Object")));
-    
+   
+    //挂上MeshFilter
+    auto meshfilter_2 = dynamic_cast<MeshFilter*>(go2->AddComponent("MeshFilter"));
+    meshfilter_2->LoadMesh(SG_DATA_PATH("Model/obj/pot.obj"));
+   
+    //挂上MeshRenderer 组件
+    mesh_renderer.push_back(dynamic_cast<MeshRenderer*>(go2->AddComponent("MeshRenderer")));
+    Material* material_2=new Material();//设置材质
+    material_2->Parse(SG_DATA_PATH("Material/Pot.mat"));
+    mesh_renderer[1]->SetMaterial(material_2);
+
+
+
 
     //创建相机Object
     auto go_camera = new GameObject("main_camera");
+    
     //挂上 Transform组件
     transform_camera = dynamic_cast<Transform*>(go_camera->AddComponent("Transform"));
     transform_camera->set_position(glm::vec3(0.0f,0.0f,4.0f));
     //挂上Camera组件
     camera =dynamic_cast<Camera*>(go_camera->AddComponent("Camera"));
-  
-
-
-
-
+    
 
 }
 
@@ -158,7 +151,7 @@ bool Application::OnWindowClose(WindowCloseEvent& e)
 
 Application::~Application()
 {
-    app_device->cleanup(m_Model);
+    app_device->cleanup();
     Sg_ui.cleanup();
     m_Window->DestorySegowindow();
  
@@ -187,8 +180,20 @@ vkResetFences(g_device, 1, &app_device->inFlightFences[currentFrame]);
 // Record UI draw data
 Sg_ui.recordUICommands(imageIndex);
 
+//主渲染Renderer
 vkResetCommandBuffer(app_device->commandBuffers[currentFrame], 0);
-app_device->recordCommandBuffer(m_Model,app_device->commandBuffers[currentFrame],imageIndex);
+
+recordCommandBuffer(app_device->commandBuffers[currentFrame],imageIndex);
+for(auto mesh : mesh_renderer)
+{
+mesh->Render(app_device->commandBuffers[currentFrame],imageIndex);
+}
+
+// 结束渲染通道
+vkCmdEndRenderPass(app_device->commandBuffers[currentFrame]);
+if (vkEndCommandBuffer(app_device->commandBuffers[currentFrame]) != VK_SUCCESS) {
+    SG_CORE_ERROR("failed to record command buffer!");
+}
 
 updateUniformBuffer(currentFrame);
 
@@ -344,11 +349,6 @@ void Application::drawUI()
         FPSmode = false;
     } 
 
-    if(ImGui::Button("ChangeModel"))
-    {
-        ChangeModel();
-    }
-
     ImGui::End();
 
     // Render Dear ImGui
@@ -372,142 +372,64 @@ transform_camera->set_position(cameraPos);
 camera->SetView(cameraPos + cameraFront,cameraUp);
 camera->SetProjection(fov,app_device->swapChainExtent.width / (float) app_device->swapChainExtent.height, 0.1f, 100.0f);
 
-int i = 0;
-for (auto obj:sg_obj)
-{
-obj->ChangeModelPosition(); //接收变换后的position
 
+for (auto mesh_obj:mesh_renderer)
+{
 UniformBufferObject ubo{};
-ubo.model = obj->Model_mat4();
+ubo.model = mesh_obj->Model_mat4();
 ubo.view = camera->view_mat4();
 //ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 ubo.proj = camera->projection_mat4();
 ubo.proj[1][1] *= -1;
-memcpy(m_Model[i].Obj_uniformBuffersMapped_[currentImage], &ubo, sizeof(ubo));
-i++;
-}
+
+memcpy(mesh_obj->GetuniformBuffersMapped()[currentImage], &ubo, sizeof(ubo));
 
 }
 
-//CreateResourceFunction
+}
 
-void Application::CreateModel(std::string ModelPath,std::string ModelName)
+void Application::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
 {
-    m_Model.push_back({ModelPath,ModelName});
-    std::string ext;
-    
-    size_t dot_pos = ModelPath.find_last_of(".");
-    ext = ModelPath.substr(dot_pos + 1);
+VkCommandBufferBeginInfo beginInfo{};
+beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+beginInfo.flags = 0; // Optional
+beginInfo.pInheritanceInfo = nullptr; // Optional 继承信息
 
-    auto m_it = std::find_if(m_Model.begin(),m_Model.end(),[&ModelName](const SG_Model& modl)
-    {
-        return modl.Model_Name == ModelName;
-    });
-    if(ext == "mesh")
-    {   std::cout << ext << std::endl;
-        m_it->model_type = Modeltype::mesh;
-    }
-    else if(ext == "obj")
-    {
-        std::cout << ext << std::endl;
-        m_it->model_type = Modeltype::obj;
-    }
-    
-    if(m_it != m_Model.end() && m_it->model_type == Modeltype::obj)
-    {
-        SG_CRes::loadModel_tiny_obj(m_it);
-        SG_CRes::SGvk_Device_Create_VertexBuffer(m_it,g_device,g_physicalDevice,
-        app_device->commandPool,app_device->presentQueue);
-        SG_CRes::SGvk_Device_Create_IndexBuffer(m_it,g_device,g_physicalDevice,
-        app_device->commandPool,app_device->presentQueue);
-    }
-    else if(m_it != m_Model.end() && m_it->model_type == Modeltype::mesh)
-    {
-        SG_CRes::loadModel_mesh(m_it);
-        SG_CRes::SGvk_Device_Create_VertexBuffer(m_it,g_device,g_physicalDevice,
-        app_device->commandPool,app_device->presentQueue);
-        SG_CRes::SGvk_Device_Create_IndexBuffer(m_it,g_device,g_physicalDevice,
-        app_device->commandPool,app_device->presentQueue);
-        
-    }
-    else
-    {
-        SG_CORE_ERROR("No Find Model in CreateModel");
-    }
-
-
+if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+    SG_CORE_ERROR("failed to begin recording command buffer!");
 }
+//启用渲染通道
+VkRenderPassBeginInfo renderPassInfo{};
+renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+renderPassInfo.renderPass = app_device->renderPass;
+renderPassInfo.framebuffer = app_device->swapChainFramebuffers[imageIndex];
 
-void Application::CreateTexture(std::vector<SG_Model>::iterator m_it,
-std::string Texture_Path,std::string Tex_Name)
-{
-    m_it->m_Texture.push_back({Texture_Path,Tex_Name});
-    auto Tex_it = std::find_if(m_it->m_Texture.begin(),m_it->m_Texture.end(),[&Tex_Name](const SG_Texture& tex)
-    {
-    return tex.Texture_Name == Tex_Name;
-    }); //找到对应texture
-    
-    if(Tex_it != m_it->m_Texture.end())
-    {
-        SG_CRes::CreateTexture(Tex_it,
-        g_device,
-        g_physicalDevice,
-        app_device->commandPool,
-        app_device->graphicsqueue);
+renderPassInfo.renderArea.offset = {0,0};
+renderPassInfo.renderArea.extent = app_device->swapChainExtent;
+//清除值
+std::array<VkClearValue, 2> clearColor = {};
+clearColor[0].color = {{0.0f,0.0f,0.0f,1.0f}};
+clearColor[1].depthStencil = {1.0f,0};
 
-        SG_CRes::CreateTextureView(g_device,Tex_it->textureImage,
-        Tex_it->textureImageView,Tex_it->mipLevels);
-        SG_CRes::SGvk_Device_Create_TextureSampler(g_device,g_physicalDevice,
-        Tex_it->textureSampler,Tex_it->mipLevels);
-        
-        VkDescriptorImageInfo imageInfo{};
-        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        imageInfo.imageView = Tex_it->textureImageView;
-        imageInfo.sampler = Tex_it->textureSampler;
-        Tex_it->descriptor = imageInfo;
-    }
-    else{
-        SG_CORE_ERROR("No Find Texture in CreateTexture");
-    }
-}
+renderPassInfo.clearValueCount = static_cast<uint32_t>(clearColor.size());
+renderPassInfo.pClearValues = clearColor.data();
 
-void Application::ChangeModel()
-{
-    for (auto& model : m_Model)
-    {
-        //Models
-        vkDestroyBuffer(g_device,model.indexBuffer,nullptr);
-        vkFreeMemory(g_device, model.indexBufferMemory , nullptr);
+vkCmdBeginRenderPass(commandBuffer,&renderPassInfo,VK_SUBPASS_CONTENTS_INLINE);//开始渲染通道
 
-        vkDestroyBuffer(g_device, model.vertexBuffer, nullptr);//清理缓冲区
-        vkFreeMemory(g_device, model.vertexBufferMemory, nullptr);
-
-        //texture
-        for (auto& tex : model.m_Texture)
-        {
-            vkDestroySampler(g_device,tex.textureSampler,nullptr);
-            vkDestroyImageView(g_device,tex.textureImageView,nullptr);
-            vkDestroyImage(g_device, tex.textureImage, nullptr);
-            vkFreeMemory(g_device, tex.textureImageMemory, nullptr);
-        }
-    }
-    m_Model.clear();
-    std::string ModelName = u8"haha";
-    CreateModel(SG_DATA_PATH("Texure/viking_room.obj"), ModelName);
-    auto m_it = std::find_if(m_Model.begin(),m_Model.end(),[&ModelName](const SG_Model& modl)
-    {
-        return modl.Model_Name == ModelName;
-    });
-    if(m_it != m_Model.end())
-    {
-        m_it->m_Texture.clear();
-        CreateTexture(m_it,SG_DATA_PATH("Texure/viking_room.png"),"ClosetTexture");
-    }
-
-    vkDestroyDescriptorPool(g_device,app_device->descriptorPool,nullptr);
-    SG_CRes::SGvk_CreateUniformBuffers(m_Model);
-    app_device->SGvk_Device_Create_DescriptorPool();
-    SG_CRes::SGvk_CreateDescriptorSets(app_device->descriptorSetLayout
-    ,app_device->descriptorPool,m_Model);
-
+//绑定图形管道
+vkCmdBindPipeline(commandBuffer,VK_PIPELINE_BIND_POINT_GRAPHICS,app_device->graphicsPipeline);
+//视口与剪刀(可以定为动态状态或者静态状态)
+    VkViewport viewport{};
+    viewport.x = 0.0f,
+    viewport.y = 0.0f;
+    viewport.width = (float)app_device->swapChainExtent.width;
+    viewport.height = (float)app_device->swapChainExtent.height;
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+    vkCmdSetViewport(commandBuffer,0,1,&viewport);
+    //我们选择一个完整的剪刀矩形
+    VkRect2D scissor{};
+    scissor.offset = {0,0};
+    scissor.extent = app_device->swapChainExtent;
+    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 }
