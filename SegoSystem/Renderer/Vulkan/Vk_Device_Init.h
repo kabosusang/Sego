@@ -63,23 +63,6 @@ struct SwapChainSupportDetails {
     std::vector<VkPresentModeKHR> presentModes;
 };
 
-//加载着色器代码
-static std::vector<char>readFile(const std::string& filename) {
-    std::ifstream file(filename, std::ios::ate | std::ios::binary);
-    
-    if (!file.is_open()) {
-        throw std::runtime_error("failed to open file!");
-    }
-
-    size_t fileSize = (size_t) file.tellg();//tellg() 用于在输入流中获取位置
-    std::vector<char> buffer(fileSize);
-    //回到文件开头 并读取所有字节
-    file.seekg(0);//seekg()用于设置在输入流中的位置
-    file.read(buffer.data(), fileSize);
-
-    file.close();
-    return buffer;
-}
 
 
 
@@ -118,8 +101,6 @@ static Application_Device* getInstance() {
     VkImageView SGvk_Device_Create_ImageView_AttachFuc(VkImage image, VkFormat format,VkImageAspectFlags aspectFlags);
     void SGvk_Device_Create_RenderPass();//ren
     void SGvk_Device_Create_DescriptorSetLayout();//Layout
-    void SGvk_Device_Create_GraphicsPipeline(std::string vert,std::string frag);//pipline
-    VkShaderModule SGvk_Device_Create_ShaderModule(const std::vector<char> code);
     void SGvk_Device_Create_DepthResources();//Depth
     //img
     void SGvk_Device_Create_Image(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory); //img
@@ -163,8 +144,6 @@ static Application_Device* getInstance() {
     static bool Vk_Device_Status_CheckDeviceExtensionSupport(VkPhysicalDevice device);
     SwapChainSupportDetails Vk_Device_Status_QuerySwapChainSupport(VkPhysicalDevice device);
 
-    
-    void recordCommandBuffer(std::vector<SG_Model>& models,VkCommandBuffer commandBuffer,uint32_t imageIndex);
 
     //Destruction
     void recreateSwapChain();
@@ -182,9 +161,7 @@ public:
     VkSwapchainKHR swapChain; //交换链
     VkRenderPass renderPass;
     VkDescriptorSetLayout descriptorSetLayout; //描述绑定符
-    VkPipelineLayout pipelineLayout;
-    VkPipeline graphicsPipeline;//图像管道对象
-
+    
     std::vector<VkFramebuffer> swapChainFramebuffers;//framebuffers
 
    

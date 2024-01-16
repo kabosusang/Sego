@@ -68,7 +68,7 @@ Application::Application()
     GameObject* go = new GameObject("GO");
     //挂上 Transform
     transform_obj.push_back(dynamic_cast<Transform*>(go->AddComponent("Transform")));
-    transform_obj[0]->set_position(glm::vec3(0.0f));
+    transform_obj[0]->set_position(glm::vec3(3.0f,0.0f,0.0f));
     transform_obj[0]->set_rotation(glm::vec3(0.0f,0.0f,0.0f));
     transform_obj[0]->set_scale(glm::vec3(1.0f));
    
@@ -86,7 +86,7 @@ Application::Application()
     GameObject* go2 = new GameObject("GO");
     //挂上 Transform
     transform_obj.push_back(dynamic_cast<Transform*>(go2->AddComponent("Transform")));
-    transform_obj[1]->set_position(glm::vec3(2.0f,0.0f,0.0f));
+    transform_obj[1]->set_position(glm::vec3(0.0f,0.0f,0.0f));
     transform_obj[1]->set_rotation(glm::vec3(0.0f,0.0f,0.0f));
     transform_obj[1]->set_scale(glm::vec3(1.0f));
    
@@ -99,8 +99,6 @@ Application::Application()
     Material* material_2=new Material();//设置材质
     material_2->Parse(SG_DATA_PATH("Material/Pot.mat"));
     mesh_renderer[1]->SetMaterial(material_2);
-
-
 
 
     //创建相机Object
@@ -165,11 +163,8 @@ uint32_t imageIndex;
 VkResult result = vkAcquireNextImageKHR(g_device,app_device->swapChain,UINT64_MAX,app_device->imageAvailableSemaphores[currentFrame],VK_NULL_HANDLE,&imageIndex);
 if(result == VK_ERROR_OUT_OF_DATE_KHR)//交换链已与 表面，不能再用于渲染。通常发生在调整窗口大小后
 {
-    g_SwapChainRebuild = true;
-    app_device->recreateSwapChain();
-    Sg_ui.cleanupUIResources();
-    Sg_ui.UpdataUiCleanDtata(app_device->swapChainImageFormat,app_device->swapChainImages
-    ,app_device->swapChainImageViews,app_device->swapChainExtent);
+     g_SwapChainRebuild = true;
+    RecreateSwapChain();
     return ;
 }else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
 {
@@ -180,20 +175,21 @@ vkResetFences(g_device, 1, &app_device->inFlightFences[currentFrame]);
 // Record UI draw data
 Sg_ui.recordUICommands(imageIndex);
 
-//主渲染Renderer
+//CommandBuffers
 vkResetCommandBuffer(app_device->commandBuffers[currentFrame], 0);
-
 recordCommandBuffer(app_device->commandBuffers[currentFrame],imageIndex);
-for(auto mesh : mesh_renderer)
+
+//主渲染Renderer
+for(auto& mesh : mesh_renderer)
 {
 mesh->Render(app_device->commandBuffers[currentFrame],imageIndex);
-}
-
 // 结束渲染通道
+}
 vkCmdEndRenderPass(app_device->commandBuffers[currentFrame]);
 if (vkEndCommandBuffer(app_device->commandBuffers[currentFrame]) != VK_SUCCESS) {
     SG_CORE_ERROR("failed to record command buffer!");
 }
+
 
 updateUniformBuffer(currentFrame);
 
@@ -239,11 +235,8 @@ presentInfo.pResults = nullptr; // Optional
 result = vkQueuePresentKHR(app_device->presentQueue, &presentInfo);//真正提交到交换链
 if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR
 || framebufferResized) {
-    framebufferResized = false;
-    app_device->recreateSwapChain();
-    Sg_ui.cleanupUIResources();//清理
-    Sg_ui.UpdataUiCleanDtata(app_device->swapChainImageFormat,app_device->swapChainImages
-    ,app_device->swapChainImageViews,app_device->swapChainExtent);
+    g_SwapChainRebuild = false;
+    RecreateSwapChain(); //
 } else if (result != VK_SUCCESS) {
     SG_CORE_ERROR("failed to present swap chain image!");
 }//如果交换链不是最佳的需要重新创建交换链
@@ -256,8 +249,6 @@ currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
     lastFrame = currentFrame;
 
 }
-
-
 
 //IMGUI
 void Application::drawUI()
@@ -388,6 +379,21 @@ memcpy(mesh_obj->GetuniformBuffersMapped()[currentImage], &ubo, sizeof(ubo));
 
 }
 
+void Application::RecreateSwapChain()
+{
+
+    app_device->recreateSwapChain();
+    for(auto& mesh : mesh_renderer)
+    {
+        mesh->RecreatePipeline();
+    }
+    Sg_ui.cleanupUIResources();
+    Sg_ui.UpdataUiCleanDtata(app_device->swapChainImageFormat,app_device->swapChainImages
+    ,app_device->swapChainImageViews,app_device->swapChainExtent);
+
+}
+
+//RecordCommand
 void Application::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
 {
 VkCommandBufferBeginInfo beginInfo{};
@@ -416,8 +422,6 @@ renderPassInfo.pClearValues = clearColor.data();
 
 vkCmdBeginRenderPass(commandBuffer,&renderPassInfo,VK_SUBPASS_CONTENTS_INLINE);//开始渲染通道
 
-//绑定图形管道
-vkCmdBindPipeline(commandBuffer,VK_PIPELINE_BIND_POINT_GRAPHICS,app_device->graphicsPipeline);
 //视口与剪刀(可以定为动态状态或者静态状态)
     VkViewport viewport{};
     viewport.x = 0.0f,

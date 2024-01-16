@@ -1,5 +1,5 @@
 <material Model="viking_room">
-    <shader Vertshader="../SGData/Shader/vikingroom/shader.vert" Fragshader="../SGData/Shader/vikingroom/shader.frag"/>
+    <shader Vertshader="../SGData/Shader/vikingroom/vert.spv" Fragshader="../SGData/Shader/vikingroom/frag.spv"/>
     <texture name="viking_room" image="../SGData/Texture/viking_room.png"/>
 </material>
 

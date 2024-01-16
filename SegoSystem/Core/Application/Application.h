@@ -27,8 +27,9 @@ public:
     void updateUniformBuffer(uint32_t currentImage); //更新数据
     inline SegoWindow& GetWindow() {return *m_Window;}
 
-    //Record
-    void recordCommandBuffer( VkCommandBuffer commandBuffer,uint32_t imageIndex);
+    //RecreateSwapChain
+    void RecreateSwapChain();
+    void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
     //处理窗口大小改变
     inline static void framebufferResizeCallback(GLFWwindow* window, int width, int height)

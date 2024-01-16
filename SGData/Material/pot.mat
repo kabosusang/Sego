@@ -1,4 +1,4 @@
 <material Model="Pot">
-    <shader Vertshader="../SGData/Shader/vikingroom/shader.vert" Fragshader="../SGData/Shader/vikingroom/shader.frag"/>
+    <shader Vertshader="../SGData/Shader/pot/vert.spv" Fragshader="../SGData/Shader/pot/frag.spv"/>
     <texture name="FishSoup" image="../SGData/Texture/Diffuse_FishSoup_Pot_1.jpg"/>
 </material>
