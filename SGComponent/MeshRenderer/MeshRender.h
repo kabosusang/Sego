@@ -5,6 +5,9 @@
 #include <GLFW/glfw3.h>
 #include <vector>
 
+//Pipeline
+#include "VulkanPipeLine/GraphicsPipelineManager.h"
+
 class Material;
 class MeshFilter;
 class Texture2D;
@@ -22,23 +25,19 @@ void Render(VkCommandBuffer& commandBuffer,uint32_t imageIndex); //渲染
 inline glm::mat4& Model_mat4() { return Model_mat4_;}
 std::vector<void*>& GetuniformBuffersMapped();
 
-
-
-void CreateGraphicsPipeline();
 void RecreatePipeline();
+
 private:
 Material* material_;
 glm::mat4 Model_mat4_;
 
 ////////////////////////////VulkanData//////////////////////////////////
-
-
-
 //Descriptor
 std::vector<VkDescriptorSet> Obj_DescriptorSets_;
-//Pipeline
-VkPipelineLayout pipelineLayout = VK_NULL_HANDLE; // 管道布局
-VkPipeline graphicsPipeline = VK_NULL_HANDLE;//图像管道对象
+//VkPiepline
+GraphicsPipelineManager Vk_Pipeline_;
+
+
 };
 
 extern std::vector<MeshRenderer*> mesh_renderer;
