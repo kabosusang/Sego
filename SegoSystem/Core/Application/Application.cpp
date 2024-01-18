@@ -101,6 +101,28 @@ Application::Application()
     mesh_renderer[1]->SetMaterial(material_2);
 
 
+
+    //创建GameObject(Viki-room2)
+    GameObject* go3 = new GameObject("GO");
+    //挂上 Transform
+    transform_obj.push_back(dynamic_cast<Transform*>(go3->AddComponent("Transform")));
+    transform_obj[2]->set_position(glm::vec3(-2.0f,0.0f,0.0f));
+    transform_obj[2]->set_rotation(glm::vec3(0.0f,0.0f,0.0f));
+    transform_obj[2]->set_scale(glm::vec3(1.0f));
+   
+    //挂上MeshFilter
+    auto meshfilter_3 = dynamic_cast<MeshFilter*>(go3->AddComponent("MeshFilter"));
+    meshfilter_3->LoadMesh(SG_DATA_PATH("Model/obj/viking_room.obj"));
+    
+    //挂上MeshRenderer 组件
+    mesh_renderer.push_back(dynamic_cast<MeshRenderer*>(go3->AddComponent("MeshRenderer")));
+    Material* material_3=new Material();//设置材质
+    material_3->Parse(SG_DATA_PATH("Material/blend.mat"));
+    mesh_renderer[2]->blend = true;
+    mesh_renderer[2]->SetMaterial(material_3);
+
+
+
     //创建相机Object
     auto go_camera = new GameObject("main_camera");
     

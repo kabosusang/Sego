@@ -126,8 +126,19 @@ multisampling.alphaToOneEnable = VK_FALSE; // Optional
 //颜色混合
 
 VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-colorBlendAttachment.blendEnable = VK_FALSE;
+colorBlendAttachment.colorWriteMask = Pipeline_status_->colorWriteMask;//VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+colorBlendAttachment.blendEnable = Pipeline_status_->bBlend;
+if(Pipeline_status_->bBlend)
+{
+    colorBlendAttachment.srcColorBlendFactor = Pipeline_status_->blendColorFactorSrc;
+    colorBlendAttachment.dstColorBlendFactor = Pipeline_status_->blendColorFactorDst;
+    colorBlendAttachment.colorBlendOp = Pipeline_status_->blendColorOp;
+    colorBlendAttachment.srcAlphaBlendFactor = Pipeline_status_->blendAlphaFactorSrc;
+    colorBlendAttachment.dstAlphaBlendFactor = Pipeline_status_->blendAlphaFactorDst;
+    colorBlendAttachment.alphaBlendOp = Pipeline_status_->BlendAlphaOp;
+}
+
+
 
 VkPipelineColorBlendStateCreateInfo colorBlending{};
 colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -235,7 +246,7 @@ void GraphicsPipelineManager::InputPipeLineStatus(PipelineType type)
         Pipeline_status_ = static_cast<PipelineStatus*>(pile);
     }
     
-    if ((type & PipelineType::stencil) == PipelineType::stencil)
+    if ((type & PipelineType::Stencil) == PipelineType::Stencil)
     {
         PipelineStatus_stencil* pilestencil = new PipelineStatus_stencil();
         Pipeline_status_ = static_cast<PipelineStatus*>(pilestencil);
@@ -246,6 +257,15 @@ void GraphicsPipelineManager::InputPipeLineStatus(PipelineType type)
         PipelineStatus_OutLine* pileoutline = new PipelineStatus_OutLine();
         Pipeline_status_ = static_cast<PipelineStatus*>(pileoutline);
     }
+
+    if ((type & PipelineType::Blend) == PipelineType::Blend)
+    {
+        PipelineStatus_Blend* pileblend = new PipelineStatus_Blend();
+        Pipeline_status_ = static_cast<PipelineStatus*>(pileblend);
+    }
+
+
+
 }
 
 GraphicsPipelineManager::~GraphicsPipelineManager()

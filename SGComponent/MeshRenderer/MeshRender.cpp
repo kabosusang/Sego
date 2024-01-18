@@ -59,12 +59,17 @@ void MeshRenderer::SetMaterial(Material* material) {
     if(!OutLine)
     {
         Vk_Pipeline_.resize(1);
-        Vk_Pipeline_[0].InputPipeLineStatus(PipelineType::Graphics);
+        if(blend)
+        {
+            Vk_Pipeline_[0].InputPipeLineStatus(PipelineType::Blend);
+        }else{
+            Vk_Pipeline_[0].InputPipeLineStatus(PipelineType::Graphics);
+        }
         Vk_Pipeline_[0].CreateGraphicsPipeline(material_->vshader_path_[0],material_->fshader_path_[0]);
     }
     else{
         Vk_Pipeline_.resize(2);
-        Vk_Pipeline_[0].InputPipeLineStatus(PipelineType::stencil);
+        Vk_Pipeline_[0].InputPipeLineStatus(PipelineType::Stencil);
         Vk_Pipeline_[0].CreateGraphicsPipeline(material_->vshader_path_[0],material_->fshader_path_[0]);
         Vk_Pipeline_[1].InputPipeLineStatus(PipelineType::OutLine);
         Vk_Pipeline_[1].CreateGraphicsPipeline(material_->vshader_path_[1],material_->fshader_path_[1]);
@@ -162,12 +167,17 @@ void MeshRenderer::RecreatePipeline()
     if(!OutLine)
     {
         Vk_Pipeline_.resize(1);
-        Vk_Pipeline_[0].InputPipeLineStatus(PipelineType::Graphics);
+        if(blend)
+        {
+            Vk_Pipeline_[0].InputPipeLineStatus(PipelineType::Blend);
+        }else{
+            Vk_Pipeline_[0].InputPipeLineStatus(PipelineType::Graphics);
+        }
         Vk_Pipeline_[0].CreateGraphicsPipeline(material_->vshader_path_[0],material_->fshader_path_[0]);
     }
     else{
         Vk_Pipeline_.resize(2);
-        Vk_Pipeline_[0].InputPipeLineStatus(PipelineType::stencil);
+        Vk_Pipeline_[0].InputPipeLineStatus(PipelineType::Stencil);
         Vk_Pipeline_[0].CreateGraphicsPipeline(material_->vshader_path_[0],material_->fshader_path_[0]);
         Vk_Pipeline_[1].InputPipeLineStatus(PipelineType::OutLine);
         Vk_Pipeline_[1].CreateGraphicsPipeline(material_->vshader_path_[1],material_->fshader_path_[1]);

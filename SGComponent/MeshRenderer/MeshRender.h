@@ -30,7 +30,11 @@ void CleanPipeLine();
 void SwitchOutLine(bool newStatus);
 
 //OultLine
-bool OutLine = true;
+bool OutLine = false;
+
+//blend
+bool blend = false;
+
 private:
 Material* material_;
 glm::mat4 Model_mat4_;
