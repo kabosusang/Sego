@@ -16,7 +16,7 @@ layout(location = 4) in vec2 inTexCoord;
 layout(location = 0) out vec3 fragColor;
 layout(location = 1) out vec2 fragTexCoord;
 
-float inflateFactor = 5;
+float inflateFactor = 0.05;
 void main() {
     vec3 inflatedPosition = inPosition + (normal * inflateFactor); //顶点膨胀
     gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inflatedPosition, 1.0);

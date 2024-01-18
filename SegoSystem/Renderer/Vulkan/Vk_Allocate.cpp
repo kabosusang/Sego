@@ -90,7 +90,7 @@ VkImageCreateInfo imageInfo{};
     }
 
     vkBindImageMemory(device, image, imageMemory, 0);
-
+    
 }
 
 void SG_Allocate::SGvk_Device_Create_TransitionImageLayout(VkQueue& endque,VkDevice& device,

@@ -11,34 +11,26 @@
 class GraphicsPipelineManager
 {
 public:
-GraphicsPipelineManager(){pipelineLayout.resize(1);graphicsPipeline.resize(1);}
+GraphicsPipelineManager(){}
 ~GraphicsPipelineManager();
 
 
-void CreateGraphicsPipeline();
-void RecreatePipeline();
+void CreateGraphicsPipeline(std::string vshader_path,std::string fshader_path_);
+void RecreatePipeline(std::string vshader_path,std::string fshader_path_);
 ////////////////Vulkan Status Function/////////////////////////
 void CleanPipeline();
 //InputputData
-void InputShaderPath(std::string vshader_path,std::string fshader_path);
-void InputPipeLineStatus();
+void InputPipeLineStatus(PipelineType type);
 
-//outputputData
-uint8_t GetPipeLineCount() { return pipeLineCount;}
-std::vector<VkPipelineLayout>& GetPipelineLayout() {return pipelineLayout;}
-std::vector<VkPipeline>& GetGraphicsPipeline() {return graphicsPipeline;}
+VkPipelineLayout& GetPipelineLayout() {return pipelineLayout;}
+VkPipeline&  GetGraphicsPipeline() {return graphicsPipeline;}
 private:
 //Pipeline
-uint8_t pipeLineCount = 1;
-std::vector<VkPipelineLayout> pipelineLayout; 
-std::vector<VkPipeline> graphicsPipeline;
+VkPipelineLayout pipelineLayout; 
+VkPipeline graphicsPipeline;
 
-//ShaderPath
-std::vector<std::string> vshader_path_;
-std::vector<std::string> fshader_path_;
 //Pipeline Status
-std::vector<PipelineStatus*> Pipeline_status_;
-
+PipelineStatus* Pipeline_status_;
 
 
 };

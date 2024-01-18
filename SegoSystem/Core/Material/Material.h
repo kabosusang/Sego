@@ -10,15 +10,15 @@ class Material
 {
 public:
     void Parse(std::string material_path);
-    Material():Model_name_("null"),vshader_path_("null"),fshader_path_("null")
-    {};
+    Material():Model_name_("null"){};
+
     ~Material();
 public:
     const char* Model_name_;
 
  
-    std::string vshader_path_;
-    std::string fshader_path_;
+    std::vector<std::string> vshader_path_;
+    std::vector<std::string> fshader_path_;
     std::vector<std::pair<std::string,Texture2D*>> textures_;
 
 };

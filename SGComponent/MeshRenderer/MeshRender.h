@@ -26,7 +26,11 @@ inline glm::mat4& Model_mat4() { return Model_mat4_;}
 std::vector<void*>& GetuniformBuffersMapped();
 
 void RecreatePipeline();
+void CleanPipeLine();
+void SwitchOutLine(bool newStatus);
 
+//OultLine
+bool OutLine = true;
 private:
 Material* material_;
 glm::mat4 Model_mat4_;
@@ -35,7 +39,7 @@ glm::mat4 Model_mat4_;
 //Descriptor
 std::vector<VkDescriptorSet> Obj_DescriptorSets_;
 //VkPiepline
-GraphicsPipelineManager Vk_Pipeline_;
+std::vector<GraphicsPipelineManager> Vk_Pipeline_;
 
 
 };

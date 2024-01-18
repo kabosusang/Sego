@@ -182,14 +182,13 @@ recordCommandBuffer(app_device->commandBuffers[currentFrame],imageIndex);
 //主渲染Renderer
 for(auto& mesh : mesh_renderer)
 {
-mesh->Render(app_device->commandBuffers[currentFrame],imageIndex);
 // 结束渲染通道
+mesh->Render(app_device->commandBuffers[currentFrame],imageIndex);
 }
 vkCmdEndRenderPass(app_device->commandBuffers[currentFrame]);
 if (vkEndCommandBuffer(app_device->commandBuffers[currentFrame]) != VK_SUCCESS) {
     SG_CORE_ERROR("failed to record command buffer!");
 }
-
 
 updateUniformBuffer(currentFrame);
 
@@ -339,6 +338,8 @@ void Application::drawUI()
         FPS_MODE = u8"FPS:未开启";
         FPSmode = false;
     } 
+    
+    ImGui::Checkbox("OultLine", &mesh_renderer[0]->OutLine);
 
     ImGui::End();
 
@@ -413,6 +414,8 @@ renderPassInfo.framebuffer = app_device->swapChainFramebuffers[imageIndex];
 renderPassInfo.renderArea.offset = {0,0};
 renderPassInfo.renderArea.extent = app_device->swapChainExtent;
 //清除值
+// 清除模板缓冲区
+
 std::array<VkClearValue, 2> clearColor = {};
 clearColor[0].color = {{0.0f,0.0f,0.0f,1.0f}};
 clearColor[1].depthStencil = {1.0f,0};

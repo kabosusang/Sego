@@ -22,18 +22,16 @@ void Material::Parse(string material_path)
         Model_name_ = material_node->first_attribute("Model")->value();
         std::cout << "Load Model:" << Model_name_ << std::endl;
     }
-
+ // 解析 shader
     rapidxml::xml_node<>* material_shader_node = material_node->first_node("shader");
-    if(material_shader_node != nullptr)
-    {
-        rapidxml::xml_attribute<>* 
-        vshader_path_attribute=material_shader_node->first_attribute("Vertshader");
-        rapidxml::xml_attribute<>* 
-        fshader_path_attribute=material_shader_node->first_attribute("Fragshader");
-        
-        vshader_path_=vshader_path_attribute->value();
-        fshader_path_=fshader_path_attribute->value();
+    for (rapidxml::xml_node<>* shader = material_node->first_node("shader"); shader; shader = shader->next_sibling("shader")) {
+        rapidxml::xml_attribute<>* vshader_path_attribute = shader->first_attribute("Vertshader");
+        rapidxml::xml_attribute<>* fshader_path_attribute = shader->first_attribute("Fragshader");
+
+        vshader_path_.push_back(vshader_path_attribute->value());
+        fshader_path_.push_back(fshader_path_attribute->value());
     }
+
     //解析Texture
     rapidxml::xml_node<>* 
     material_texture_node=material_node->first_node("texture");

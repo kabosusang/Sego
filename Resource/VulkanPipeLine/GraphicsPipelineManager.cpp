@@ -38,12 +38,11 @@ static std::vector<char>readFile(const std::string& filename) {
     return buffer;
 }
 
-void GraphicsPipelineManager::CreateGraphicsPipeline()
+void GraphicsPipelineManager::CreateGraphicsPipeline(std::string vshader_path,std::string fshader_path_)
 {
-for (int i = 0; i< pipeLineCount ; i++)
-{
-auto vertShaderCode = readFile(vshader_path_[i]);
-auto fragShaderCode = readFile(fshader_path_[i]);
+
+auto vertShaderCode = readFile(vshader_path);
+auto fragShaderCode = readFile(fshader_path_);
 std::cout << "vertShaderCode has Filesize : " <<vertShaderCode.size() << std::endl;
 std::cout << "fragShaderCode has Filesize : " <<fragShaderCode.size() << std::endl;
 //创建着色器模块
@@ -105,7 +104,7 @@ rasterizer.depthClampEnable = VK_FALSE;
 rasterizer.rasterizerDiscardEnable = VK_FALSE;
 rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 rasterizer.lineWidth = 1.0f;
-rasterizer.cullMode = Pipeline_status_[i]->VkCullstatus;
+rasterizer.cullMode = Pipeline_status_->VkCullstatus;
 rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 rasterizer.depthBiasEnable = VK_FALSE;
 rasterizer.depthBiasConstantFactor = 0.0f; // Optional
@@ -161,22 +160,22 @@ pipelineLayoutInfo.pSetLayouts = &app_device->descriptorSetLayout; // Optional
 pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
-if (vkCreatePipelineLayout(g_device, &pipelineLayoutInfo, nullptr, &pipelineLayout[i]) != VK_SUCCESS) {
+if (vkCreatePipelineLayout(g_device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
     SG_CORE_ERROR("failed to create pipeline layout!");
 }
 //深度
 VkPipelineDepthStencilStateCreateInfo depthStencil{};
 depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-depthStencil.depthTestEnable = VK_TRUE;
-depthStencil.depthWriteEnable = VK_TRUE;
+depthStencil.depthTestEnable = Pipeline_status_->bDepthTest;
+depthStencil.depthWriteEnable = Pipeline_status_->bDepthWrite;
 depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
 depthStencil.depthBoundsTestEnable = VK_FALSE;
-depthStencil.stencilTestEnable = Pipeline_status_[i]->bStencilTest;
+depthStencil.stencilTestEnable = Pipeline_status_->bStencilTest;
 
-if(Pipeline_status_[i]->bStencilTest)
+if(Pipeline_status_->bStencilTest)
 {
-    depthStencil.front = Pipeline_status_[i]->stencilOpFront;
-    depthStencil.back  = Pipeline_status_[i]->stencilOpBack;
+    depthStencil.front = Pipeline_status_->stencilOpFront;
+    depthStencil.back  = Pipeline_status_->stencilOpBack;
 }
 
 
@@ -196,7 +195,7 @@ pipelineInfo.pMultisampleState = &multisampling;
 pipelineInfo.pColorBlendState = &colorBlending;
 pipelineInfo.pDynamicState = &dynamicState;
 
-pipelineInfo.layout = pipelineLayout[i];
+pipelineInfo.layout = pipelineLayout;
 
 pipelineInfo.renderPass = app_device->renderPass;
 pipelineInfo.subpass = 0;
@@ -204,48 +203,52 @@ pipelineInfo.subpass = 0;
 pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 pipelineInfo.basePipelineIndex = -1; // Optional
 
-if (vkCreateGraphicsPipelines(g_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline[i]) != VK_SUCCESS) {
+if (vkCreateGraphicsPipelines(g_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
     SG_CORE_ERROR("failed to create graphics pipeline!");
 }
     //销毁着色器模块
-    vkDestroyShaderModule(g_device,fragShaderModule,nullptr);
     vkDestroyShaderModule(g_device,vertShaderMoudle,nullptr);
-}
+    vkDestroyShaderModule(g_device,fragShaderModule,nullptr);
 }
 
-void GraphicsPipelineManager::RecreatePipeline()
+void GraphicsPipelineManager::RecreatePipeline(std::string vshader_path,std::string fshader_path_)
 {
 CleanPipeline();
-CreateGraphicsPipeline(); //重新创建
+CreateGraphicsPipeline(vshader_path,fshader_path_); //重新创建
 }
 
 void GraphicsPipelineManager::CleanPipeline()
 {
-    for (int i = 0 ; i < pipeLineCount ; i++ )
-{
-vkDestroyPipeline(g_device, graphicsPipeline[i], nullptr);
-vkDestroyPipelineLayout(g_device, pipelineLayout[i], nullptr);
-}
-}
-void GraphicsPipelineManager::InputShaderPath(std::string vshader_path, std::string fshader_path)
-{
-vshader_path_.push_back(vshader_path);
-fshader_path_.push_back(fshader_path);
-InputPipeLineStatus();
+
+vkDestroyPipeline(g_device, graphicsPipeline, nullptr);
+vkDestroyPipelineLayout(g_device, pipelineLayout, nullptr);
+delete Pipeline_status_;
+Pipeline_status_ = nullptr;
 }
 
-void GraphicsPipelineManager::InputPipeLineStatus()
+void GraphicsPipelineManager::InputPipeLineStatus(PipelineType type)
 {
-    PipelineStatus* pile = new PipelineStatus();
-    Pipeline_status_.push_back(pile);
-
-
+    
+    if ((type & PipelineType::Graphics) == PipelineType::Graphics)
+    {
+        PipelineStatus* pile = new PipelineStatus();
+        Pipeline_status_ = static_cast<PipelineStatus*>(pile);
+    }
+    
+    if ((type & PipelineType::stencil) == PipelineType::stencil)
+    {
+        PipelineStatus_stencil* pilestencil = new PipelineStatus_stencil();
+        Pipeline_status_ = static_cast<PipelineStatus*>(pilestencil);
+    }
+    
+    if ((type & PipelineType::OutLine) == PipelineType::OutLine)
+    {
+        PipelineStatus_OutLine* pileoutline = new PipelineStatus_OutLine();
+        Pipeline_status_ = static_cast<PipelineStatus*>(pileoutline);
+    }
 }
 
 GraphicsPipelineManager::~GraphicsPipelineManager()
 {
-    for (size_t i = 0; i < Pipeline_status_.size(); ++i) {
-        delete Pipeline_status_[i];
-    }
-    Pipeline_status_.clear();
+    delete Pipeline_status_;
 }
