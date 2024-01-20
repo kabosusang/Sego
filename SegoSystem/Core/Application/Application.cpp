@@ -123,6 +123,9 @@ Application::Application()
 
 
 
+
+
+
     //创建相机Object
     auto go_camera = new GameObject("main_camera");
     
@@ -132,6 +135,7 @@ Application::Application()
     //挂上Camera组件
     camera =dynamic_cast<Camera*>(go_camera->AddComponent("Camera"));
     
+   
 
 }
 
@@ -385,7 +389,6 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 transform_camera->set_position(cameraPos);
 camera->SetView(cameraPos + cameraFront,cameraUp);
 camera->SetProjection(fov,app_device->swapChainExtent.width / (float) app_device->swapChainExtent.height, 0.1f, 100.0f);
-
 
 for (auto mesh_obj:mesh_renderer)
 {

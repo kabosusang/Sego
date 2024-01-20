@@ -132,7 +132,6 @@ app_device->commandPool,app_device->presentQueue);
 
 SG_CRes::SGvk_CreateUniformBuffers(Obj_uniformBuffers_,Obj_uniformBuffersMemory_,Obj_uniformBuffersMapped_);
 
-
 }
 
 MeshFilter::~MeshFilter()

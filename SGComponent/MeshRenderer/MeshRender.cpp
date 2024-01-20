@@ -147,7 +147,7 @@ vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 Vk_Pipeline_[i].GetPipelineLayout(), 0, 1, &Obj_DescriptorSets_[app_device->currentFrame] ,0, nullptr);
 vkCmdBindIndexBuffer(commandBuffer, mesh_filter->indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 // 绑定索引缓冲区并绘制模型
-vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh_filter->mesh()->indices32.size()), 1, 0, 0, 0);
+vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh_filter->mesh()->indices32.size()),instanceCount, 0, 0, 0);
 }
 
 }

@@ -35,6 +35,8 @@ bool OutLine = false;
 //blend
 bool blend = false;
 
+//instance Count
+uint16_t instanceCount = 1;
 private:
 Material* material_;
 glm::mat4 Model_mat4_;

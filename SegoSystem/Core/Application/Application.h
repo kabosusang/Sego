@@ -50,9 +50,6 @@ private:
     bool framebufferResized = false;
     uint32_t MinImageCount = 0;
     bool m_Runing = true;
-
-    //Model
-    std::vector<SG_Model> m_Model;
-   
+ 
 
 };
