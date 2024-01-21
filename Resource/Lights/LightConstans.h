@@ -12,6 +12,7 @@ struct LightConstans
     glm::vec4 diffuse;
     glm::vec4 specular;
 
+ 
     LightConstans():commoon(0,0,0,64)
     ,position(0.0f,100.0f,0.0f)
     ,falloffStart(1.0f)

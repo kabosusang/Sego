@@ -1,8 +1,6 @@
 #include "pch.h"
 
-
-#include "camera/camera.h"
-#include "camera.h"
+#include "SGComponent/Camera/camera.h"
 #include "imgui.h"
 
 //lookat

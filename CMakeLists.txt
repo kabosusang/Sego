@@ -80,7 +80,7 @@ aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/SegoUI/imgui SEGOUI_SRC_LIST)
 file(GLOB SOURCES "SegoSystem/Log/*.cpp")
 file(GLOB THREAD "SegoSystem/ThreadPool/*.cpp")
 file(GLOB WINDOW "SegoSystem/Window/*.cpp")
-file(GLOB CAMERA "SegoSystem/camera/*.cpp")
+
 
 #添加vulkan渲染源文件
 file(GLOB APPLICATION "SegoSystem/Core/Application/*.cpp")
@@ -105,12 +105,15 @@ aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/SGComponent COMPONENT_LIST)
 file(GLOB MESHFILTER "SGComponent/MeshFilter/*.cpp")
 file(GLOB MESHRENDERER "SGComponent/MeshRenderer/*.cpp")
 file(GLOB COMPONENT "SGComponent/*.cpp")
+file(GLOB CAMERA "SGComponent/Camera/*.cpp")
+
+
 
 #Component List
 list(APPEND COMPONENT_LIST ${MESHFILTER})
 list(APPEND COMPONENT_LIST ${MESHRENDERER})
 list(APPEND COMPONENT_LIST ${COMPONENT})
-
+list(APPEND COMPONENT_LIST ${CAMERA})
 
 
 #APPEND LIST
@@ -119,7 +122,6 @@ list(APPEND SRC_LIST ${SEGOUI_SRC_LIST})
 list(APPEND SRC_LIST ${SOURCES})
 list(APPEND SRC_LIST ${THREAD})
 list(APPEND SRC_LIST ${WINDOW})
-list(APPEND SRC_LIST ${CAMERA})
 list(APPEND SRC_LIST ${APPLICATION})
 list(APPEND SRC_LIST ${VULKAN})
 list(APPEND SRC_LIST ${SGUI})

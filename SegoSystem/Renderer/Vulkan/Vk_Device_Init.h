@@ -7,7 +7,7 @@
 #include "Renderer/Vulkan/Vk_Allocate.h"
 #include "Renderer/Vulkan/Vk_Create_Resource.h"
 
-#include "Camera/camera.h"
+#include "SGComponent/Camera/camera.h"
 
 //////////////////////////////////////////////////////////////////////////
 /*---------------------------------------------------------------*/

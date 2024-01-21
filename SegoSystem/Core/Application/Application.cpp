@@ -14,7 +14,6 @@
 #include "SGComponent/MeshFilter/MeshFilter.h"
 #include "SGComponent/MeshRenderer/MeshRender.h"
 //Main Window Instance
-#include "Camera/camera.h"
 #include "Object/object.h"
 #include "Core/Material/Material.h"
 
@@ -150,7 +149,7 @@ void Application::Run()
    
 }
 #include "Events/KeyEvent.h"
-#include "Camera/camera.h"
+#include "SGComponent/Camera/camera.h"
 #include "Application.h"
 #define BIND_EVENT_FN(x) [this](auto&&... args) -> decltype(auto) { return this->x(std::forward<decltype(args)>(args)...); }
 
@@ -398,9 +397,7 @@ ubo.view = camera->view_mat4();
 //ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 ubo.proj = camera->projection_mat4();
 ubo.proj[1][1] *= -1;
-
 memcpy(mesh_obj->GetuniformBuffersMapped()[currentImage], &ubo, sizeof(ubo));
-
 }
 
 }
