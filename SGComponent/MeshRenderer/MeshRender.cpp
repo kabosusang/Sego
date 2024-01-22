@@ -152,7 +152,17 @@ vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh_filter->mesh()->indic
 
 }
 
-std::vector<void *>& MeshRenderer::GetuniformBuffersMapped()
+std::vector<VkDeviceMemory> &MeshRenderer::GetuniformBufferMemory()
+{
+    //主动获取 MeshFilter 组件
+    auto component_mesh_filter=game_object()->GetComponent("MeshFilter");
+    auto mesh_filter=dynamic_cast<MeshFilter*>(component_mesh_filter);
+   
+    return mesh_filter->Obj_uniformBuffersMemory_;
+
+}
+
+std::vector<void *> &MeshRenderer::GetuniformBuffersMapped()
 {
     //主动获取 MeshFilter 组件
     auto component_mesh_filter=game_object()->GetComponent("MeshFilter");
@@ -160,6 +170,9 @@ std::vector<void *>& MeshRenderer::GetuniformBuffersMapped()
    
     return mesh_filter->Obj_uniformBuffersMapped_;
 }
+
+
+
 
 void MeshRenderer::RecreatePipeline()
 {

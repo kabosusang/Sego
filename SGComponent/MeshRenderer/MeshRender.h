@@ -23,8 +23,9 @@ Material* material(){return material_;}
 void Render(VkCommandBuffer& commandBuffer,uint32_t imageIndex); //渲染
 
 inline glm::mat4& Model_mat4() { return Model_mat4_;}
+//uniform
+std::vector<VkDeviceMemory>& GetuniformBufferMemory();
 std::vector<void*>& GetuniformBuffersMapped();
-
 void RecreatePipeline();
 void CleanPipeLine();
 void SwitchOutLine(bool newStatus);

@@ -85,7 +85,7 @@ Application::Application()
     GameObject* go2 = new GameObject("GO");
     //挂上 Transform
     transform_obj.push_back(dynamic_cast<Transform*>(go2->AddComponent("Transform")));
-    transform_obj[1]->set_position(glm::vec3(0.0f,0.0f,0.0f));
+    transform_obj[1]->set_position(glm::vec3(1.0f,0.0f,0.0f));
     transform_obj[1]->set_rotation(glm::vec3(0.0f,0.0f,0.0f));
     transform_obj[1]->set_scale(glm::vec3(1.0f));
    
@@ -119,6 +119,29 @@ Application::Application()
     material_3->Parse(SG_DATA_PATH("Material/blend.mat"));
     mesh_renderer[2]->blend = true;
     mesh_renderer[2]->SetMaterial(material_3);
+
+
+    //创建灯光场景测试:
+     //创建GameObject(Viki-room2)
+    GameObject* go4 = new GameObject("Light");
+    //挂上 Transform
+    transform_obj.push_back(dynamic_cast<Transform*>(go4->AddComponent("Transform")));
+    transform_obj[3]->set_position(glm::vec3(-1.0f,2.0f,0.0f));
+    transform_obj[3]->set_rotation(glm::vec3(0.0f,0.0f,0.0f));
+    transform_obj[3]->set_scale(glm::vec3(1.0f));
+   
+    //挂上MeshFilter
+    auto meshfilter_4 = dynamic_cast<MeshFilter*>(go4->AddComponent("MeshFilter"));
+    meshfilter_4->LoadMesh(SG_DATA_PATH("BasicShapes/Light/Light.obj"));
+    
+    //挂上MeshRenderer 组件
+    mesh_renderer.push_back(dynamic_cast<MeshRenderer*>(go4->AddComponent("MeshRenderer")));
+    Material* material_4=new Material();//设置材质
+    material_4->Parse(SG_DATA_PATH("Material/Light/Light.mat"));
+    mesh_renderer[3]->SetMaterial(material_4);
+
+
+
 
 
 
@@ -307,66 +330,8 @@ void Application::drawUI()
    // ImGui::DockSpaceOverViewport(); 使得imgui主窗口停靠但是渲染被遮挡了
     ImGui::DockSpaceOverViewport(nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
     obj_ui.Run_UI();
-
+    scene_ui.Run_UI();
     
-    //scene_ui.Run_UI();
-    std::string Text = "Hello Imgui";
-    
-    //Object 窗口
-    ImGui::Begin(u8"Scene");
-    
-    if(ImGui::BeginCombo(u8"哈哈",Text.c_str()))
-    {
-        for (size_t i =0; i< 100 ; i++)
-        {
-            if(ImGui::Selectable(std::to_string(i).c_str()))
-            {
-                Text = std::to_string(i);
-            }
-        }
-        ImGui::EndCombo();
-    }
-    if(ImGui::IsKeyDown(ImGuiKey_Q) && ImGui::IsItemHovered())
-    {
-        ImGui::Text(u8"按下了Q");
-    }
-
-    for(size_t i =0 ; i<5 ; i++)
-    {
-        ImGui::Button(std::to_string(i).c_str());
-        if (i+1 < 5)
-        {
-            ImGui::SameLine();
-        }
-        if (ImGui::BeginDragDropSource()) //拖撤事件
-        {
-            ImGui::Text(std::string("Drag :").append(std::to_string(i)).c_str());
-
-            ImGui::SetDragDropPayload("DragIndexButton",&i,sizeof(int));
-            ImGui::EndDragDropSource();
-        }
-    
-    }
-    
-    //fps 视角
-    if(ImGui::Button(FPS_MODE.c_str()))
-    {
-        FpsbuttonState = !FpsbuttonState;
-    }
-    if(FpsbuttonState)
-    {
-        FPS_MODE = u8"FPS:已开启";
-        FPSmode = true;
-    }
-    else
-    {
-        FPS_MODE = u8"FPS:未开启";
-        FPSmode = false;
-    } 
-    
-    ImGui::Checkbox("OultLine", &mesh_renderer[0]->OutLine);
-
-    ImGui::End();
 
     // Render Dear ImGui
     ImGuiIO& io = ImGui::GetIO();
@@ -398,7 +363,10 @@ ubo.view = camera->view_mat4();
 ubo.proj = camera->projection_mat4();
 ubo.proj[1][1] *= -1;
 memcpy(mesh_obj->GetuniformBuffersMapped()[currentImage], &ubo, sizeof(ubo));
+ // 在每一帧结束前取消映射内存
+vkUnmapMemory(g_device, mesh_obj->GetuniformBufferMemory()[currentImage]);
 }
+
 
 }
 

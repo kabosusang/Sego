@@ -21,6 +21,98 @@
 #include <tiny_obj_loader.h>
 #include "Vk_Create_Resource.h"
 
+void SG_CRes::CreateTexture(
+Texture2D* texture2d,
+std::string Image_path,
+VkDevice& device,
+VkPhysicalDevice& physicalDevice,
+VkCommandPool& commandPool,
+VkQueue& graQue
+)
+{
+int texChannels;
+
+stbi_uc* pixels = stbi_load(Image_path.c_str(),
+&texture2d->wdith_,&texture2d->height_,&texChannels,
+STBI_rgb_alpha);
+
+VkDeviceSize imageSize = texture2d->wdith_ * texture2d->height_ * 4;
+    if (!pixels) {
+        SG_CORE_ERROR("failed to load texture image!");
+    }
+        //根据颜色通道数，判断颜色格式。
+        switch (texChannels) {
+            case 1:
+            {
+                texture2d->texture_format_ = texformat::TX_ALPHA;
+                break;
+            }
+            case 3:
+            {
+                texture2d->texture_format_ = texformat::TX_RGB;
+                break;
+            }
+            case 4:
+            {
+                texture2d->texture_format_ = texformat::TX_RGBA;
+                break;
+            }
+        }
+
+VkBuffer stagingBuffer;
+VkDeviceMemory stagingBufferMemory;
+SG_Allocate::SGvk_Device_Create_Buffer(imageSize, 
+VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
+VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | 
+VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+stagingBuffer, 
+stagingBufferMemory,device,physicalDevice);
+
+void* data;
+vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
+memcpy(data, pixels, static_cast<size_t>(imageSize));
+vkUnmapMemory(device, stagingBufferMemory);
+
+stbi_image_free(pixels);
+//设置纹理数据
+
+//设置mip层数
+texture2d->mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texture2d->wdith_,texture2d->height_)))) + 1;
+
+SG_Allocate::SGvk_Device_Create_Image(physicalDevice,device,texture2d->wdith_,
+texture2d->height_,texture2d->mipLevels,
+VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, 
+VK_IMAGE_USAGE_TRANSFER_SRC_BIT |VK_IMAGE_USAGE_TRANSFER_DST_BIT| VK_IMAGE_USAGE_SAMPLED_BIT, 
+VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
+texture2d->textureImage, texture2d->textureImageMemory);
+
+//opyBufferToImage
+SG_Allocate::SGvk_Device_Create_TransitionImageLayout(graQue,device,commandPool,
+texture2d->textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, 
+VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,texture2d->mipLevels);
+
+SG_Allocate::copyBufferToImage(graQue,device,commandPool,stagingBuffer, 
+texture2d->textureImage, static_cast<uint32_t>(texture2d->wdith_), 
+static_cast<uint32_t>(texture2d->height_));
+
+/*
+SG_Allocate::SGvk_Device_Create_TransitionImageLayout(graQue,device,commandPool,
+Te_it->textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
+VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,Te_it->mipLevels);
+ */
+
+vkDestroyBuffer(device, stagingBuffer, nullptr);
+vkFreeMemory(device, stagingBufferMemory, nullptr);
+
+//Mipmap
+GenerateMipmaps(device,commandPool,graQue,texture2d->textureImage, 
+VK_FORMAT_R8G8B8A8_SRGB,physicalDevice
+,static_cast<uint32_t>(texture2d->wdith_)
+,static_cast<uint32_t>(texture2d->height_),texture2d->mipLevels);
+
+}
+
+
 
 void SG_CRes::GenerateMipmaps(VkDevice& device,VkCommandPool& commandPool,VkQueue& graQue,
     VkImage image,VkFormat imageFormat,VkPhysicalDevice& physicalDevice,
@@ -232,6 +324,46 @@ vkFreeMemory(device, stagingBufferMemory, nullptr);
 
 }
 
+///     Uniform Data
+///
+//
+//
+//
+
+
+
+void SG_CRes::SGvk_Device_Create_DescriptorSetLayout(VkDescriptorSetLayout& descriptorSetLayout)
+{
+//obj-uniform
+VkDescriptorSetLayoutBinding uboLayoutBinding{};
+uboLayoutBinding.binding = 0;
+uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+uboLayoutBinding.descriptorCount = 1;
+uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;//指定在VERTEX阶段使用
+uboLayoutBinding.pImmutableSamplers = nullptr;//跟预采样有关
+
+//Texture2D
+VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+samplerLayoutBinding.binding = 1;
+samplerLayoutBinding.descriptorCount = 1;
+samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+samplerLayoutBinding.pImmutableSamplers = nullptr;
+samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;//指定在Fragment阶段使用
+//绑定描述
+
+std::array<VkDescriptorSetLayoutBinding, 2> bindings = {uboLayoutBinding, samplerLayoutBinding};
+VkDescriptorSetLayoutCreateInfo layoutInfo{};
+layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+layoutInfo.pBindings = bindings.data();
+
+
+if (vkCreateDescriptorSetLayout(g_device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
+    SG_CORE_ERROR("failed to create descriptor set layout!");
+}
+
+}
+
 void SG_CRes::SGvk_CreateUniformBuffers(std::vector<VkBuffer>& Obj_uniformBuffers,
 std::vector<VkDeviceMemory>& Obj_uniformBuffersMemory,
 std::vector<void*>& Obj_uniformBuffersMapped)
@@ -255,96 +387,7 @@ for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 }
 }
 
-void SG_CRes::CreateTexture(
-Texture2D* texture2d,
-std::string Image_path,
-VkDevice& device,
-VkPhysicalDevice& physicalDevice,
-VkCommandPool& commandPool,
-VkQueue& graQue
-)
-{
-int texChannels;
 
-stbi_uc* pixels = stbi_load(Image_path.c_str(),
-&texture2d->wdith_,&texture2d->height_,&texChannels,
-STBI_rgb_alpha);
-
-VkDeviceSize imageSize = texture2d->wdith_ * texture2d->height_ * 4;
-    if (!pixels) {
-        SG_CORE_ERROR("failed to load texture image!");
-    }
-        //根据颜色通道数，判断颜色格式。
-        switch (texChannels) {
-            case 1:
-            {
-                texture2d->texture_format_ = texformat::TX_ALPHA;
-                break;
-            }
-            case 3:
-            {
-                texture2d->texture_format_ = texformat::TX_RGB;
-                break;
-            }
-            case 4:
-            {
-                texture2d->texture_format_ = texformat::TX_RGBA;
-                break;
-            }
-        }
-
-VkBuffer stagingBuffer;
-VkDeviceMemory stagingBufferMemory;
-SG_Allocate::SGvk_Device_Create_Buffer(imageSize, 
-VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
-VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | 
-VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
-stagingBuffer, 
-stagingBufferMemory,device,physicalDevice);
-
-void* data;
-vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
-memcpy(data, pixels, static_cast<size_t>(imageSize));
-vkUnmapMemory(device, stagingBufferMemory);
-
-stbi_image_free(pixels);
-//设置纹理数据
-
-//设置mip层数
-texture2d->mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texture2d->wdith_,texture2d->height_)))) + 1;
-
-SG_Allocate::SGvk_Device_Create_Image(physicalDevice,device,texture2d->wdith_,
-texture2d->height_,texture2d->mipLevels,
-VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, 
-VK_IMAGE_USAGE_TRANSFER_SRC_BIT |VK_IMAGE_USAGE_TRANSFER_DST_BIT| VK_IMAGE_USAGE_SAMPLED_BIT, 
-VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
-texture2d->textureImage, texture2d->textureImageMemory);
-
-//opyBufferToImage
-SG_Allocate::SGvk_Device_Create_TransitionImageLayout(graQue,device,commandPool,
-texture2d->textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, 
-VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,texture2d->mipLevels);
-
-SG_Allocate::copyBufferToImage(graQue,device,commandPool,stagingBuffer, 
-texture2d->textureImage, static_cast<uint32_t>(texture2d->wdith_), 
-static_cast<uint32_t>(texture2d->height_));
-
-/*
-SG_Allocate::SGvk_Device_Create_TransitionImageLayout(graQue,device,commandPool,
-Te_it->textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
-VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,Te_it->mipLevels);
- */
-
-vkDestroyBuffer(device, stagingBuffer, nullptr);
-vkFreeMemory(device, stagingBufferMemory, nullptr);
-
-//Mipmap
-GenerateMipmaps(device,commandPool,graQue,texture2d->textureImage, 
-VK_FORMAT_R8G8B8A8_SRGB,physicalDevice
-,static_cast<uint32_t>(texture2d->wdith_)
-,static_cast<uint32_t>(texture2d->height_),texture2d->mipLevels);
-
-}
 
 //DescriptorSets
 void SG_CRes::SGvk_CreateDescriptorSets(

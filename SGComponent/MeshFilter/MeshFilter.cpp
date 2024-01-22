@@ -142,5 +142,10 @@ MeshFilter::~MeshFilter()
             vkDestroyBuffer(g_device, Obj_uniformBuffers_[i], nullptr);
             vkFreeMemory(g_device, Obj_uniformBuffersMemory_[i], nullptr);
             }
+
+        vkDestroyDescriptorSetLayout(g_device, descriptorSetLayout_, nullptr);
+
+
+
     delete mesh_;
 }

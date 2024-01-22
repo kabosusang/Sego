@@ -1,0 +1,4 @@
+<material Model="Light-cube">
+    <shader Vertshader="../SGData/Shader/Light/vert.spv" Fragshader="../SGData/Shader/Light/frag.spv"/>
+    <texture name="Light-cube" image="../SGData/BasicShapes/Light/R-C.png"/>
+</material>

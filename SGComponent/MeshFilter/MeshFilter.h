@@ -30,6 +30,10 @@ VkBuffer indexBuffer;
 VkDeviceMemory indexBufferMemory;
 public:
 //Uniform 
+//LayOut 
+VkDescriptorSetLayout descriptorSetLayout_;  //描述绑定符
+
+
 std::vector<VkBuffer> Obj_uniformBuffers_;
 std::vector<VkDeviceMemory> Obj_uniformBuffersMemory_;
 std::vector<void*> Obj_uniformBuffersMapped_;

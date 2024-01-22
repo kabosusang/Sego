@@ -1,4 +1,5 @@
 #include "GUI.h"
+#include "SGComponent/MeshRenderer/MeshRender.h"
 
 
 bool Windowfollow = true;
@@ -140,9 +141,9 @@ void Object_Attr::Run_UI()
     ImGui::End();
 
 
-    transform_obj[1]->set_position(transform);
-    transform_obj[1]->set_rotation((glm::vec3)rotation);
-    transform_obj[1]->set_scale(scale);
+    transform_obj[3]->set_position(transform);
+    transform_obj[3]->set_rotation((glm::vec3)rotation);
+    transform_obj[3]->set_scale(scale);
 
 }
 ///
@@ -213,11 +214,8 @@ void App_Attr::Run_UI()
         FPS_MODE = u8"FPS:未开启";
         FPSmode = false;
     } 
-
-    if(ImGui::Button("ChangeModel"))
-    {
-        
-    }
+    
+    ImGui::Checkbox("OultLine", &mesh_renderer[0]->OutLine);
 
     ImGui::End();
 
