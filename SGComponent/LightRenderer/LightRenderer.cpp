@@ -50,8 +50,7 @@ void LightRenderer::SetMaterial(Material* material) {
     ReBuildDesLayout();
     RebuildDescriptPool();
     
- 
-   
+    
     RebuildDescriptorSets(texture2d);
 
     Vk_Pipeline_.resize(1);

@@ -7,8 +7,12 @@ layout(binding = 2) uniform PhoneBlock {
     vec3 specular;    
     float shininess;
 
-    vec3 lightambient; //default 0.1
-    vec3 lightspecular;//default 0.5
+    float lightambient; //default 0.1
+    float lightspecular;//default 0.5
+
+    float constant;
+    float linear;
+    float quadratic;
 }Phoneconstans;
 
 layout(location = 0) in vec3 fragColor;
@@ -21,6 +25,7 @@ vec3 lightColor = vec3(1.0f);
 
 layout(location = 0) out vec4 outColor;
 void main() {
+    
     //ambient
     vec3 ambient = Phoneconstans.lightambient * texture(texSampler, fragTexCoord).rgb;
 
@@ -37,8 +42,20 @@ void main() {
     float spec = pow(max(dot(norm, halwayDir), 0.0), Phoneconstans.shininess);
     vec3 specular = Phoneconstans.lightspecular * spec * Phoneconstans.specular * texture(texSampler, fragTexCoord).rgb;  
 
+
+
+     // attenuation
+    float distance    = length(LightPos - FragPos);
+    float attenuation = 1.0 / (Phoneconstans.constant + Phoneconstans.linear 
+    * distance + Phoneconstans.quadratic * (distance * distance));    
+
+    //Result
+    ambient  *= attenuation; 
+    diffuse  *= attenuation;
+    specular *= attenuation;
+
     //Result
     vec3 result = (ambient + diffuse + specular);
 
-    outColor =vec4(result,1.0f);
+    outColor =vec4(result,1.0);
 }

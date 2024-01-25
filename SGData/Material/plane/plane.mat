@@ -1,0 +1,4 @@
+<material Model="Plane">
+    <shader Vertshader="../SGData/Shader/BlinnPhong/vert.spv" Fragshader="../SGData/Shader/BlinnPhong/frag.spv"/>
+    <texture name="Plane-roof" image="../SGData/BasicShapes/Plane/floor.jpg"/>
+</material>

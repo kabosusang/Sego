@@ -23,6 +23,8 @@ glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
 float deltaTime = 0.0f; // 当前帧与上一帧的时间差
 float lastFrame = 0.0f; // 上一帧的时间
 
+
+bool FPSmode = false;
 bool GetcameraInput(KeyDownEvent& e)
 {
     float cameraSpeed = 10.f * deltaTime; //adjust accordingly
@@ -50,6 +52,11 @@ bool GetcameraInput(KeyDownEvent& e)
             }
         
         }
+
+        if(e.GetKeyCode() == GLFW_KEY_F)
+            {
+                FPSmode = !FPSmode;
+            }
     }
 
 
@@ -79,6 +86,8 @@ bool GetcameraRepeateInput(KeyDownRepeate& e)
              transform_camera->add_position((glm::normalize(glm::cross(cameraFront,cameraUp)) * cameraSpeed));
             break;
             }
+            
+
         
         }
     }
@@ -93,7 +102,7 @@ float lastX = 1280.f/2.0f, lastY = 720.f/2.0f; //光标位置
 float yaw = -90.0f; //yaw   ← →
 float pitch = 0.0f;//pitch ↑ ↓
 bool firstMouse = true;
-bool FPSmode = false;
+
 
 //鼠标中键
 bool middleButtonPressed = false;
@@ -103,7 +112,7 @@ float middleButton_lastX = 1280.f/2.0f, middleButton_lastY = 720.f/2.0f; //光�
 bool GetCursorInput(MouseMoveEvent& e)
 {
     ImGuiIO& io = ImGui::GetIO();
-    if(e.GetEventType() == EventType::MouseMoved && FPSmode && !io.WantCaptureMouse)
+    if(e.GetEventType() == EventType::MouseMoved && FPSmode) 
     {
 
         if(firstMouse) // 这个bool变量初始时是设定为true的
@@ -175,6 +184,7 @@ bool GetMouseDownInput(MouseButtonPressedEvent& e)
             SG_INFO("Down MIDDLE");
             middleButtonPressed = true;
         }
+        
         
     }
     return true;

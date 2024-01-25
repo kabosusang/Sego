@@ -143,7 +143,23 @@ Application::Application()
     Light_renderer[0]->SetMaterial(material_4);
 
 
-
+    //创建GameObject(Plane)
+    GameObject* go5 = new GameObject("Light");
+    //挂上 Transform
+    transform_obj.push_back(dynamic_cast<Transform*>(go5->AddComponent("Transform")));
+    transform_obj[4]->set_position(glm::vec3(0.0f,-1.0f,0.0f));
+    transform_obj[4]->set_rotation(glm::vec3(0.0f,0.0f,0.0f));
+    transform_obj[4]->set_scale(glm::vec3(1.0f));
+   
+    //挂上MeshFilter
+    auto meshfilter_5 = dynamic_cast<MeshFilter*>(go5->AddComponent("MeshFilter"));
+    meshfilter_5->LoadMesh(SG_DATA_PATH("BasicShapes/Plane/Plane.obj"));
+    
+    //挂上MeshRenderer 组件
+    Light_renderer.push_back(dynamic_cast<LightRenderer*>(go5->AddComponent("LightRenderer")));
+    Material* material_5=new Material();//设置材质
+    material_5->Parse(SG_DATA_PATH("Material/plane/plane.mat"));
+    Light_renderer[1]->SetMaterial(material_5);
 
 
 

@@ -1,5 +1,5 @@
 <material Model="Pot">
-    <shader Vertshader="../SGData/Shader/pot/vert.spv" Fragshader="../SGData/Shader/pot/frag.spv"/>
+    <shader Vertshader="../SGData/Shader/BlinnPhong/vert.spv" Fragshader="../SGData/Shader/BlinnPhong/frag.spv"/>
     <shader Vertshader="../SGData/Shader/outline/vert.spv" Fragshader="../SGData/Shader/outline/frag.spv"/>
     <texture name="FishSoup" image="../SGData/Texture/Diffuse_FishSoup_Pot_1.jpg"/>
 </material>

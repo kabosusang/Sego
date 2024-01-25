@@ -22,7 +22,7 @@ public:
     int height_;
     texformat texture_format_;
 
-     //Texture
+    //Texture
     uint32_t mipLevels;//mipmaplevel
     uint32_t layerCount; //用于天空盒
     

@@ -218,22 +218,6 @@ void App_Attr::Run_UI()
     
     }
     
-    //fps 视角
-    if(ImGui::Button(FPS_MODE.c_str()))
-    {
-        FpsbuttonState = !FpsbuttonState;
-    }
-    if(FpsbuttonState)
-    {
-        FPS_MODE = u8"FPS:已开启";
-        FPSmode = true;
-    }
-    else
-    {
-        FPS_MODE = u8"FPS:未开启";
-        FPSmode = false;
-    } 
-    
     ImGui::Checkbox("OultLine", &mesh_renderer[0]->OutLine);
 
     ImGui::End();
