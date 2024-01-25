@@ -1,6 +1,6 @@
 #include "GUI.h"
 #include "SGComponent/MeshRenderer/MeshRender.h"
-
+#include <glm/gtc/type_ptr.hpp>
 
 bool Windowfollow = true;
 bool FollowbuttonState = false;
@@ -20,7 +20,7 @@ Object_Attr::Object_Attr(const char *name, uint32_t id):SGUI_Imgui(name,id)
     
 }
 #include "Object/object.h"
-
+#include "Lights/LightConstans.h"
 
 glm::vec3 transform = glm::vec3(0.0f);
 glm::ivec3 rotation = glm::ivec3(0);
@@ -128,9 +128,28 @@ void Object_Attr::Run_UI()
         {
             ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
         }
-       
-       
      }
+    if (ImGui::CollapsingHeader(u8"光照"))
+    {
+        ImGui::SeparatorText("Phone");
+        
+        ImGui::ColorEdit3("diffuse", glm::value_ptr(phone.diffuse));
+        ImGui::ColorEdit3("specular", glm::value_ptr(phone.specular));
+      
+        
+        ImGui::DragFloat("shininess", &phone.shininess, 1.0f);
+        ImGui::DragFloat("lightambient", &phone.lightambient, .05f);
+        ImGui::DragFloat("lightspecular", &phone.lightspecular, 0.05f);
+    /*
+        alignas(16) glm::vec3 diffuse;
+        alignas(16) glm::vec3 specular;
+        alignas(4)  float shininess = 32;
+
+        alignas(4) float lightambient = 0.1f; //环境光照
+        alignas(4) float lightspecular = 0.5f; //镜面光分量
+    */
+    }
+
    
     
     if (!ImGui::IsAnyItemActive())

@@ -93,6 +93,8 @@ file(GLOB MESH "SegoSystem/Core/Mesh/*.cpp")
 file(GLOB MATERIAL "SegoSystem/Core/Material/*.cpp")
 file(GLOB TEXTURE "Resource/Texture/Texture2D/*.cpp")
 file(GLOB PIPELINE "Resource/VulkanPipeLine/*.cpp")
+file(GLOB LIGHT "Resource/Lights/*.cpp")
+
 #添加OBJECT
 file(GLOB OBJECT "SegoSystem/Object/*.cpp")
 
@@ -136,6 +138,8 @@ list(APPEND DATA_LIST ${OBJECT})
 list(APPEND DATA_LIST ${TEXTURE})
 list(APPEND DATA_LIST ${PIPELINE})
 list(APPEND DATA_LIST ${RESOURCE})
+list(APPEND DATA_LIST ${LIGHT})
+
 
 #add exe
 add_executable(editor  ${SRC_LIST} ${DATA_LIST} ${COMPONENT_LIST})

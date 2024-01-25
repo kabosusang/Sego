@@ -59,14 +59,20 @@ enum VulkanLightingType
         Vulkan_Lighting_AmbientDiffuseLambertSpecularBlinnPhong, //11:   Ambient + DiffuseLambert + SpecularBlinnPhong
 };
 
-
-
 struct PhoneConstans
 {
-    glm::vec3 viewpos; //12字节 
+    //Materia
+    alignas(16) glm::vec3 viewpos; //12字节 
+    alignas(16) glm::vec3 diffuse = glm::vec3(.5f,0.5f,0.5f);
+    alignas(16) glm::vec3 specular = glm::vec3(1.0f);
+    alignas(4)  float shininess = 32;
+    //Light
+    alignas(4) float lightambient = 0.2f; //环境光照
+    alignas(4) float lightspecular = 0.5f; //镜面光分量
+
 };
 
-
+extern PhoneConstans phone;
 
 
 

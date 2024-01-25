@@ -355,9 +355,6 @@ void Application::drawUI()
 
 
 
-
-
-
 #include "Lights/LightConstans.h"
 //更新统一数据
 void Application::updateUniformBuffer(uint32_t currentImage)
@@ -391,15 +388,13 @@ ubo.proj[1][1] *= -1;
 memcpy(Light_obj->GetuniformBuffersMapped_obj()[currentImage], &ubo, sizeof(ubo));
 
 //viewpos
-PhoneConstans phone{};
+
 phone.viewpos = transform_camera->position();
 memcpy(Light_obj->GetuniformBuffersMapped_light()[currentImage],&phone,sizeof(phone));
-
  // 在每一帧结束前取消映射内存
 vkUnmapMemory(g_device, Light_obj->GetuniformBufferMemory_obj()[currentImage]);
 vkUnmapMemory(g_device, Light_obj->GetuniformBufferMemory_light()[currentImage]);
 }
-
 
 }
 

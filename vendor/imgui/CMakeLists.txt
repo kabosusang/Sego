@@ -3,7 +3,6 @@ add_library(imgui
     imgui.h
     imgui_draw.cpp
     imgui_widgets.cpp
-    imgui_demo.cpp
     imgui_internal.h
     imgui_tables.cpp
     imstb_rectpack.h
