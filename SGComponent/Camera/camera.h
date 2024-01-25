@@ -17,6 +17,10 @@ bool GetcameraRepeateInput(KeyDownRepeate& e);
 //cursor function
 bool GetCursorInput(MouseMoveEvent& e);
 bool GetCursorScrollInput(MouseScrollEvent& e);
+bool GetMouseDownInput(MouseButtonPressedEvent& e);
+bool GetMouseReleaseInput(MouseButtonReleasedEvent& e);
+
+
 
 extern glm::vec3 cameraPos;
 extern glm::vec3 cameraFront ;

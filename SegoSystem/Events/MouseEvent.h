@@ -7,16 +7,17 @@ class MouseEvent :public Event
 {
 public:
 EVENT_CLASS_TYPE(MouseType)
-
 EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
 
 };
 
 class MouseButtonPressedEvent : public MouseEvent
 {
-protected:
+public:
 EVENT_CLASS_TYPE(MouseButtonPressed)
 EVENT_CLASS_CATEGORY(EventCategoryMouseButton | EventCategoryInput)
+
+inline int GetMouseCode(){return MousePressCode;}
 public:
 MouseButtonPressedEvent(int MouseCode) : MousePressCode(MouseCode) {}
 
@@ -26,19 +27,19 @@ std::stringstream ss;
 ss << "MouseButtonPressedEvent: " << MousePressCode << std::endl;
 return ss.str();
 }
-
+private:
 int MousePressCode;
 
 };
 
 class MouseButtonReleasedEvent : public MouseEvent
 {
-protected:
+public:
 EVENT_CLASS_TYPE(MouseButtonReleased)
 EVENT_CLASS_CATEGORY(EventCategoryMouseButton | EventCategoryInput)
 public:
 MouseButtonReleasedEvent(int MouseCode) : MousePressCode(MouseCode) {}
-
+inline int GetMouseCode(){return MousePressCode;}
 std::string ToString() const override
 {
 std::stringstream ss;

@@ -61,8 +61,10 @@ enum VulkanLightingType
 
 
 
-
-
+struct PhoneConstans
+{
+    glm::vec3 viewpos; //12字节 
+};
 
 
 

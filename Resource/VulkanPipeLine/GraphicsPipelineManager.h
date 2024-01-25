@@ -16,6 +16,10 @@ GraphicsPipelineManager(){}
 
 
 void CreateGraphicsPipeline(std::string vshader_path,std::string fshader_path_);
+void CreateGraphicsPipeline_light(std::string vshader_path,std::string fshader_path_,
+VkDescriptorSetLayout& descriptorSetLayout_);
+
+
 void RecreatePipeline(std::string vshader_path,std::string fshader_path_);
 ////////////////Vulkan Status Function/////////////////////////
 void CleanPipeline();

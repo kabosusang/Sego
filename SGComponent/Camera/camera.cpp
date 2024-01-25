@@ -58,7 +58,7 @@ bool GetcameraInput(KeyDownEvent& e)
 
 bool GetcameraRepeateInput(KeyDownRepeate& e)
 {
-    float cameraSpeed = 5.f * deltaTime; //adjust accordingly
+    float cameraSpeed = 20.f * deltaTime; //adjust accordingly
     
     if (e.GetEventType() == EventType::KeyDownRepeate)
     {
@@ -66,19 +66,17 @@ bool GetcameraRepeateInput(KeyDownRepeate& e)
         switch(code)
         {
             case GLFW_KEY_W:
-            cameraPos += cameraSpeed * cameraFront;
+            transform_camera->add_position(cameraSpeed * cameraFront);
             break;
             case GLFW_KEY_S:
-            cameraPos -= cameraSpeed * cameraFront;
+            transform_camera->add_position(-(cameraSpeed * cameraFront));
             break;
             case GLFW_KEY_A:
-            cameraPos -= glm::normalize(glm::cross(cameraFront,cameraUp)) * cameraSpeed;
+            transform_camera->add_position(-(glm::normalize(glm::cross(cameraFront,cameraUp)) * cameraSpeed));
             break;
             case GLFW_KEY_D:
             {
-            cameraPos += glm::normalize(glm::cross(cameraFront,cameraUp)) * cameraSpeed;
-            SG_CORE_INFO("DDDD");
-
+             transform_camera->add_position((glm::normalize(glm::cross(cameraFront,cameraUp)) * cameraSpeed));
             break;
             }
         
@@ -95,16 +93,17 @@ float lastX = 1280.f/2.0f, lastY = 720.f/2.0f; //光标位置
 float yaw = -90.0f; //yaw   ← →
 float pitch = 0.0f;//pitch ↑ ↓
 bool firstMouse = true;
-
 bool FPSmode = false;
 
-//direction.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw)); // 译注：direction代表摄像机的前轴(Front)，这个前轴是和本文第一幅图片的第二个摄像机的方向向量是相反的
-//direction.y = sin(glm::radians(pitch));
-//direction.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
+//鼠标中键
+bool middleButtonPressed = false;
+float sceneMovementSpeed = 20.0f; // 场景移动速度，单位为像素/秒
+float middleButton_lastX = 1280.f/2.0f, middleButton_lastY = 720.f/2.0f; //光标位置
 
 bool GetCursorInput(MouseMoveEvent& e)
 {
-    if(e.GetEventType() == EventType::MouseMoved && FPSmode)
+    ImGuiIO& io = ImGui::GetIO();
+    if(e.GetEventType() == EventType::MouseMoved && FPSmode && !io.WantCaptureMouse)
     {
 
         if(firstMouse) // 这个bool变量初始时是设定为true的
@@ -132,14 +131,20 @@ bool GetCursorInput(MouseMoveEvent& e)
         if(pitch < -89.0f)
         pitch = -89.0f;
 
-       glm::vec3 front;
+        glm::vec3 front;
         front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
         front.y = sin(glm::radians(pitch));
         front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
         cameraFront = glm::normalize(front);
     }
 
-      return true;
+    if(e.GetEventType() == EventType::MouseMoved && middleButtonPressed)
+    {   
+
+       SG_INFO("MID DOWN");
+        
+    }
+    return true;
 }
 
 
@@ -161,6 +166,31 @@ bool GetCursorScrollInput(MouseScrollEvent& e)
   return true;
 }
 
+bool GetMouseDownInput(MouseButtonPressedEvent& e)
+{  
+   if(e.GetEventType() == EventType::MouseButtonPressed)
+    {
+        if(e.GetMouseCode() == GLFW_MOUSE_BUTTON_MIDDLE )
+        {
+            SG_INFO("Down MIDDLE");
+            middleButtonPressed = true;
+        }
+        
+    }
+    return true;
+} 
+//MouseButtonReleasedEvent
+bool GetMouseReleaseInput(MouseButtonReleasedEvent& e)
+{
+    if(e.GetMouseCode() == GLFW_MOUSE_BUTTON_MIDDLE )
+    {
+        SG_INFO("Released MIDDLE");
+        middleButtonPressed = false;
+    }
+
+}
+
+
 #include <rttr/registration>
 #include "SGComponent/game_object.h"
 
@@ -174,7 +204,7 @@ RTTR_REGISTRATION//注册反射
 void Camera::SetView(const glm::vec3 &camerForward, const glm::vec3 &camerUp)
 {
     auto transform = dynamic_cast<Transform*>(game_object()->GetComponent("Transform"));
-    view_mat4_ = glm::lookAt(transform->position(), camerForward, cameraUp);
+    view_mat4_ = glm::lookAt(transform->position(), transform->position()+camerForward, cameraUp);
 }
 
 void Camera::SetProjection(float fovDegrees, float aspectRatio, float nearClip, float farClip)

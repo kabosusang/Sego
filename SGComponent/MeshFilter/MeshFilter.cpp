@@ -143,7 +143,7 @@ MeshFilter::~MeshFilter()
             vkFreeMemory(g_device, Obj_uniformBuffersMemory_[i], nullptr);
             }
 
-        vkDestroyDescriptorSetLayout(g_device, descriptorSetLayout_, nullptr);
+        
 
 
 

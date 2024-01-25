@@ -13,6 +13,8 @@
 #include "SGComponent/transform.h"
 #include "SGComponent/MeshFilter/MeshFilter.h"
 #include "SGComponent/MeshRenderer/MeshRender.h"
+#include "SGComponent/LightRenderer/LightRenderer.h"
+
 //Main Window Instance
 #include "Object/object.h"
 #include "Core/Material/Material.h"
@@ -45,7 +47,7 @@ Application::Application()
 
     app_device->InputWindow(m_Window->GetWindow());
     app_device->InitVulkan();
-   
+
     //Create Resource
     app_device->SGvk_Device_Create_DescriptorPool();
     app_device->SGvk_Device_Create_CommandBuffer();
@@ -81,24 +83,24 @@ Application::Application()
     material->Parse(SG_DATA_PATH("Material/viking_room.mat"));
     mesh_renderer[0]->SetMaterial(material);
     
-    //创建GameObject(Pistol)
+
+    //创建GameObject(Light Cube)
     GameObject* go2 = new GameObject("GO");
     //挂上 Transform
     transform_obj.push_back(dynamic_cast<Transform*>(go2->AddComponent("Transform")));
-    transform_obj[1]->set_position(glm::vec3(1.0f,0.0f,0.0f));
+    transform_obj[1]->set_position(glm::vec3(1.0f,5.0f,0.0f));
     transform_obj[1]->set_rotation(glm::vec3(0.0f,0.0f,0.0f));
     transform_obj[1]->set_scale(glm::vec3(1.0f));
    
     //挂上MeshFilter
     auto meshfilter_2 = dynamic_cast<MeshFilter*>(go2->AddComponent("MeshFilter"));
-    meshfilter_2->LoadMesh(SG_DATA_PATH("Model/obj/pot.obj"));
+    meshfilter_2->LoadMesh(SG_DATA_PATH("BasicShapes/Light/Light.obj"));
    
     //挂上MeshRenderer 组件
     mesh_renderer.push_back(dynamic_cast<MeshRenderer*>(go2->AddComponent("MeshRenderer")));
     Material* material_2=new Material();//设置材质
-    material_2->Parse(SG_DATA_PATH("Material/Pot.mat"));
+    material_2->Parse(SG_DATA_PATH("Material/Light/Light.mat"));
     mesh_renderer[1]->SetMaterial(material_2);
-
 
 
     //创建GameObject(Viki-room2)
@@ -122,7 +124,7 @@ Application::Application()
 
 
     //创建灯光场景测试:
-     //创建GameObject(Viki-room2)
+    //创建GameObject(Pot)
     GameObject* go4 = new GameObject("Light");
     //挂上 Transform
     transform_obj.push_back(dynamic_cast<Transform*>(go4->AddComponent("Transform")));
@@ -132,14 +134,13 @@ Application::Application()
    
     //挂上MeshFilter
     auto meshfilter_4 = dynamic_cast<MeshFilter*>(go4->AddComponent("MeshFilter"));
-    meshfilter_4->LoadMesh(SG_DATA_PATH("BasicShapes/Light/Light.obj"));
+    meshfilter_4->LoadMesh(SG_DATA_PATH("Model/obj/pot.obj"));
     
     //挂上MeshRenderer 组件
-    mesh_renderer.push_back(dynamic_cast<MeshRenderer*>(go4->AddComponent("MeshRenderer")));
+    Light_renderer.push_back(dynamic_cast<LightRenderer*>(go4->AddComponent("LightRenderer")));
     Material* material_4=new Material();//设置材质
-    material_4->Parse(SG_DATA_PATH("Material/Light/Light.mat"));
-    mesh_renderer[3]->SetMaterial(material_4);
-
+    material_4->Parse(SG_DATA_PATH("Material/pot.mat"));
+    Light_renderer[0]->SetMaterial(material_4);
 
 
 
@@ -153,7 +154,7 @@ Application::Application()
     
     //挂上 Transform组件
     transform_camera = dynamic_cast<Transform*>(go_camera->AddComponent("Transform"));
-    transform_camera->set_position(glm::vec3(0.0f,0.0f,4.0f));
+    transform_camera->set_position(glm::vec3(0.0f,0.0f,19.0f));
     //挂上Camera组件
     camera =dynamic_cast<Camera*>(go_camera->AddComponent("Camera"));
     
@@ -186,6 +187,11 @@ void Application::OnEvent(Event& e)
     //cursor
     dispatcher.Dispatch<MouseMoveEvent>(GetCursorInput); //cursor move
     dispatcher.Dispatch<MouseScrollEvent>(GetCursorScrollInput);
+    //mousedown
+    dispatcher.Dispatch<MouseButtonPressedEvent>(GetMouseDownInput);
+    //mouserelease
+    dispatcher.Dispatch<MouseButtonReleasedEvent>(GetMouseReleaseInput);
+
 }
 
 bool Application::OnWindowClose(WindowCloseEvent& e)
@@ -233,6 +239,12 @@ for(auto& mesh : mesh_renderer)
 // 结束渲染通道
 mesh->Render(app_device->commandBuffers[currentFrame],imageIndex);
 }
+for(auto& Light : Light_renderer)
+{
+// 结束渲染通道
+Light->Render(app_device->commandBuffers[currentFrame],imageIndex);
+}
+
 vkCmdEndRenderPass(app_device->commandBuffers[currentFrame]);
 if (vkEndCommandBuffer(app_device->commandBuffers[currentFrame]) != VK_SUCCESS) {
     SG_CORE_ERROR("failed to record command buffer!");
@@ -315,12 +327,7 @@ void Application::drawUI()
                 g_MainWindowData.FrameIndex = 0;
                 g_SwapChainRebuild = false;
             }
-            //Window updata size
-            glfwGetWindowPos(m_Window->GetWindow(),&width,&height);
-            m_Window->SetWindowPos(width,height);
-
-            glfwGetWindowSize(m_Window->GetWindow(),&width,&height);
-            m_Window->SetWindowSize(width,height);
+            
         }
 
     // Start the Dear ImGui frame
@@ -346,12 +353,18 @@ void Application::drawUI()
 }
 
 
+
+
+
+
+
+#include "Lights/LightConstans.h"
 //更新统一数据
 void Application::updateUniformBuffer(uint32_t currentImage)
 {   
 //camera
-transform_camera->set_position(cameraPos);
-camera->SetView(cameraPos + cameraFront,cameraUp);
+//transform_camera->set_position(cameraPos);
+camera->SetView(cameraFront,cameraUp);
 camera->SetProjection(fov,app_device->swapChainExtent.width / (float) app_device->swapChainExtent.height, 0.1f, 100.0f);
 
 for (auto mesh_obj:mesh_renderer)
@@ -367,6 +380,26 @@ memcpy(mesh_obj->GetuniformBuffersMapped()[currentImage], &ubo, sizeof(ubo));
 vkUnmapMemory(g_device, mesh_obj->GetuniformBufferMemory()[currentImage]);
 }
 
+for (auto Light_obj:Light_renderer)
+{
+UniformBufferObject ubo{};
+ubo.model = Light_obj->Model_mat4();
+ubo.view = camera->view_mat4();
+//ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+ubo.proj = camera->projection_mat4();
+ubo.proj[1][1] *= -1;
+memcpy(Light_obj->GetuniformBuffersMapped_obj()[currentImage], &ubo, sizeof(ubo));
+
+//viewpos
+PhoneConstans phone{};
+phone.viewpos = transform_camera->position();
+memcpy(Light_obj->GetuniformBuffersMapped_light()[currentImage],&phone,sizeof(phone));
+
+ // 在每一帧结束前取消映射内存
+vkUnmapMemory(g_device, Light_obj->GetuniformBufferMemory_obj()[currentImage]);
+vkUnmapMemory(g_device, Light_obj->GetuniformBufferMemory_light()[currentImage]);
+}
+
 
 }
 
@@ -378,6 +411,12 @@ void Application::RecreateSwapChain()
     {
         mesh->RecreatePipeline();
     }
+    for(auto& light : Light_renderer)
+    {
+        light->RecreatePipeline();
+    }
+
+
     Sg_ui.cleanupUIResources();
     Sg_ui.UpdataUiCleanDtata(app_device->swapChainImageFormat,app_device->swapChainImages
     ,app_device->swapChainImageViews,app_device->swapChainExtent);

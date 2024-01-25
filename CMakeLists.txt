@@ -86,13 +86,13 @@ file(GLOB WINDOW "SegoSystem/Window/*.cpp")
 file(GLOB APPLICATION "SegoSystem/Core/Application/*.cpp")
 file(GLOB VULKAN "SegoSystem/Renderer/Vulkan/*.cpp")
 file(GLOB SGUI "SegoSystem/Renderer/SgUI/*.cpp")
+file(GLOB UNIFORM "SegoSystem/Shader/*.cpp")
 
 #添加渲染数据文件
 file(GLOB MESH "SegoSystem/Core/Mesh/*.cpp")
 file(GLOB MATERIAL "SegoSystem/Core/Material/*.cpp")
 file(GLOB TEXTURE "Resource/Texture/Texture2D/*.cpp")
 file(GLOB PIPELINE "Resource/VulkanPipeLine/*.cpp")
-
 #添加OBJECT
 file(GLOB OBJECT "SegoSystem/Object/*.cpp")
 
@@ -106,7 +106,7 @@ file(GLOB MESHFILTER "SGComponent/MeshFilter/*.cpp")
 file(GLOB MESHRENDERER "SGComponent/MeshRenderer/*.cpp")
 file(GLOB COMPONENT "SGComponent/*.cpp")
 file(GLOB CAMERA "SGComponent/Camera/*.cpp")
-
+file(GLOB LIGHTRENDERER "SGComponent/LightRenderer/*.cpp")
 
 
 #Component List
@@ -114,7 +114,7 @@ list(APPEND COMPONENT_LIST ${MESHFILTER})
 list(APPEND COMPONENT_LIST ${MESHRENDERER})
 list(APPEND COMPONENT_LIST ${COMPONENT})
 list(APPEND COMPONENT_LIST ${CAMERA})
-
+list(APPEND COMPONENT_LIST ${LIGHTRENDERER})
 
 #APPEND LIST
 list(APPEND SRC_LIST ${CORE_LIST})
@@ -125,6 +125,8 @@ list(APPEND SRC_LIST ${WINDOW})
 list(APPEND SRC_LIST ${APPLICATION})
 list(APPEND SRC_LIST ${VULKAN})
 list(APPEND SRC_LIST ${SGUI})
+list(APPEND SRC_LIST ${UNIFORM})
+
 
 #Data 
 list(APPEND DATA_LIST ${MESH})

@@ -20,6 +20,7 @@
 
 std::vector<MeshRenderer*> mesh_renderer;
 
+
 using namespace rttr;
 RTTR_REGISTRATION//注册反射
 {
@@ -82,7 +83,6 @@ MeshRenderer::MeshRenderer()
 
 }
 #include "VK_Global_Data.h"
-#include "MeshRender.h"
 MeshRenderer::~MeshRenderer()
 {
     auto component_mesh_filter=game_object()->GetComponent("MeshFilter");
