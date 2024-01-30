@@ -1,15 +1,8 @@
 #pragma once
+#include "Texture/texture.h"
 #include <iostream>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-
-enum class texformat
-{
-	TX_ALPHA = 1,
-	TX_RGB = 3,
-	TX_RGBA = 4
-};
-
 
 class Texture2D
 {
@@ -22,15 +15,16 @@ public:
     int height_;
     texformat texture_format_;
 
-    //Texture
+    //Texture Attribute
     uint32_t mipLevels;//mipmaplevel
     uint32_t layerCount; //用于天空盒
     
+
+    //VkMemory
     VkImage textureImage;
     VkDescriptorImageInfo descriptor;
     VkDeviceMemory textureImageMemory;
     //纹理图像视图
     VkImageView textureImageView;
     VkSampler textureSampler;//采样器
-
 };

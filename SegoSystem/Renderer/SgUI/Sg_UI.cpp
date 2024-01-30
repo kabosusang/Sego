@@ -142,8 +142,6 @@ void Sg_UI::Init_Sg_Imgui()
     endSingleTimeCommands(commandBuffer_im, uiCommandPool);
     ImGui_ImplVulkan_DestroyFontUploadObjects();
     vkDeviceWaitIdle(device);
-
-
 }
 
 

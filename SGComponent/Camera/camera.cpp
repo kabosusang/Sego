@@ -98,7 +98,7 @@ bool GetcameraRepeateInput(KeyDownRepeate& e)
 //鼠标控制
 //捕捉光标
 //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-float lastX = 1280.f/2.0f, lastY = 720.f/2.0f; //光标位置
+float lastX = 1800.f/2.0f, lastY = 1200.f/2.0f; //光标位置
 float yaw = -90.0f; //yaw   ← →
 float pitch = 0.0f;//pitch ↑ ↓
 bool firstMouse = true;

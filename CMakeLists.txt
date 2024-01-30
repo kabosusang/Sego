@@ -101,7 +101,6 @@ file(GLOB OBJECT "SegoSystem/Object/*.cpp")
 #添加Resource
 file(GLOB RESOURCE "Resource/*.cpp")
 
-
 #添加Component
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/SGComponent COMPONENT_LIST)
 file(GLOB MESHFILTER "SGComponent/MeshFilter/*.cpp")
@@ -109,7 +108,6 @@ file(GLOB MESHRENDERER "SGComponent/MeshRenderer/*.cpp")
 file(GLOB COMPONENT "SGComponent/*.cpp")
 file(GLOB CAMERA "SGComponent/Camera/*.cpp")
 file(GLOB LIGHTRENDERER "SGComponent/LightRenderer/*.cpp")
-
 
 #Component List
 list(APPEND COMPONENT_LIST ${MESHFILTER})
@@ -139,7 +137,6 @@ list(APPEND DATA_LIST ${TEXTURE})
 list(APPEND DATA_LIST ${PIPELINE})
 list(APPEND DATA_LIST ${RESOURCE})
 list(APPEND DATA_LIST ${LIGHT})
-
 
 #add exe
 add_executable(editor  ${SRC_LIST} ${DATA_LIST} ${COMPONENT_LIST})

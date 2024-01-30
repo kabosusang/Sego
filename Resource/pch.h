@@ -15,6 +15,8 @@
 #include <vector>
 #include <optional>
 #include <string>
+#include <string_view>
+
 #include <set>
 #include <array>
 #include <fstream>

@@ -5,7 +5,6 @@
 #include "Renderer/Vulkan/Vk_Device_Init.h"
 #include "VK_Global_Data.h"
 
-#include "Renderer/SgUI/GUI.h"
 #include "Editor/VKimgui.h"
 
 #include "SGComponent/game_object.h"
@@ -19,23 +18,18 @@
 #include "Object/object.h"
 #include "Core/Material/Material.h"
 
-//创建Object UI 和 Scene UI
-Object_Attr obj_ui("ObjectUI",0);
-App_Attr scene_ui("Scene",1);
-
-
 Application::Application()
 {
     glfwInit();
     // Create window with Vulkan context
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+Vulkan example", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(1800, 1200, "Dear ImGui GLFW+Vulkan example", nullptr, nullptr);
     if (!glfwVulkanSupported())
     {
         printf("GLFW: Vulkan Not Supported\n");
     }
 
-    m_Window = std::make_unique<SegoWindow>(window,1280,720);
+    m_Window = std::make_unique<SegoWindow>(window,1800,1200);
     m_Window->Init();
 
     m_Window->SetEventCallback(std::bind(&Application::OnEvent,this,std::placeholders::_1));
@@ -325,6 +319,9 @@ currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
 }
 
+
+
+#include "Editor/UiWindow.h"
 //IMGUI
 void Application::drawUI()
 {   
@@ -343,6 +340,8 @@ void Application::drawUI()
                 g_MainWindowData.FrameIndex = 0;
                 g_SwapChainRebuild = false;
             }
+
+        
             
         }
 
@@ -350,11 +349,10 @@ void Application::drawUI()
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-   // ImGui::DockSpaceOverViewport(); 使得imgui主窗口停靠但是渲染被遮挡了
+    //ImGui::DockSpaceOverViewport(); 
+   
     ImGui::DockSpaceOverViewport(nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
-    obj_ui.Run_UI();
-    scene_ui.Run_UI();
-    
+    Editor::UiWindow::Draw();
 
     // Render Dear ImGui
     ImGuiIO& io = ImGui::GetIO();
@@ -404,7 +402,6 @@ ubo.proj[1][1] *= -1;
 memcpy(Light_obj->GetuniformBuffersMapped_obj()[currentImage], &ubo, sizeof(ubo));
 
 //viewpos
-
 phone.viewpos = transform_camera->position();
 memcpy(Light_obj->GetuniformBuffersMapped_light()[currentImage],&phone,sizeof(phone));
  // 在每一帧结束前取消映射内存

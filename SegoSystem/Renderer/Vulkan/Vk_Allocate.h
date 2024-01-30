@@ -30,7 +30,6 @@ uint32_t height,uint32_t mipLevels, VkFormat format,
 VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, 
 VkImage& image, VkDeviceMemory& imageMemory);
 
-
 //Append
 void SGvk_Device_Create_TransitionImageLayout(VkQueue& endque,VkDevice& device,
 VkCommandPool& commandPool,VkImage& image, VkFormat format, 

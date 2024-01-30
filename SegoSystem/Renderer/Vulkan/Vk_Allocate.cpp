@@ -58,7 +58,7 @@ uint32_t width, uint32_t height,uint32_t mipLevels,VkFormat format,
 VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, 
 VkImage& image, VkDeviceMemory& imageMemory)
 {
-VkImageCreateInfo imageInfo{};
+    VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
     imageInfo.extent.width = width;
@@ -96,7 +96,6 @@ VkImageCreateInfo imageInfo{};
 void SG_Allocate::SGvk_Device_Create_TransitionImageLayout(VkQueue& endque,VkDevice& device,
 VkCommandPool& commandPool,VkImage& image, VkFormat format, VkImageLayout oldLayout, 
 VkImageLayout newLayout, uint32_t mipLevels)
-
 {
 VkCommandBuffer commandBuffer = SG_COMD::beginSingleTimeCommands(device,commandPool);
 

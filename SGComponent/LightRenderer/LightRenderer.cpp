@@ -49,8 +49,6 @@ void LightRenderer::SetMaterial(Material* material) {
     //重新创建
     ReBuildDesLayout();
     RebuildDescriptPool();
-    
-    
     RebuildDescriptorSets(texture2d);
 
     Vk_Pipeline_.resize(1);
@@ -86,7 +84,6 @@ LightRenderer::~LightRenderer()
 
     vkDestroyDescriptorSetLayout(g_device,descriptorSetLayout_,nullptr);
     vkDestroyDescriptorPool(g_device,descriptorPool_,nullptr);
-    vkDestroyDescriptorSetLayout(g_device, descriptorSetLayout_, nullptr);
 
 
     delete material_;
@@ -234,7 +231,6 @@ if (vkCreateDescriptorSetLayout(g_device, &layoutInfo, nullptr, &descriptorSetLa
 
 void LightRenderer::RebuildDescriptPool()
 {
-
 std::array<VkDescriptorPoolSize, 3> poolSizes{};
 //uniform
 poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -243,8 +239,8 @@ poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 //Phone
-poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+poolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+poolSizes[2].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
 VkDescriptorPoolCreateInfo poolInfo{};
 poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -293,7 +289,6 @@ VkDescriptorBufferInfo viewposbufferInfo{};
 viewposbufferInfo.buffer = light_uniform_->uniformBuffers_[i];
 viewposbufferInfo.offset = 0;
 viewposbufferInfo.range = sizeof(PhoneConstans);
-
 
 std::array<VkWriteDescriptorSet,3> descriptorWrites{};
 descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

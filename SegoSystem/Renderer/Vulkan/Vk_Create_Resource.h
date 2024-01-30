@@ -56,11 +56,6 @@ void SGvk_Device_Create_VertexBuffer(std::vector<MeshVertex>& vertices,
 //Layout
 void SGvk_Device_Create_DescriptorSetLayout(VkDescriptorSetLayout& descriptorSetLayout);
 
-
-
-
-
-
 void SGvk_CreateUniformBuffers(std::vector<VkBuffer>& Obj_uniformBuffers_,
 std::vector<VkDeviceMemory>& Obj_uniformBuffersMemory_,
 std::vector<void*>& Obj_uniformBuffersMapped_);
