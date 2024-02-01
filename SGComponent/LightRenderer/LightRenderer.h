@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "Shader/Uniform.h"
-
 //Pipeline
 #include "VulkanPipeLine/GraphicsPipelineManager.h"
 
@@ -36,6 +35,7 @@ std::vector<void*>& GetuniformBuffersMapped_light();
 void RecreatePipeline();
 void CleanPipeLine();
 
+
 //instance Count
 uint16_t instanceCount = 1;
 
@@ -47,6 +47,14 @@ void RebuildDescriptPool();
 void RebuildDescriptorSets(std::vector<Texture2D*>& texs);
 void RebuildUniform();
 
+
+
+//GetSampler
+VkSampler& GetSampler();
+VkImageView& GetImageview();
+
+//DescriptorSet
+std::vector<VkDescriptorSet>  descriptorSets_;
 private:
 Material* material_;
 glm::mat4 Model_mat4_;
@@ -59,13 +67,9 @@ Uniform* light_uniform_;
 //Des Layout
 VkDescriptorSetLayout descriptorSetLayout_; //描述绑定符
 VkDescriptorPool descriptorPool_;
-//DescriptorSet
-std::vector<VkDescriptorSet>  descriptorSets_;
+
 //VkPiepline
 std::vector<GraphicsPipelineManager> Vk_Pipeline_;
-
-
-
 
 };
 

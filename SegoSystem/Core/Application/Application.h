@@ -1,13 +1,9 @@
 #pragma once
-
 #include "Events/Event.h"
 #include "Window/Window.h"
 #include "Renderer/SgUI/Sg_UI.h"
 #include <memory>
-
 #include "Events/WindowEvent.h"
-#include "Renderer/Vulkan/Vk_Device_Init.h"
-#include "Renderer/Vulkan/Vk_Create_Resource.h"
 
 class Application
 {
@@ -43,6 +39,8 @@ private:
     std::unique_ptr<SegoWindow> m_Window;//Main Window
 
  
+
+    
     //UI Init Function
     Sg_UI Sg_ui;
 

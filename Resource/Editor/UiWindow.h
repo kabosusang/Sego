@@ -1,8 +1,9 @@
 #pragma once
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
 
 namespace Editor
 {
-    
     class UiWindow final
     {
         public:
@@ -13,7 +14,7 @@ namespace Editor
             DrawProject();
             DrawHierarchy();
             DrawConsole();
-            DrawViewport();
+            //DrawViewport();
         }
 
         private:
@@ -25,7 +26,10 @@ namespace Editor
         static void DrawViewport();
 
 
+
         static std::vector<int> DragList;
+
+       
     };
 
 };

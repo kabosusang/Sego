@@ -1,6 +1,4 @@
 #include "pch.h"
-
-
 #include "Window/Window.h"
 #include "Events/KeyEvent.h"
 #include "Events/MouseEvent.h"

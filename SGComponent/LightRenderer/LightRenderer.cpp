@@ -11,11 +11,9 @@
 #include "MeshFilter/MeshFilter.h"
 #include "Core/Material/Material.h"
 
-
 #include "Renderer/Vulkan/Vk_Create_Resource.h"
 #include "Renderer/Vulkan/Vk_Device_Init.h"
 #include "VulkanStatus/Pipeline.h"
-
 #include "Lights/LightConstans.h"
 
 
@@ -124,7 +122,6 @@ VkDeviceSize offsets[] = {0};
 
 //SwitchOutLine(OutLine);
 
-
 for(int i = 0; i < Vk_Pipeline_.size(); i++)
 {
 vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mesh_filter->vertexBuffer ,offsets);
@@ -168,8 +165,6 @@ void LightRenderer::RecreatePipeline()
 {
     CleanPipeLine();
     
-    
-
     Vk_Pipeline_.resize(1);
     Vk_Pipeline_[0].InputPipeLineStatus(PipelineType::Graphics);
     Vk_Pipeline_[0].CreateGraphicsPipeline_light(material_->vshader_path_[0],
@@ -363,4 +358,14 @@ for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 
 }
 
+}
+
+VkSampler & LightRenderer::GetSampler()
+{
+    return material_->textures_[0].second->textureSampler;
+}
+
+VkImageView &LightRenderer::GetImageview()
+{
+    return material_->textures_[0].second->textureImageView; 
 }

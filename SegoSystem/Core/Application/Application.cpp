@@ -1,10 +1,8 @@
 #include "pch.h"
 
-
 #include "Core/Application/Application.h"
 #include "Renderer/Vulkan/Vk_Device_Init.h"
 #include "VK_Global_Data.h"
-
 #include "Editor/VKimgui.h"
 
 #include "SGComponent/game_object.h"
@@ -13,10 +11,11 @@
 #include "SGComponent/MeshFilter/MeshFilter.h"
 #include "SGComponent/MeshRenderer/MeshRender.h"
 #include "SGComponent/LightRenderer/LightRenderer.h"
-
 //Main Window Instance
 #include "Object/object.h"
 #include "Core/Material/Material.h"
+
+#include "Editor/UiWindow.h"
 
 Application::Application()
 {
@@ -169,7 +168,8 @@ Application::Application()
     camera =dynamic_cast<Camera*>(go_camera->AddComponent("Camera"));
     
    
-
+    //Scene
+    
 }
 
 void Application::Run()
@@ -219,12 +219,15 @@ Application::~Application()
  
 }
 
+
 void Application::Application_DrawFrame()
 {
 vkWaitForFences(g_device,1,&app_device->inFlightFences[currentFrame],VK_TRUE,UINT64_MAX);
  
 uint32_t imageIndex;
-VkResult result = vkAcquireNextImageKHR(g_device,app_device->swapChain,UINT64_MAX,app_device->imageAvailableSemaphores[currentFrame],VK_NULL_HANDLE,&imageIndex);
+VkResult result = vkAcquireNextImageKHR(g_device,app_device->swapChain,UINT64_MAX,app_device->imageAvailableSemaphores[currentFrame],
+VK_NULL_HANDLE,&imageIndex);
+
 if(result == VK_ERROR_OUT_OF_DATE_KHR)//交换链已与 表面，不能再用于渲染。通常发生在调整窗口大小后
 {
      g_SwapChainRebuild = true;
@@ -262,6 +265,7 @@ if (vkEndCommandBuffer(app_device->commandBuffers[currentFrame]) != VK_SUCCESS) 
 
 updateUniformBuffer(currentFrame);
 
+
 //提交命令缓冲区
 VkSubmitInfo submitInfo{};
 submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -287,6 +291,7 @@ if (err!= VK_SUCCESS) {
    SG_CORE_ERROR("failed to submit draw command buffer!");
 }//将命令缓冲区提交到图形队列
  
+
 //将结果提交回交换链 让它最终出现在屏幕上
 VkPresentInfoKHR presentInfo{};
 presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -298,8 +303,8 @@ VkSwapchainKHR swapChains[] = {app_device->swapChain};
 presentInfo.swapchainCount = 1;
 presentInfo.pSwapchains = swapChains;
 presentInfo.pImageIndices = &imageIndex;
-
 presentInfo.pResults = nullptr; // Optional 
+
 
 result = vkQueuePresentKHR(app_device->presentQueue, &presentInfo);//真正提交到交换链
 if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR
@@ -321,7 +326,6 @@ currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
 
 
-#include "Editor/UiWindow.h"
 //IMGUI
 void Application::drawUI()
 {   
@@ -340,8 +344,6 @@ void Application::drawUI()
                 g_MainWindowData.FrameIndex = 0;
                 g_SwapChainRebuild = false;
             }
-
-        
             
         }
 
@@ -350,7 +352,7 @@ void Application::drawUI()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
     //ImGui::DockSpaceOverViewport(); 
-   
+    //ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
     ImGui::DockSpaceOverViewport(nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
     Editor::UiWindow::Draw();
 
@@ -387,8 +389,7 @@ ubo.view = camera->view_mat4();
 ubo.proj = camera->projection_mat4();
 ubo.proj[1][1] *= -1;
 memcpy(mesh_obj->GetuniformBuffersMapped()[currentImage], &ubo, sizeof(ubo));
- // 在每一帧结束前取消映射内存
-vkUnmapMemory(g_device, mesh_obj->GetuniformBufferMemory()[currentImage]);
+
 }
 
 for (auto Light_obj:Light_renderer)
@@ -404,9 +405,6 @@ memcpy(Light_obj->GetuniformBuffersMapped_obj()[currentImage], &ubo, sizeof(ubo)
 //viewpos
 phone.viewpos = transform_camera->position();
 memcpy(Light_obj->GetuniformBuffersMapped_light()[currentImage],&phone,sizeof(phone));
- // 在每一帧结束前取消映射内存
-vkUnmapMemory(g_device, Light_obj->GetuniformBufferMemory_obj()[currentImage]);
-vkUnmapMemory(g_device, Light_obj->GetuniformBufferMemory_light()[currentImage]);
 }
 
 }

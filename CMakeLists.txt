@@ -3,8 +3,6 @@ cmake_minimum_required(VERSION 3.0.0)
 project(Sego)
 set(SRC main.cpp)
 
-#增加-std=c++17
-set(CMAKE_CXX_STANDARD 17)
 
 # 输出目录
 set(output_bin ${CMAKE_CURRENT_SOURCE_DIR}/bin)
@@ -150,4 +148,10 @@ target_precompile_headers(editor PRIVATE ${PCH_HEADER} ${PCH_SOURCE})
 #add link
 target_link_libraries(editor PRIVATE imgui glfw3 rttr_core freetype lua assimp-5)
 
+#添加c++17支持
+target_compile_features(editor PRIVATE cxx_std_17)
 
+#添加封装Vulkan
+target_include_directories(editor PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/SegoSystem/Renderer/Vulkan/include)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/SegoSystem/Renderer/Vulkan)
+target_link_libraries(editor PRIVATE vulkanwrapper)
