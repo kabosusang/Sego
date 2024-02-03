@@ -36,6 +36,9 @@ enum VulkanTextureBorderColorType
 
 namespace vulkan::resource::image
 {
+
+    
+
     void CreateImage(uint32_t width,uint32_t height,uint32_t depth,
     uint32_t numArray,uint32_t mipMapCount,VkImageType type,bool isCubeMap
     ,VkSampleCountFlagBits numSamples,VkFormat format, VkImageTiling tiling,VkImageUsageFlags usage,
@@ -47,7 +50,7 @@ namespace vulkan::resource::image
 
     void CreateSampler(VulkanTextureFilterType texFilter,
     VulkanTextureAddressingType texAddressing,VulkanTextureBorderColorType texBorderColor,
-    bool enableAnisotropy,float maxAnisotropy,float minLod,float maxLod,float mipLodBias,VkSampler&sampler);
+    bool enableAnisotropy,float minLod,float maxLod,float mipLodBias,VkSampler&sampler);
 
 
     void GenerateMipmaps(VkCommandBuffer cmdBuffer,VkImage image,VkFormat VkImageFormatListCreateInfo,
@@ -58,6 +61,8 @@ namespace vulkan::resource::image
     VkSamplerMipmapMode TransformVkSamplerMipmapMpde(VulkanTextureFilterType typeFilter);
     VkSamplerAddressMode TransformVkSamplerAddressMode(VulkanTextureAddressingType addtype);
     VkBorderColor Util_Transform2VkBorderColor(VulkanTextureBorderColorType type);
+
+   
 
 
     //Copy

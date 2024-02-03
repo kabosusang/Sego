@@ -6,9 +6,4 @@ namespace vulkan::console::command
 {
     VkCommandBuffer BeginSingleTimeCommands();
     void EndSingleTimeCommands(VkCommandBuffer cmdbuffer);
-
-
-
-
-    
 };

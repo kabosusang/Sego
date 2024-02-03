@@ -75,5 +75,4 @@ uint32_t MinImageCount = 0;
 bool showDemoWindow = true;
 QueueFamilyIndices queueIndices;
 
-
 };

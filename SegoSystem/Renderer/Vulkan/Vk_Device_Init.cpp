@@ -245,7 +245,7 @@ VkFormat Application_Device::SGvk_Device_Choose_FindSupportedFormat(const std::v
     for (VkFormat format : candidates){
         VkFormatProperties props;
         vkGetPhysicalDeviceFormatProperties(g_physicalDevice,format,&props);
-
+        
        if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
          return format;
         } else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
@@ -535,7 +535,6 @@ subpass.pDepthStencilAttachment = &depthAttachmentRef;
 //attachments
 std::array<VkAttachmentDescription,2> attachments = {colorAttachment,depthAttachment};
 
-
 VkRenderPassCreateInfo renderPassInfo{};
 renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());//设置附件数量
@@ -543,10 +542,10 @@ renderPassInfo.pAttachments = attachments.data();//指向颜色附件
 renderPassInfo.subpassCount = 1;//设置子通道数量
 renderPassInfo.pSubpasses = &subpass;//指向子通道
 
-//子通道依赖关系
+//子通道依赖关系 用来描述RenderPass中不同SubPass之间或同一个SubPass的内存和执行同步依赖
 VkSubpassDependency dependency{};
-dependency.srcSubpass = VK_SUBPASS_EXTERNAL;//表示依赖关系的源子通道为外部子通道
-dependency.dstSubpass = 0;//表示依赖关系的目标子通道为第一个子通道
+dependency.srcSubpass = VK_SUBPASS_EXTERNAL;//源SubPass的索引或者是VK_SUBPASS_EXTERNAL
+dependency.dstSubpass = 0;//目的SubPass的索引
 dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;//表示依赖关系的源阶段为颜色附件输出阶段。
 dependency.srcAccessMask = 0;//表示对源子通道的访问方式为0(设置源访问掩码)
 dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;

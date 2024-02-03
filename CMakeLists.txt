@@ -7,7 +7,7 @@ set(SRC main.cpp)
 # 输出目录
 set(output_bin ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${output_bin})
-
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 #头文件
 #SegoHead
@@ -140,7 +140,6 @@ list(APPEND DATA_LIST ${LIGHT})
 add_executable(editor  ${SRC_LIST} ${DATA_LIST} ${COMPONENT_LIST})
 
 set(PCH_HEADER "Resource/pch.h")  # 设置预编译头文件的路径
-set(PCH_SOURCE "Resource/pch.cpp")
 # 添加预编译头
 target_precompile_headers(editor PRIVATE ${PCH_HEADER} ${PCH_SOURCE})
 
@@ -152,6 +151,6 @@ target_link_libraries(editor PRIVATE imgui glfw3 rttr_core freetype lua assimp-5
 target_compile_features(editor PRIVATE cxx_std_17)
 
 #添加封装Vulkan
-target_include_directories(editor PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/SegoSystem/Renderer/Vulkan/include)
+#target_include_directories(editor PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/SegoSystem/Renderer/Vulkan/include)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/SegoSystem/Renderer/Vulkan)
 target_link_libraries(editor PRIVATE vulkanwrapper)

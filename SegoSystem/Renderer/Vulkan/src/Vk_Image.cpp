@@ -1,9 +1,9 @@
 #include "pch.h"
-#include "../include/Vk_Image.h"
+
 #include "VK_Global_Data.h"
-#include "Renderer/Vulkan/Vk_Allocate.h"
-#include "Vk_Image.h"
+#include "../include/Vk_Image.h"
 #include "../include/Vk_Console.h"
+#include "../include/Vk_Memory.h"
 
 void vulkan::resource::image::CreateImage(uint32_t width, uint32_t height, 
 uint32_t depth, uint32_t numArray, uint32_t mipMapCount, 
@@ -39,8 +39,8 @@ VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory)
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = SG_Allocate::findMemoryType(memRequirements.memoryTypeBits, 
-    properties,g_physicalDevice);
+    allocInfo.memoryTypeIndex = vulkan::memory::findMemoryType(memRequirements.memoryTypeBits, 
+    properties);
 
     if (vkAllocateMemory(g_device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
         SG_CORE_ERROR("failed to allocate image memory!");
@@ -72,9 +72,10 @@ aspectFlags, uint32_t mipMapCount, uint32_t numArray, VkImageView &imageview)
 }
 
 void vulkan::resource::image::CreateSampler(VulkanTextureFilterType texFilter, 
-VulkanTextureAddressingType texAddressing, VulkanTextureBorderColorType texBorderColor,
- bool enableAnisotropy, float maxAnisotropy, float minLod, float maxLod, float mipLodBias, 
- VkSampler &sampler)
+VulkanTextureAddressingType texAddressing, 
+VulkanTextureBorderColorType texBorderColor,
+bool enableAnisotropy, float minLod, float maxLod, float mipLodBias, 
+VkSampler &sampler)
 {
     VkSamplerCreateInfo samplerInfo{};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -125,7 +126,7 @@ void vulkan::resource::image::GenerateMipmaps(VkCommandBuffer cmdBuffer, VkImage
             auto mipHeight = height;
             for (uint32_t i = 1; i < mipMapCount; i++)
             {
-                vulkan::memory::transform::transitionImageLayout(cmdBuffer,image,
+                vulkan::memory::transitionImageLayout(cmdBuffer,image,
                 VK_IMAGE_LAYOUT_UNDEFINED,VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                 i,
                 1,
@@ -156,7 +157,7 @@ void vulkan::resource::image::GenerateMipmaps(VkCommandBuffer cmdBuffer, VkImage
                         mipHeight /=2;
                 }
 
-                vulkan::memory::transform::transitionImageLayout(cmdBuffer,image,
+                vulkan::memory::transitionImageLayout(cmdBuffer,image,
                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                 i,
                 1,
@@ -166,7 +167,7 @@ void vulkan::resource::image::GenerateMipmaps(VkCommandBuffer cmdBuffer, VkImage
             }
         }
 
-        vulkan::memory::transform::transitionImageLayout(cmdBuffer,image,
+        vulkan::memory::transitionImageLayout(cmdBuffer,image,
                 VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                 0,
                 mipMapCount,
@@ -303,5 +304,11 @@ uint32_t height, uint32_t depth, uint32_t numArray)
         vulkan::console::command::EndSingleTimeCommands(cmdBuffer);
     }
 }
+
+
+
+
+
+
 
 

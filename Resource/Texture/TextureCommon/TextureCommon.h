@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include "Vk_image.h"
-
+#include <string>
 
 enum class texColorformat
 {
@@ -10,24 +10,34 @@ enum class texColorformat
 	TX_RGBA = 4
 };
 
+/*
+Vulkan_Texture_2D
+Vulkan_Texture_1D
+Vulkan_Texture_2DArray
+Vulkan_Texture_3D
+Vulkan_Texture_CubeMap
+*/
+
+
 class TextureCommon
 {
 public:
 ~TextureCommon();
-static TextureCommon* LoadFromFile(std::string& image_file_path);
+static TextureCommon* LoadFromFile(std::vector<std::string>& image_file_path);
+void LoadTexture(std::vector<std::string>& image_file_path,int width,int height,int depth);
 
-//Data Init
-void LoadImageData(std::string_view Image_path,TextureCommon* texture);
 
 public:
     //Imaage Attribute
     int width_;
     int height_;
+    uint32_t depth_;
+    const uint8_t* pDataRGBA;
     texColorformat texture_format_;
+    std::string Textype = "Vulkan_Texture_2D";
     //**********VulkanData****************
     /*------------------------------IMAGE----------------------------------------*/
     //Init Image Data
-    uint32_t depth_;
     uint32_t numArray;
     uint32_t mipLevels;//mipmaplevel
     VkImageType type = VK_IMAGE_TYPE_2D;
@@ -55,7 +65,6 @@ public:
     float minLod;
     float maxLod;
     float mipLodBias;
-
     //ImageView
     VkSampler textureSampler;//采样器
     //Image

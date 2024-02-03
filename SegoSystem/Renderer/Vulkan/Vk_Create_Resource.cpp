@@ -213,7 +213,8 @@ textureImageView = SGvk_Device_Create_ImageView_AttachFuc(device,textureImage,
 VK_FORMAT_R8G8B8A8_SRGB,VK_IMAGE_ASPECT_COLOR_BIT,mipLevels);
 }
 
-VkImageView SG_CRes::SGvk_Device_Create_ImageView_AttachFuc(VkDevice& device,VkImage& image, VkFormat format,
+VkImageView SG_CRes::SGvk_Device_Create_ImageView_AttachFuc(VkDevice& device,
+VkImage& image, VkFormat format,
 VkImageAspectFlags aspectFlags,uint32_t mipLevels)
 {
     VkImageViewCreateInfo viewInfo{};

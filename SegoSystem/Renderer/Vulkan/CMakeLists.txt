@@ -7,7 +7,11 @@ project(
     DESCRIPTION "Vulkan C++ wrapper"
 )
 
-add_library(vulkanwrapper STATIC src/Vk_Console.cpp src/Vk_Console.cpp src/Vk_Image.cpp src/Vk_Memory.cpp)
+aux_source_directory(./src engine_src)
+message("source files: ${engine_src}")
+
+
+add_library(vulkanwrapper STATIC ${engine_src})
 target_include_directories(vulkanwrapper PUBLIC include)
 target_compile_features(vulkanwrapper PRIVATE cxx_std_17)
 

@@ -1,8 +1,8 @@
 #include "../include/Vk_Console.h"
 #include "Vk_Console.h"
-
 #include "Renderer/Vulkan/Vk_Device_Init.h"
 #include "VK_Global_Data.h"
+
 VkCommandBuffer vulkan::console::command::BeginSingleTimeCommands()
 {
     VkCommandBufferAllocateInfo allocInfo{};

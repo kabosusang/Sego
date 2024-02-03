@@ -3,8 +3,9 @@
 #include "../include/Vk_Memory.h"
 #include "../include/Vk_Console.h"
 
+#include "VK_Global_Data.h"
 
-void vulkan::memory::transform::transitionImageLayout(VkCommandBuffer cmdBuffer, 
+void vulkan::memory::transitionImageLayout(VkCommandBuffer cmdBuffer, 
 VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout,
 uint32_t mipBase, uint32_t mipCount, uint32_t numBase, uint32_t numArray,
 VkImageAspectFlagBits aspectFlags)
@@ -71,4 +72,18 @@ VkImageAspectFlagBits aspectFlags)
         vulkan::console::command::EndSingleTimeCommands(cmdBuffer);
     }
 
+}
+
+uint32_t vulkan::memory::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+{
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkGetPhysicalDeviceMemoryProperties(g_physicalDevice, &memProperties);
+
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+            return i;
+        }
+    }
+    SG_CORE_ERROR("failed to find suitable memory type!");
+    return -1;
 }
