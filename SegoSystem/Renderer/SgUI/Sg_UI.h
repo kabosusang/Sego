@@ -6,10 +6,21 @@
 #include "Renderer/Vulkan/Vk_Allocate.h"
 #include "Renderer/Vulkan/Vk_Device_Init.h"
 
-
 class Sg_UI
 {
+private:
+static Sg_UI* ins;
+ Sg_UI() {}
+~Sg_UI() {}
 public:
+//Singleton 
+static Sg_UI* getInstance() {
+        if (ins == nullptr) {
+            ins = new Sg_UI();
+        }
+        return ins;
+    }
+
 void SgUI_Input(GLFWwindow* wd,VkInstance& ins,VkSurfaceKHR& sur,VkPhysicalDevice& phys,VkDevice& dev,VkFormat& swa,
 std::vector<VkImage>& swap,std::vector<VkImageView>& swapChs,VkExtent2D& swapExtent,VkQueue& grap,VkQueue& pre)
 {
@@ -40,6 +51,9 @@ void endSingleTimeCommands(VkCommandBuffer commandBuffer,VkCommandPool cmdPool);
 
 void recordUICommands(uint32_t bufferIdx);
 
+void Init_ViewportRT();
+void CopytoViewport(uint32_t imageIndex,uint32_t currentFrame);
+void Destroy_ViewportRT();
 
 //clean
 void cleanupUIResources();
@@ -75,4 +89,12 @@ uint32_t MinImageCount = 0;
 bool showDemoWindow = true;
 QueueFamilyIndices queueIndices;
 
+//viewport RT
+VkImage viewportImage;
+VkDeviceMemory viewportImageMemory;
+VkImageView viewportImageView;
+VkSampler viewportSampler;
+
 };
+
+extern Sg_UI* UiContext;

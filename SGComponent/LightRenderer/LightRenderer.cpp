@@ -328,7 +328,7 @@ obj_uniform_->uniformBuffersMemory_.resize(MAX_FRAMES_IN_FLIGHT);
 obj_uniform_->uniformBuffersMapped_.resize(MAX_FRAMES_IN_FLIGHT);
 
 
-VkDeviceSize bufferSize_light = sizeof(LightConstans);
+VkDeviceSize bufferSize_light = sizeof(PhoneConstans);
 
 light_uniform_->uniformBuffers_.resize(MAX_FRAMES_IN_FLIGHT);
 light_uniform_->uniformBuffersMemory_.resize(MAX_FRAMES_IN_FLIGHT);

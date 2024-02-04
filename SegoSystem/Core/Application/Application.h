@@ -38,12 +38,6 @@ public:
 private:
     std::unique_ptr<SegoWindow> m_Window;//Main Window
 
- 
-
-    
-    //UI Init Function
-    Sg_UI Sg_ui;
-
     uint32_t currentFrame = 0;//帧索引
     bool framebufferResized = false;
     uint32_t MinImageCount = 0;

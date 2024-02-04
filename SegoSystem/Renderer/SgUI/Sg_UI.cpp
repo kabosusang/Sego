@@ -1,9 +1,13 @@
-#pragma once
 #include "pch.h"
-#include "Renderer/SgUI/Sg_UI.h"
 //input imgui
 #include <imgui_impl_vulkan.h>
 #include <imgui_impl_glfw.h>
+
+#include "SGData/UI/ini.h"
+#include "Sg_UI.h"
+
+Sg_UI* Sg_UI::ins = nullptr;
+Sg_UI* UiContext = Sg_UI::getInstance();
 
 QueueFamilyIndices Sg_UI::FindQueueFamilies(VkPhysicalDevice device)
 {
@@ -13,7 +17,6 @@ QueueFamilyIndices Sg_UI::FindQueueFamilies(VkPhysicalDevice device)
     vkGetPhysicalDeviceQueueFamilyProperties(device,&queueFamilyCount,nullptr);
 
     std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-    std::cout <<"Has queue " << queueFamilyCount<<std::endl;
     vkGetPhysicalDeviceQueueFamilyProperties(device,&queueFamilyCount,queueFamilies.data());
     //需要至少一个队列支持的familes
     int i = 0;
@@ -39,7 +42,7 @@ QueueFamilyIndices Sg_UI::FindQueueFamilies(VkPhysicalDevice device)
     return indices;
 }
 
-#include "SGData/UI/ini.h"
+
 void Sg_UI::Init_Sg_Imgui()
 {
     IMGUI_CHECKVERSION();
@@ -142,6 +145,8 @@ void Sg_UI::Init_Sg_Imgui()
     endSingleTimeCommands(commandBuffer_im, uiCommandPool);
     ImGui_ImplVulkan_DestroyFontUploadObjects();
     vkDeviceWaitIdle(device);
+
+    Init_ViewportRT();
 }
 
 
@@ -258,23 +263,24 @@ void Sg_UI::createUIFramebuffers()
 {
     // Create some UI framebuffers. These will be used in the render pass for the UI
     uiFramebuffers.resize(swapChainImages.size());
-    VkImageView attachment[1];
-    VkFramebufferCreateInfo info = {};
-    info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    info.renderPass = uiRenderPass;
-    info.attachmentCount = 1;
-    info.pAttachments = attachment;
-    info.width = swapChainExtent.width;
-    info.height = swapChainExtent.height;
-    info.layers = 1;
-    for (uint32_t i = 0; i < swapChainImages.size(); ++i) {
-        attachment[0] = swapChainImageViews[i];
-        if (vkCreateFramebuffer(device, &info, nullptr, &uiFramebuffers[i]) != VK_SUCCESS) {
-            SG_CORE_ERROR("Unable to create UI framebuffers!");
+    { // Create the UI framebuffers}
+        VkImageView attachment[1];
+        VkFramebufferCreateInfo info = {};
+        info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        info.renderPass = uiRenderPass;
+        info.attachmentCount = 1;
+        info.pAttachments = attachment;
+        info.width = swapChainExtent.width;
+        info.height = swapChainExtent.height;
+        info.layers = 1;
+        for (uint32_t i = 0; i < swapChainImages.size(); ++i) {
+            attachment[0] = swapChainImageViews[i];
+            if (vkCreateFramebuffer(device, &info, nullptr, &uiFramebuffers[i]) != VK_SUCCESS) {
+                SG_CORE_ERROR("Unable to create UI framebuffers!");
+            }
         }
     }
-
-
+    
 }
 
 
@@ -385,7 +391,8 @@ std::vector<VkImageView>& swapimviews,VkExtent2D Extent)
     createUICommandBuffers();
     createUIFramebuffers();
 
-
+    Destroy_ViewportRT();
+    Init_ViewportRT();
 
 }
 
@@ -424,3 +431,90 @@ void Sg_UI::recordUICommands(uint32_t bufferIdx)
 
 }
 
+#include "Vk_Image.h"
+
+void Sg_UI::Init_ViewportRT()
+{
+    vulkan::resource::image::CreateImage(
+    swapChainExtent.width,
+    swapChainExtent.height,
+    1,1,1,VK_IMAGE_TYPE_2D,false,VK_SAMPLE_COUNT_1_BIT,VK_FORMAT_B8G8R8A8_SRGB,
+    VK_IMAGE_TILING_LINEAR,VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+    ,VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+    this->viewportImage,this->viewportImageMemory);
+
+    vulkan::resource::image::CreateImageView(
+    this->viewportImage,VK_IMAGE_VIEW_TYPE_2D,VK_FORMAT_B8G8R8A8_SRGB,
+    VK_IMAGE_ASPECT_COLOR_BIT,1,1,this->viewportImageView);
+
+    vulkan::resource::image::CreateSampler(
+    Vulkan_TextureFilter_Bilinear,Vulkan_TextureAddressing_Wrap,
+    Vulkan_TextureBorderColor_OpaqueBlack,false,0.0f,0.0f,0.0f,this->viewportSampler);
+
+}
+
+void Sg_UI::CopytoViewport(uint32_t imageIndex,uint32_t currentFrame)
+{
+    //Copy To Viewport
+    VkImageMemoryBarrier barrier = {};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR ;
+    barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    barrier.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+    barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+    barrier.image = app_device->swapChainImages[imageIndex];
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.subresourceRange.levelCount = 1;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount = 1;
+
+    vkCmdPipelineBarrier(app_device->commandBuffers[currentFrame], VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                        0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+    barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    barrier.srcAccessMask = 0;
+    barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    barrier.image = viewportImage;
+
+    vkCmdPipelineBarrier(app_device->commandBuffers[currentFrame], VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                        0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+    VkImageCopy region = {};
+    region.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    region.srcSubresource.layerCount = 1;
+    region.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    region.dstSubresource.layerCount = 1;
+    region.extent.width = app_device->swapChainExtent.width;
+    region.extent.height = app_device->swapChainExtent.height;
+    region.extent.depth = 1;
+
+    vkCmdCopyImage(app_device->commandBuffers[currentFrame], 
+                app_device->swapChainImages[imageIndex], VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                viewportImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL ;
+    barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    barrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+    barrier.image = viewportImage;
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.subresourceRange.levelCount = 1;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount = 1;
+
+    vkCmdPipelineBarrier(app_device->commandBuffers[currentFrame], VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                        0, 0, nullptr, 0, nullptr, 1, &barrier);
+}
+
+void Sg_UI::Destroy_ViewportRT()
+{
+    vkDestroyImageView(device, viewportImageView, nullptr);
+    vkDestroyImage(device, viewportImage, nullptr);
+    vkDestroySampler(device, viewportSampler, nullptr);
+    vkFreeMemory(device, viewportImageMemory, nullptr);
+}

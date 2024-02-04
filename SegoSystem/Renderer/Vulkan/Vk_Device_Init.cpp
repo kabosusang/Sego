@@ -510,7 +510,7 @@ VkAttachmentDescription depthAttachment{};
 depthAttachment.format = SGvk_Device_Choose_FindDepthFormat();
 depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -559,6 +559,7 @@ if (vkCreateRenderPass(g_device, &renderPassInfo, nullptr, &renderPass) != VK_SU
 }
 }
 
+
 void Application_Device::SGvk_Device_Create_DescriptorSetLayout()
 {
 VkDescriptorSetLayoutBinding uboLayoutBinding{};
@@ -587,7 +588,6 @@ if (vkCreateDescriptorSetLayout(g_device, &layoutInfo, nullptr, &descriptorSetLa
     SG_CORE_ERROR("failed to create descriptor set layout!");
 }
 }
-
 
 void Application_Device::SGvk_Device_Create_DepthResources()
 {

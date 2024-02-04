@@ -197,7 +197,7 @@ bool GetMouseReleaseInput(MouseButtonReleasedEvent& e)
         SG_INFO("Released MIDDLE");
         middleButtonPressed = false;
     }
-
+    return true;
 }
 
 

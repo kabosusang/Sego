@@ -46,10 +46,10 @@ Application::Application()
     app_device->SGvk_Device_Create_CommandBuffer();
     app_device->SGvk_Device_Create_SyncObjects();
     
-    Sg_ui.SgUI_Input(m_Window->GetWindow(),app_device->instance,app_device->surface,g_physicalDevice
+    UiContext->SgUI_Input(m_Window->GetWindow(),app_device->instance,app_device->surface,g_physicalDevice
     ,g_device,app_device->swapChainImageFormat,app_device->swapChainImages,app_device->swapChainImageViews
     ,app_device->swapChainExtent,app_device->graphicsqueue,app_device->presentQueue);
-    Sg_ui.Init_Sg_Imgui(); //初始化imgui
+    UiContext->Init_Sg_Imgui(); //初始化imgui
     MinImageCount = app_device->image_count;
     
     //初始化UI class
@@ -168,8 +168,7 @@ Application::Application()
     camera =dynamic_cast<Camera*>(go_camera->AddComponent("Camera"));
     
    
-    //Scene
-    
+
 }
 
 void Application::Run()
@@ -179,7 +178,6 @@ void Application::Run()
         drawUI();
         Application_DrawFrame();
     }
-    vkDeviceWaitIdle(g_Device);
    
 }
 #include "Events/KeyEvent.h"
@@ -214,7 +212,7 @@ bool Application::OnWindowClose(WindowCloseEvent& e)
 Application::~Application()
 {
     app_device->cleanup();
-    Sg_ui.cleanup();
+    UiContext->cleanup();
     m_Window->DestorySegowindow();
  
 }
@@ -222,15 +220,15 @@ Application::~Application()
 
 void Application::Application_DrawFrame()
 {
+//Fence
 vkWaitForFences(g_device,1,&app_device->inFlightFences[currentFrame],VK_TRUE,UINT64_MAX);
- 
 uint32_t imageIndex;
 VkResult result = vkAcquireNextImageKHR(g_device,app_device->swapChain,UINT64_MAX,app_device->imageAvailableSemaphores[currentFrame],
 VK_NULL_HANDLE,&imageIndex);
 
 if(result == VK_ERROR_OUT_OF_DATE_KHR)//交换链已与 表面，不能再用于渲染。通常发生在调整窗口大小后
 {
-     g_SwapChainRebuild = true;
+    g_SwapChainRebuild = true;
     RecreateSwapChain();
     return ;
 }else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
@@ -240,9 +238,10 @@ if(result == VK_ERROR_OUT_OF_DATE_KHR)//交换链已与 表面，不能再用于
 
 vkResetFences(g_device, 1, &app_device->inFlightFences[currentFrame]);
 // Record UI draw data
-Sg_ui.recordUICommands(imageIndex);
+UiContext->recordUICommands(imageIndex);
 
 //CommandBuffers
+vkQueueWaitIdle(app_device->graphicsqueue);
 vkResetCommandBuffer(app_device->commandBuffers[currentFrame], 0);
 recordCommandBuffer(app_device->commandBuffers[currentFrame],imageIndex);
 
@@ -258,13 +257,15 @@ for(auto& Light : Light_renderer)
 Light->Render(app_device->commandBuffers[currentFrame],imageIndex);
 }
 
+UiContext->CopytoViewport(imageIndex,currentFrame);
+
 vkCmdEndRenderPass(app_device->commandBuffers[currentFrame]);
 if (vkEndCommandBuffer(app_device->commandBuffers[currentFrame]) != VK_SUCCESS) {
     SG_CORE_ERROR("failed to record command buffer!");
 }
 
-updateUniformBuffer(currentFrame);
 
+updateUniformBuffer(currentFrame);
 
 //提交命令缓冲区
 VkSubmitInfo submitInfo{};
@@ -272,7 +273,7 @@ submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
 VkSemaphore waitSemaphores[] = {app_device->imageAvailableSemaphores[currentFrame]};//指定信号量
 VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};//指定等待管道的哪个阶段
-std::array<VkCommandBuffer, 2> cmdBuffers = {app_device->commandBuffers[imageIndex],Sg_ui.uiCommandBuffers[imageIndex],};
+std::array<VkCommandBuffer, 2> cmdBuffers = {app_device->commandBuffers[imageIndex],UiContext->uiCommandBuffers[imageIndex],};
 submitInfo.waitSemaphoreCount = 1;
 submitInfo.pWaitSemaphores = waitSemaphores;
 submitInfo.pWaitDstStageMask = waitStages;
@@ -324,12 +325,9 @@ currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
 }
 
-
-
 //IMGUI
 void Application::drawUI()
 {   
-    //WindowPos Updata
     
     // Resize swap chain?
         if (g_SwapChainRebuild)
@@ -340,7 +338,7 @@ void Application::drawUI()
             if (width > 0 && height > 0)
             {
                 ImGui_ImplVulkan_SetMinImageCount(MinImageCount);
-                ImGui_ImplVulkanH_CreateOrResizeWindow(app_device->instance, g_physicalDevice, g_device, &g_MainWindowData, Sg_ui.queueIndices.graphicsFamily.value(), nullptr, width, height, MinImageCount);
+                ImGui_ImplVulkanH_CreateOrResizeWindow(app_device->instance, g_physicalDevice, g_device, &g_MainWindowData, UiContext->queueIndices.graphicsFamily.value(), nullptr, width, height, MinImageCount);
                 g_MainWindowData.FrameIndex = 0;
                 g_SwapChainRebuild = false;
             }
@@ -352,8 +350,8 @@ void Application::drawUI()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
     //ImGui::DockSpaceOverViewport(); 
-    //ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
-    ImGui::DockSpaceOverViewport(nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
+    ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+    //ImGui::DockSpaceOverViewport(nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
     Editor::UiWindow::Draw();
 
     // Render Dear ImGui
@@ -411,7 +409,6 @@ memcpy(Light_obj->GetuniformBuffersMapped_light()[currentImage],&phone,sizeof(ph
 
 void Application::RecreateSwapChain()
 {
-
     app_device->recreateSwapChain();
     for(auto& mesh : mesh_renderer)
     {
@@ -422,9 +419,8 @@ void Application::RecreateSwapChain()
         light->RecreatePipeline();
     }
 
-
-    Sg_ui.cleanupUIResources();
-    Sg_ui.UpdataUiCleanDtata(app_device->swapChainImageFormat,app_device->swapChainImages
+    UiContext->cleanupUIResources();
+    UiContext->UpdataUiCleanDtata(app_device->swapChainImageFormat,app_device->swapChainImages
     ,app_device->swapChainImageViews,app_device->swapChainExtent);
 
 }

@@ -14,7 +14,7 @@ namespace Editor
             DrawProject();
             DrawHierarchy();
             DrawConsole();
-            //DrawViewport();
+            DrawViewport();
         }
 
         private:
@@ -24,7 +24,6 @@ namespace Editor
         static void DrawHierarchy();
         static void DrawConsole();
         static void DrawViewport();
-
 
 
         static std::vector<int> DragList;

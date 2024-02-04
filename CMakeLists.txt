@@ -7,7 +7,7 @@ set(SRC main.cpp)
 # 输出目录
 set(output_bin ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${output_bin})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
 
 #头文件
 #SegoHead
