@@ -202,7 +202,7 @@ samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 samplerLayoutBinding.pImmutableSamplers = nullptr;
 samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;//指定在Fragment阶段使用
 
-//ViewPos
+//Phone
 VkDescriptorSetLayoutBinding viewposLayoutBinding{};
 viewposLayoutBinding.binding = 2;
 viewposLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;

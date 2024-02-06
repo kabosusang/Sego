@@ -2,7 +2,7 @@
 #pragma once
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
-
+#include <assert.h>
 namespace Sego{
 
     class Log
@@ -22,7 +22,8 @@ namespace Sego{
 }
 
 // Core log macros
-#define SG_CORE_ERROR(...)		::Sego::Log::GetCoreLogger()->error(__VA_ARGS__)
+#define SG_CORE_ERROR(...)		::Sego::Log::GetCoreLogger()->error(__VA_ARGS__);
+                                                               
 #define SG_CORE_WARN(...)		::Sego::Log::GetCoreLogger()->warn(__VA_ARGS__)
 #define SG_CORE_INFO(...)		::Sego::Log::GetCoreLogger()->info(__VA_ARGS__)
 #define SG_CORE_TRACE(...)		::Sego::Log::GetCoreLogger()->trace(__VA_ARGS__)

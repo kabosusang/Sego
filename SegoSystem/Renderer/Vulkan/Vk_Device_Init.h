@@ -25,7 +25,7 @@ const std::vector<const char*> deviceExtensions = {
 #ifdef NDEBUG
     const bool enableValidationLayers = false;
 #else
-    const bool enableValidationLayers = true;
+    const bool enableValidationLayers = false;
 #endif
 //创建CreateDebugUtilsMessengerEXT
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);

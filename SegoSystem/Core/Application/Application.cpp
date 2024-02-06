@@ -264,7 +264,6 @@ if (vkEndCommandBuffer(app_device->commandBuffers[currentFrame]) != VK_SUCCESS) 
     SG_CORE_ERROR("failed to record command buffer!");
 }
 
-
 updateUniformBuffer(currentFrame);
 
 //提交命令缓冲区
@@ -367,8 +366,6 @@ void Application::drawUI()
 }
 
 
-
-
 #include "Lights/LightConstans.h"
 //更新统一数据
 void Application::updateUniformBuffer(uint32_t currentImage)
@@ -422,7 +419,6 @@ void Application::RecreateSwapChain()
     UiContext->cleanupUIResources();
     UiContext->UpdataUiCleanDtata(app_device->swapChainImageFormat,app_device->swapChainImages
     ,app_device->swapChainImageViews,app_device->swapChainExtent);
-
 }
 
 //RecordCommand
@@ -446,7 +442,6 @@ renderPassInfo.renderArea.offset = {0,0};
 renderPassInfo.renderArea.extent = app_device->swapChainExtent;
 //清除值
 // 清除模板缓冲区
-
 std::array<VkClearValue, 2> clearColor = {};
 clearColor[0].color = {{0.0f,0.0f,0.0f,1.0f}};
 clearColor[1].depthStencil = {1.0f,0};
