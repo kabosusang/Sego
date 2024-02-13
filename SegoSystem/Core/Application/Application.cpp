@@ -59,7 +59,7 @@ Application::Application()
     
 
     //创建GameObject(Viki-room)
-    GameObject* go = new GameObject("GO");
+    GameObject* go = new GameObject("GO1");
     //挂上 Transform
     transform_obj.push_back(dynamic_cast<Transform*>(go->AddComponent("Transform")));
     transform_obj[0]->set_position(glm::vec3(3.0f,0.0f,0.0f));
@@ -78,7 +78,7 @@ Application::Application()
     
 
     //创建GameObject(Light Cube)
-    GameObject* go2 = new GameObject("GO");
+    GameObject* go2 = new GameObject("GO2");
     //挂上 Transform
     transform_obj.push_back(dynamic_cast<Transform*>(go2->AddComponent("Transform")));
     transform_obj[1]->set_position(glm::vec3(1.0f,5.0f,0.0f));
@@ -97,7 +97,7 @@ Application::Application()
 
 
     //创建GameObject(Viki-room2)
-    GameObject* go3 = new GameObject("GO");
+    GameObject* go3 = new GameObject("GO3");
     //挂上 Transform
     transform_obj.push_back(dynamic_cast<Transform*>(go3->AddComponent("Transform")));
     transform_obj[2]->set_position(glm::vec3(-2.0f,0.0f,0.0f));
@@ -118,7 +118,7 @@ Application::Application()
 
     //创建灯光场景测试:
     //创建GameObject(Pot)
-    GameObject* go4 = new GameObject("Light");
+    GameObject* go4 = new GameObject("Pot");
     //挂上 Transform
     transform_obj.push_back(dynamic_cast<Transform*>(go4->AddComponent("Transform")));
     transform_obj[3]->set_position(glm::vec3(-1.0f,2.0f,0.0f));
@@ -137,7 +137,7 @@ Application::Application()
 
 
     //创建GameObject(Plane)
-    GameObject* go5 = new GameObject("Light");
+    GameObject* go5 = new GameObject("Plane");
     //挂上 Transform
     transform_obj.push_back(dynamic_cast<Transform*>(go5->AddComponent("Transform")));
     transform_obj[4]->set_position(glm::vec3(0.0f,-1.0f,0.0f));
@@ -159,7 +159,7 @@ Application::Application()
 
 
     //创建相机Object
-    auto go_camera = new GameObject("main_camera");
+    auto go_camera = new GameObject("MainCamera");
     
     //挂上 Transform组件
     transform_camera = dynamic_cast<Transform*>(go_camera->AddComponent("Transform"));
@@ -443,7 +443,7 @@ renderPassInfo.renderArea.extent = app_device->swapChainExtent;
 //清除值
 // 清除模板缓冲区
 std::array<VkClearValue, 2> clearColor = {};
-clearColor[0].color = {{0.0f,0.0f,0.0f,1.0f}};
+clearColor[0].color = {{0.2235f,0.2235f,0.2235f,1.0f}};
 clearColor[1].depthStencil = {1.0f,0};
 
 renderPassInfo.clearValueCount = static_cast<uint32_t>(clearColor.size());

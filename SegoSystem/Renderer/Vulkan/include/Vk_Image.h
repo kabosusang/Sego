@@ -1,6 +1,5 @@
 #pragma once
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+#include <vulkan/vulkan.h>
 
 
 enum VulkanTextureFilterType
@@ -36,9 +35,7 @@ enum VulkanTextureBorderColorType
 
 namespace vulkan::resource::image
 {
-
     
-
     void CreateImage(uint32_t width,uint32_t height,uint32_t depth,
     uint32_t numArray,uint32_t mipMapCount,VkImageType type,bool isCubeMap
     ,VkSampleCountFlagBits numSamples,VkFormat format, VkImageTiling tiling,VkImageUsageFlags usage,

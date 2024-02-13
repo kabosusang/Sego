@@ -120,7 +120,6 @@ multisampling.pSampleMask = nullptr; // Optional
 multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
 multisampling.alphaToOneEnable = VK_FALSE; // Optional
 
-
 //深度和模板测试
 //颜色混合
 

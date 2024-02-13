@@ -16,7 +16,7 @@
 #include "VulkanStatus/Pipeline.h"
 #include "Lights/LightConstans.h"
 
-
+using namespace vulkan::resource::descriptor;
 
 std::vector<LightRenderer*> Light_renderer;
 
@@ -37,28 +37,58 @@ void LightRenderer::SetMaterial(Material* material) {
     for (const auto& pair : material_->textures_) {
         texture2d.push_back(pair.second);
     }
-    SG_CORE_INFO("Runing00");
-
     //创建uniform
     obj_uniform_ = new Uniform;
     light_uniform_ = new Uniform;
     RebuildUniform();
+    //Set
+    descriptorManager_  = new Sego::Vulkan::DescriptorManager();
+    descriptorManager_->BindLayout(LayoutType::VERTEX_BUFFER);
+    descriptorManager_->BindLayout(LayoutType::FRAGME_IMAGE);
+    descriptorManager_->BindLayout(LayoutType::FRAGME_BUFFER);
+    
+    descriptorManager_->Set(MAX_FRAMES_IN_FLIGHT); //设置描述符数量
+    
+    for(auto i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    {
+        //ubo
+        VkDescriptorBufferInfo bufferInfo{};
+        bufferInfo.buffer =  obj_uniform_->uniformBuffers_[i];
+        bufferInfo.offset = 0;
+        bufferInfo.range = sizeof(UniformBufferObject);
 
-    //重新创建
-    ReBuildDesLayout();
-    RebuildDescriptPool();
-    RebuildDescriptorSets(texture2d);
-
+        //Phone
+        VkDescriptorBufferInfo viewposbufferInfo{};
+        viewposbufferInfo.buffer = light_uniform_->uniformBuffers_[i];
+        viewposbufferInfo.offset = 0;
+        viewposbufferInfo.range = sizeof(PhoneConstans);
+        SG_CORE_INFO("Runing 01");
+        descriptorManager_->BindBufferData(texture2d[0]->descriptor, 
+        bufferInfo,DescriptorType::UNIFORM_BUFFER,i); //0
+        SG_CORE_INFO("Runing 02");
+        descriptorManager_->BindBufferData(texture2d[0]->descriptor, 
+        bufferInfo,DescriptorType::COMBINED_IMAGE_SAMPLER,i);//1
+        
+        descriptorManager_->BindBufferData(texture2d[0]->descriptor, 
+        viewposbufferInfo,DescriptorType::UNIFORM_BUFFER,i);//2
+        SG_CORE_INFO("Runing 03");
+        descriptorManager_->UpdateSet();
+        SG_CORE_INFO("Runing 04");
+    }
+    
+  
+    SG_CORE_INFO("Runing 05");
+   
     Vk_Pipeline_.resize(1);
     Vk_Pipeline_[0].InputPipeLineStatus(PipelineType::Graphics);
     Vk_Pipeline_[0].CreateGraphicsPipeline_light(material_->vshader_path_[0],
-    material_->fshader_path_[0],descriptorSetLayout_);
+    material_->fshader_path_[0],descriptorManager_->GetDescriptorSetLayouts());
 
 }
 
 LightRenderer::LightRenderer()
 {
-
+    
 }
 #include "VK_Global_Data.h"
 #include "LightRenderer.h"
@@ -80,17 +110,17 @@ LightRenderer::~LightRenderer()
         pipe.CleanPipeline();
     }
 
-    vkDestroyDescriptorSetLayout(g_device,descriptorSetLayout_,nullptr);
-    vkDestroyDescriptorPool(g_device,descriptorPool_,nullptr);
-
-
     delete material_;
     delete obj_uniform_;
     delete light_uniform_;
-    
+    delete descriptorManager_;
+
+
+
     material_ = nullptr;
     obj_uniform_ = nullptr;
     light_uniform_ = nullptr;
+    descriptorManager_ = nullptr;
 }
 
 
@@ -131,7 +161,7 @@ vkCmdBindPipeline(commandBuffer,VK_PIPELINE_BIND_POINT_GRAPHICS,Vk_Pipeline_[i].
 
 // 绑定描述符集
 vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, 
-Vk_Pipeline_[i].GetPipelineLayout(), 0, 1, &descriptorSets_[app_device->currentFrame] ,0, nullptr);
+Vk_Pipeline_[i].GetPipelineLayout(), 0, 1, &descriptorManager_->GetDescriptorSets()[app_device->currentFrame] ,0, nullptr);
 vkCmdBindIndexBuffer(commandBuffer, mesh_filter->indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 // 绑定索引缓冲区并绘制模型
 vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh_filter->mesh()->indices32.size()),instanceCount, 0, 0, 0);
@@ -168,7 +198,7 @@ void LightRenderer::RecreatePipeline()
     Vk_Pipeline_.resize(1);
     Vk_Pipeline_[0].InputPipeLineStatus(PipelineType::Graphics);
     Vk_Pipeline_[0].CreateGraphicsPipeline_light(material_->vshader_path_[0],
-    material_->fshader_path_[0],descriptorSetLayout_);
+    material_->fshader_path_[0],descriptorManager_->GetDescriptorSetLayouts());
 }
 
 void LightRenderer::CleanPipeLine()
@@ -180,144 +210,6 @@ void LightRenderer::CleanPipeLine()
     Vk_Pipeline_.clear();
 }
 
-
-//RebuildDescript
-
-
-void LightRenderer::ReBuildDesLayout()
-{
-//Model  ubo (model view proj)
-VkDescriptorSetLayoutBinding uboLayoutBinding{};
-uboLayoutBinding.binding = 0;
-uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-uboLayoutBinding.descriptorCount = 1;
-uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;//指定在VERTEX阶段使用
-uboLayoutBinding.pImmutableSamplers = nullptr;//跟预采样有关
-
-//新描述符 Texture
-VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-samplerLayoutBinding.binding = 1;
-samplerLayoutBinding.descriptorCount = 1;
-samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-samplerLayoutBinding.pImmutableSamplers = nullptr;
-samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;//指定在Fragment阶段使用
-
-//Phone
-VkDescriptorSetLayoutBinding viewposLayoutBinding{};
-viewposLayoutBinding.binding = 2;
-viewposLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-viewposLayoutBinding.descriptorCount = 1;
-viewposLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;//指定在Fragment阶段使用
-viewposLayoutBinding.pImmutableSamplers = nullptr;//跟预采样有关
-
-//绑定描述符
-std::array<VkDescriptorSetLayoutBinding, 3> bindings = {uboLayoutBinding, samplerLayoutBinding,
-viewposLayoutBinding};
-VkDescriptorSetLayoutCreateInfo layoutInfo{};
-layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-layoutInfo.pBindings = bindings.data();
-
-if (vkCreateDescriptorSetLayout(g_device, &layoutInfo, nullptr, &descriptorSetLayout_) != VK_SUCCESS) {
-    SG_CORE_ERROR("failed to create descriptor set layout!");
-}
-
-}
-
-void LightRenderer::RebuildDescriptPool()
-{
-std::array<VkDescriptorPoolSize, 3> poolSizes{};
-//uniform
-poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-//texture
-poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-//Phone
-poolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-poolSizes[2].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-
-VkDescriptorPoolCreateInfo poolInfo{};
-poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-poolInfo.pPoolSizes = poolSizes.data();
-poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT) * 4;
-
-if (vkCreateDescriptorPool(g_device, &poolInfo, nullptr, &descriptorPool_) != VK_SUCCESS) {
-    SG_CORE_ERROR("failed to create descriptor pool!");
-}
-}
-
-//
-void LightRenderer::RebuildDescriptorSets(std::vector<Texture2D*>& texs)
-{
-std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout_);
-VkDescriptorSetAllocateInfo allocInfo{};
-allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-allocInfo.descriptorPool = descriptorPool_;
-allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-allocInfo.pSetLayouts = layouts.data();
-descriptorSets_.resize(MAX_FRAMES_IN_FLIGHT);
-VkResult err;
-err = vkAllocateDescriptorSets(g_device, &allocInfo, descriptorSets_.data());
-if (err != VK_SUCCESS) {
-    SG_CORE_ERROR("failed to allocate descriptor sets!");
-    SG_CORE_ERROR("Error CODE : {0}",err);
-}
-
-std::vector<VkDescriptorImageInfo> imageInfos;
-
-for (auto tex : texs)
-{
-    imageInfos.push_back(tex->descriptor);
-}
-
-for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-//ubo
-VkDescriptorBufferInfo bufferInfo{};
-bufferInfo.buffer =  obj_uniform_->uniformBuffers_[i];
-bufferInfo.offset = 0;
-bufferInfo.range = sizeof(UniformBufferObject);
-
-//Phone
-VkDescriptorBufferInfo viewposbufferInfo{};
-viewposbufferInfo.buffer = light_uniform_->uniformBuffers_[i];
-viewposbufferInfo.offset = 0;
-viewposbufferInfo.range = sizeof(PhoneConstans);
-
-std::array<VkWriteDescriptorSet,3> descriptorWrites{};
-descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-descriptorWrites[0].dstSet = descriptorSets_[i];
-descriptorWrites[0].dstBinding = 0;
-descriptorWrites[0].dstArrayElement = 0;
-descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-descriptorWrites[0].descriptorCount = 1;
-descriptorWrites[0].pBufferInfo = &bufferInfo;
-descriptorWrites[0].pImageInfo = nullptr; // Optional
-descriptorWrites[0].pTexelBufferView = nullptr; // Optional
-
-descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-descriptorWrites[1].dstSet = descriptorSets_[i];
-descriptorWrites[1].dstBinding = 1;
-descriptorWrites[1].dstArrayElement = 0;
-descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-descriptorWrites[1].descriptorCount = static_cast<uint32_t>(imageInfos.size());
-descriptorWrites[1].pImageInfo = imageInfos.data();
-
-descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-descriptorWrites[2].dstSet = descriptorSets_[i];
-descriptorWrites[2].dstBinding = 2;
-descriptorWrites[2].dstArrayElement = 0;
-descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-descriptorWrites[2].descriptorCount = 1;
-descriptorWrites[2].pBufferInfo = &viewposbufferInfo;
-descriptorWrites[2].pImageInfo = nullptr; // Optional
-descriptorWrites[2].pTexelBufferView = nullptr; // Optional
-
-vkUpdateDescriptorSets(g_device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
-
-}
-}
 
 void LightRenderer::RebuildUniform()
 {
@@ -359,6 +251,7 @@ for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 }
 
 }
+
 
 VkSampler & LightRenderer::GetSampler()
 {

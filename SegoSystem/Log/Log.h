@@ -22,8 +22,8 @@ namespace Sego{
 }
 
 // Core log macros
-#define SG_CORE_ERROR(...)		::Sego::Log::GetCoreLogger()->error(__VA_ARGS__);
-                                                               
+#define SG_CORE_ERROR(...)		::Sego::Log::GetCoreLogger()->error(__VA_ARGS__)
+          
 #define SG_CORE_WARN(...)		::Sego::Log::GetCoreLogger()->warn(__VA_ARGS__)
 #define SG_CORE_INFO(...)		::Sego::Log::GetCoreLogger()->info(__VA_ARGS__)
 #define SG_CORE_TRACE(...)		::Sego::Log::GetCoreLogger()->trace(__VA_ARGS__)
@@ -31,7 +31,6 @@ namespace Sego{
 
 
 //Client log macros
-
 #define SG_ERROR(...)		::Sego::Log::GetClientLogger()->error(__VA_ARGS__)
 #define SG_WARN(...)		::Sego::Log::GetClientLogger()->warn(__VA_ARGS__)
 #define SG_INFO(...)		::Sego::Log::GetClientLogger()->info(__VA_ARGS__)

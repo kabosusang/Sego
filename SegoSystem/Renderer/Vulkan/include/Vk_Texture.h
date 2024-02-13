@@ -1,7 +1,6 @@
 #pragma once
 #include <string_view>
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+#include <vulkan/vulkan.h>
 
 
 namespace vulkan::texture
@@ -15,7 +14,6 @@ namespace vulkan::texture
     VkImage& image,VkDeviceMemory& imageMemory);
     bool CreateTextureCubeMap_Overload_Set4(const std::vector<std::string> &pathAsset_Texs,uint32_t& mipMapCount,
     VkImage& image,VkDeviceMemory& imageMemory);
-
 
 
     //Middle Create Texture

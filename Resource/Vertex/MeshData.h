@@ -31,7 +31,10 @@ public:
         return (unsigned int)vertices.size();
     }
 
-    
+    void AddVertex(const MeshVertex& meshVertex)
+    {
+        vertices.push_back(meshVertex);
+    }
 
     unsigned int GetVertexDataSize()
     {
@@ -48,11 +51,11 @@ public:
         return static_cast<uint32_t>(indices32.size());
     }
 
-    MeshVertex& GetVertex(uint32 nIndex)
+    MeshVertex& GetVertex(uint32_t nIndex)
     {
         return vertices[nIndex];
     }
-    uint32 GetIndex(uint32 nIndex)
+    uint32_t GetIndex(uint32_t nIndex)
     {
         return indices32[nIndex];
     }
@@ -79,7 +82,7 @@ public:
     }
 
     //Change  Data
-    void AddIndexTriangle(uint32 nIndex1, uint32 nIndex2, uint32 nIndex3)
+    void AddIndexTriangle(uint32_t nIndex1, uint32_t nIndex2, uint32_t nIndex3)
     {
         indices32.push_back(nIndex1);
         indices32.push_back(nIndex2);

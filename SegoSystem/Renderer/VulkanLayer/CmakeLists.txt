@@ -1,0 +1,20 @@
+cmake_minimum_required(VERSION 3.20)
+
+project(
+    VulkanLayer
+    LANGUAGES C CXX
+    VERSION 0.1
+    DESCRIPTION "Vulkan C++ vulkanLayer"
+)
+
+aux_source_directory(./src Vlayer_src)
+message("source files: ${Vlayer_src}")
+
+add_library(VulkanLayer STATIC ${Vlayer_src})
+target_include_directories(VulkanLayer PUBLIC include)
+target_include_directories(VulkanLayer PUBLIC ../Vulkan/include)
+
+target_compile_features(VulkanLayer PRIVATE cxx_std_17)
+
+add_subdirectory(../Vulkan vulkanwrapper)
+target_link_libraries(VulkanLayer PRIVATE vulkanwrapper)

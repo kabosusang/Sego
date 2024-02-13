@@ -77,7 +77,7 @@ aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/SegoUI/imgui SEGOUI_SRC_LIST)
 
 file(GLOB SOURCES "SegoSystem/Log/*.cpp")
 file(GLOB THREAD "SegoSystem/ThreadPool/*.cpp")
-file(GLOB WINDOW "SegoSystem/Window/*.cpp")
+
 
 
 #添加vulkan渲染源文件
@@ -92,7 +92,7 @@ file(GLOB MATERIAL "SegoSystem/Core/Material/*.cpp")
 file(GLOB TEXTURE "Resource/Texture/Texture2D/*.cpp")
 file(GLOB PIPELINE "Resource/VulkanPipeLine/*.cpp")
 file(GLOB LIGHT "Resource/Lights/*.cpp")
-
+file(GLOB WINDOW "Resource/Window/*.cpp")
 #添加OBJECT
 file(GLOB OBJECT "SegoSystem/Object/*.cpp")
 
@@ -143,7 +143,6 @@ set(PCH_HEADER "Resource/pch.h")  # 设置预编译头文件的路径
 # 添加预编译头
 target_precompile_headers(editor PRIVATE ${PCH_HEADER} ${PCH_SOURCE})
 
-
 #add link
 target_link_libraries(editor PRIVATE imgui glfw3 rttr_core freetype lua assimp-5)
 
@@ -151,6 +150,10 @@ target_link_libraries(editor PRIVATE imgui glfw3 rttr_core freetype lua assimp-5
 target_compile_features(editor PRIVATE cxx_std_17)
 
 #添加封装Vulkan
-#target_include_directories(editor PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/SegoSystem/Renderer/Vulkan/include)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/SegoSystem/Renderer/Vulkan)
-target_link_libraries(editor PRIVATE vulkanwrapper)
+
+#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/SegoSystem/Renderer/Vulkan)
+#target_link_libraries(editor PRIVATE vulkanwrapper)
+
+#添加封装Vulkan Layer(Vulkan资源上层封装)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/SegoSystem/Renderer/VulkanLayer)
+target_link_libraries(editor PRIVATE VulkanLayer)
