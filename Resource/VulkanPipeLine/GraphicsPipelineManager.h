@@ -14,7 +14,6 @@ public:
 GraphicsPipelineManager(){}
 ~GraphicsPipelineManager();
 
-
 void CreateGraphicsPipeline(std::string vshader_path,std::string fshader_path_);
 void CreateGraphicsPipeline_light(std::string vshader_path,std::string fshader_path_,
 VkDescriptorSetLayout& descriptorSetLayout_);

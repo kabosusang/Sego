@@ -11,8 +11,12 @@ int main(){
     // Main loop
     //Vulkan Renderer
     Application app;
-    
     app.Run();
+
+    
+
+
+
     return EXIT_SUCCESS;
 
 

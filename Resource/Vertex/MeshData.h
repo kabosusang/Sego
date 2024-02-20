@@ -60,7 +60,11 @@ public:
         return indices32[nIndex];
     }
 
-
+    void AddIndexLine(uint32_t nIndex1, uint32_t nIndex2)
+    {
+        indices32.push_back(nIndex1);
+        indices32.push_back(nIndex2);
+    }
 
     void ReserveVertexCount(unsigned int count)
     {

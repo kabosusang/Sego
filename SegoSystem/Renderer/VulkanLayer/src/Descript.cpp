@@ -122,4 +122,8 @@ void Sego::Vulkan::DescriptorManager::UpdateSet()
     m_DescriptorWrites.clear();
 
     bindingindex = 0;
-} 
+}
+
+
+
+

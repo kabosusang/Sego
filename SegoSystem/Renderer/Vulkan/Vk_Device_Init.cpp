@@ -77,7 +77,6 @@ void Application_Device::InitVulkan()
     SGvk_Device_Create_DepthResources();
     SGvk_Device_Create_Framebuffers();
     SGvk_Device_Create_CommandPool();
-
 }
 
 QueueFamilyIndices Application_Device::SGvk_Device_Choose_QueueFamilies(VkPhysicalDevice g_device)

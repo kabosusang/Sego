@@ -14,8 +14,6 @@ enum PipelineType
 };
 
 
-
-
 class  PipelineStatus //最普通的光照模型
 {
 public:

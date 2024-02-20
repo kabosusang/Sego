@@ -23,19 +23,26 @@ MeshVertex &Sego::MeshGeometry::GetVertex(FMeshData &meshData, uint32 index)
 
 uint32 Sego::MeshGeometry::AddVertex(FMeshData &meshData, const MeshVertex &vertex)
 {
-    return uint32();
+    meshData.AddVertex(vertex);
 }
 
 uint32 Sego::MeshGeometry::AddVertex(FMeshData &meshData, const FVector3 &vPos,
  const FVector4 &color, const FVector3 &normal, const FVector3 &tangent, const FVector2 &texCoord)
 {
+    MeshVertex vertex;
+    vertex.pos = vPos;
+    vertex.color = color;
+    vertex.normal = normal;
+    vertex.tangent = tangent;
+    vertex.texCoord = texCoord;
+    meshData.AddVertex(vertex);
 
-
-    return uint32();
+    return 1;
 }
 
 void Sego::MeshGeometry::SetVertex(FMeshData &meshData, int index, const MeshVertex &vertex)
 {
+    meshData.vertices[index] = vertex;
 }
 
 uint32 Sego::MeshGeometry::GetIndexCount(FMeshData &meshData)
@@ -60,19 +67,27 @@ uint32 Sego::MeshGeometry::GetIndex(FMeshData &meshData, uint32 index)
 
 uint32 Sego::MeshGeometry::AddIndex(FMeshData &meshData, uint32 value)
 {
-    return uint32();
+    meshData.GetIndices32().push_back(value);
+    return 1;
 }
 
 void Sego::MeshGeometry::AddIndices(FMeshData &meshData, uint32 count, uint32 *pIndex)
 {
+    for (uint32 i = 0; i < count; i++)
+    {
+        meshData.GetIndices32().push_back(pIndex[i]);
+    }
 }
 
 void Sego::MeshGeometry::SetIndex(FMeshData &meshData, uint32 index, uint32 value)
 {
+    meshData.GetIndices32()[index] = value;
+
 }
 
 void Sego::MeshGeometry::AddIndexLine(FMeshData &meshData, uint32 index1, uint32 index2)
 {
+    meshData.AddIndexLine(index1, index2);
 }
 
 void Sego::MeshGeometry::AddIndexTriangle(FMeshData &meshData, uint32 index1, uint32 index2, uint32 index3)
@@ -82,6 +97,9 @@ void Sego::MeshGeometry::AddIndexTriangle(FMeshData &meshData, uint32 index1, ui
 
 void Sego::MeshGeometry::SetIndexTriangle(FMeshData &meshData, uint32 indexStart, uint32 index1, uint32 index2, uint32 index3)
 {
+    meshData.GetIndices32()[indexStart] = index1;
+    meshData.GetIndices32()[indexStart + 1] = index2;
+    meshData.GetIndices32()[indexStart + 2] = index3;
 }
 
 ///  MeshGeometry

@@ -21,7 +21,7 @@ if (vkCreateShaderModule(g_device, &createInfo, nullptr, &shaderModule) != VK_SU
 }
 
 //加载着色器代码
-static std::vector<char>readFile(const std::string& filename) {
+static std::vector<char> readFile(const std::string& filename) {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
     
     if (!file.is_open()) {

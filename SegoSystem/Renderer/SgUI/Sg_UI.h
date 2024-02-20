@@ -91,10 +91,10 @@ QueueFamilyIndices queueIndices;
 
 //viewport RT
 VkImage viewportImage;
-VkDeviceMemory viewportImageMemory;
 VkImageView viewportImageView;
 VkSampler viewportSampler;
 
+VkDeviceMemory viewportImageMemory;
 };
 
 extern Sg_UI* UiContext;

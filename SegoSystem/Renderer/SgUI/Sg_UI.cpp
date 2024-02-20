@@ -374,7 +374,7 @@ void Sg_UI::cleanup()
     for (auto framebuffer : uiFramebuffers) {
         vkDestroyFramebuffer(device, framebuffer, nullptr);
     }
-
+    Destroy_ViewportRT(); //Clean Viewport
 }
 
 void Sg_UI::UpdataUiCleanDtata(VkFormat& swapformat,std::vector<VkImage>& swapimage,
@@ -393,7 +393,6 @@ std::vector<VkImageView>& swapimviews,VkExtent2D Extent)
 
     Destroy_ViewportRT();
     Init_ViewportRT();
-
 }
 
 
@@ -494,7 +493,6 @@ void Sg_UI::CopytoViewport(uint32_t imageIndex,uint32_t currentFrame)
                 app_device->swapChainImages[imageIndex], VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                 viewportImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL ;
     barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
@@ -513,8 +511,8 @@ void Sg_UI::CopytoViewport(uint32_t imageIndex,uint32_t currentFrame)
 
 void Sg_UI::Destroy_ViewportRT()
 {
-    vkDestroyImageView(device, viewportImageView, nullptr);
     vkDestroyImage(device, viewportImage, nullptr);
+    vkDestroyImageView(device, viewportImageView, nullptr);
     vkDestroySampler(device, viewportSampler, nullptr);
     vkFreeMemory(device, viewportImageMemory, nullptr);
 }

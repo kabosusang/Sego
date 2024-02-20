@@ -150,9 +150,9 @@ namespace Editor
         ImGui::End();
 
 
-            transform_obj[3]->set_position(transform);
-            transform_obj[3]->set_rotation((glm::vec3)rotation);
-            transform_obj[3]->set_scale(scale);
+            transform_obj[0]->set_position(transform);
+            transform_obj[0]->set_rotation((glm::vec3)rotation);
+            transform_obj[0]->set_scale(scale);
         }
 
 

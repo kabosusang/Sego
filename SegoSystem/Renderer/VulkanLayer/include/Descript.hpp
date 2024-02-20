@@ -24,7 +24,7 @@ namespace Sego::Vulkan
 
         void UpdateSet();
 
-
+        
         //Input
         VkDescriptorSetLayout& GetDescriptorSetLayouts() { return m_DescriptorSetLayouts; }
         std::vector<VkDescriptorSet>& GetDescriptorSets() { return m_DescriptorSets; }

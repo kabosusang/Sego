@@ -155,12 +155,8 @@ Application::Application()
     Light_renderer[1]->SetMaterial(material_5);
 
 
-
-
-
     //创建相机Object
     auto go_camera = new GameObject("MainCamera");
-    
     //挂上 Transform组件
     transform_camera = dynamic_cast<Transform*>(go_camera->AddComponent("Transform"));
     transform_camera->set_position(glm::vec3(0.0f,0.0f,19.0f));
@@ -208,15 +204,13 @@ bool Application::OnWindowClose(WindowCloseEvent& e)
 	return true;
 }
 
-
 Application::~Application()
 {
     app_device->cleanup();
     UiContext->cleanup();
     m_Window->DestorySegowindow();
- 
+    
 }
-
 
 void Application::Application_DrawFrame()
 {
@@ -295,7 +289,6 @@ if (err!= VK_SUCCESS) {
 //将结果提交回交换链 让它最终出现在屏幕上
 VkPresentInfoKHR presentInfo{};
 presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-
 presentInfo.waitSemaphoreCount = 1;
 presentInfo.pWaitSemaphores = signalSemaphores;//渲染完成触发该信号量
 
@@ -304,7 +297,6 @@ presentInfo.swapchainCount = 1;
 presentInfo.pSwapchains = swapChains;
 presentInfo.pImageIndices = &imageIndex;
 presentInfo.pResults = nullptr; // Optional 
-
 
 result = vkQueuePresentKHR(app_device->presentQueue, &presentInfo);//真正提交到交换链
 if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR
@@ -384,7 +376,6 @@ ubo.view = camera->view_mat4();
 ubo.proj = camera->projection_mat4();
 ubo.proj[1][1] *= -1;
 memcpy(mesh_obj->GetuniformBuffersMapped()[currentImage], &ubo, sizeof(ubo));
-
 }
 
 for (auto Light_obj:Light_renderer)
@@ -407,10 +398,12 @@ memcpy(Light_obj->GetuniformBuffersMapped_light()[currentImage],&phone,sizeof(ph
 void Application::RecreateSwapChain()
 {
     app_device->recreateSwapChain();
+    
     for(auto& mesh : mesh_renderer)
     {
         mesh->RecreatePipeline();
     }
+
     for(auto& light : Light_renderer)
     {
         light->RecreatePipeline();
@@ -443,7 +436,7 @@ renderPassInfo.renderArea.extent = app_device->swapChainExtent;
 //清除值
 // 清除模板缓冲区
 std::array<VkClearValue, 2> clearColor = {};
-clearColor[0].color = {{0.2235f,0.2235f,0.2235f,1.0f}};
+clearColor[0].color = {{0.f,0.f,0.f,1.0f}};
 clearColor[1].depthStencil = {1.0f,0};
 
 renderPassInfo.clearValueCount = static_cast<uint32_t>(clearColor.size());

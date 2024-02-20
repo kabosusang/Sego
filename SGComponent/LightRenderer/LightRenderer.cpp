@@ -62,23 +62,19 @@ void LightRenderer::SetMaterial(Material* material) {
         viewposbufferInfo.buffer = light_uniform_->uniformBuffers_[i];
         viewposbufferInfo.offset = 0;
         viewposbufferInfo.range = sizeof(PhoneConstans);
-        SG_CORE_INFO("Runing 01");
+       
         descriptorManager_->BindBufferData(texture2d[0]->descriptor, 
         bufferInfo,DescriptorType::UNIFORM_BUFFER,i); //0
-        SG_CORE_INFO("Runing 02");
+        
         descriptorManager_->BindBufferData(texture2d[0]->descriptor, 
         bufferInfo,DescriptorType::COMBINED_IMAGE_SAMPLER,i);//1
         
         descriptorManager_->BindBufferData(texture2d[0]->descriptor, 
         viewposbufferInfo,DescriptorType::UNIFORM_BUFFER,i);//2
-        SG_CORE_INFO("Runing 03");
+      
         descriptorManager_->UpdateSet();
-        SG_CORE_INFO("Runing 04");
     }
     
-  
-    SG_CORE_INFO("Runing 05");
-   
     Vk_Pipeline_.resize(1);
     Vk_Pipeline_[0].InputPipeLineStatus(PipelineType::Graphics);
     Vk_Pipeline_[0].CreateGraphicsPipeline_light(material_->vshader_path_[0],
@@ -116,7 +112,6 @@ LightRenderer::~LightRenderer()
     delete descriptorManager_;
 
 
-
     material_ = nullptr;
     obj_uniform_ = nullptr;
     light_uniform_ = nullptr;
@@ -140,7 +135,6 @@ glm::mat4 scale = glm::scale(transform->scale()); //缩放
 glm::mat4 eulerAngleYXZ = glm::eulerAngleYXZ(glm::radians(rotation.y), glm::radians(rotation.x), glm::radians(rotation.z));
 Model_mat4_ = trans * scale * eulerAngleYXZ;
 
-
 //主动获取 MeshFilter 组件
     auto component_mesh_filter=game_object()->GetComponent("MeshFilter");
     auto mesh_filter=dynamic_cast<MeshFilter*>(component_mesh_filter);
@@ -149,7 +143,6 @@ Model_mat4_ = trans * scale * eulerAngleYXZ;
     }
 
 VkDeviceSize offsets[] = {0};
-
 //SwitchOutLine(OutLine);
 
 for(int i = 0; i < Vk_Pipeline_.size(); i++)
@@ -188,8 +181,6 @@ std::vector<void *> &LightRenderer::GetuniformBuffersMapped_light()
 {
     return light_uniform_->uniformBuffersMapped_;
 }
-
-
 
 void LightRenderer::RecreatePipeline()
 {

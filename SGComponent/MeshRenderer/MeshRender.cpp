@@ -20,7 +20,6 @@
 
 std::vector<MeshRenderer*> mesh_renderer;
 
-
 using namespace rttr;
 RTTR_REGISTRATION//注册反射
 {
@@ -38,7 +37,6 @@ void MeshRenderer::SetMaterial(Material* material) {
     for (const auto& pair : material_->textures_) {
         texture2d.push_back(pair.second);
     }
-
 
     //主动获取 MeshFilter 组件
     auto component_mesh_filter=game_object()->GetComponent("MeshFilter");
@@ -103,9 +101,6 @@ MeshRenderer::~MeshRenderer()
     delete material_;
 }
 
-
-
-
 void MeshRenderer::Render(VkCommandBuffer& commandBuffer,uint32_t imageIndex)
 {
 //主动获取Transform组件 ,计算mvp
@@ -133,8 +128,6 @@ Model_mat4_ = trans * scale * eulerAngleYXZ;
 VkDeviceSize offsets[] = {0};
 
 //SwitchOutLine(OutLine);
-
-
 for(int i = 0; i < Vk_Pipeline_.size(); i++)
 {
 vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mesh_filter->vertexBuffer ,offsets);
@@ -159,7 +152,6 @@ std::vector<VkDeviceMemory> &MeshRenderer::GetuniformBufferMemory()
     auto mesh_filter=dynamic_cast<MeshFilter*>(component_mesh_filter);
    
     return mesh_filter->Obj_uniformBuffersMemory_;
-
 }
 
 std::vector<void *> &MeshRenderer::GetuniformBuffersMapped()
@@ -170,7 +162,6 @@ std::vector<void *> &MeshRenderer::GetuniformBuffersMapped()
    
     return mesh_filter->Obj_uniformBuffersMapped_;
 }
-
 
 
 

@@ -145,7 +145,6 @@ static void CreateTorus(FMeshData& meshData,
 
 
 
-
 };
 
 

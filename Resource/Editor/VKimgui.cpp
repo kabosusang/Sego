@@ -64,7 +64,7 @@ bool isDeviceSuitable(VkPhysicalDevice device)
 
     if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && deviceFeatures.samplerAnisotropy)
             return device;
-
+   
 }
 
 VkPhysicalDevice SetupVulkan_SelectPhysicalDevice()
