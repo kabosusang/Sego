@@ -317,14 +317,6 @@ float width, float height, uint32 m, uint32 n, bool flipV)
         }
 
 
-
-
-
-
-
-
-
-
 }
 //-------------- 圆形 -----------------
 // 顶点：顶点数量：中心点+段数（segment + 1），中心点为（0，0，0），法线朝向Z-轴

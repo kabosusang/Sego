@@ -365,7 +365,7 @@ void Sg_UI::cleanup()
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
-     vkDestroyDescriptorPool(device, uiDescriptorPool, nullptr);
+    vkDestroyDescriptorPool(device, uiDescriptorPool, nullptr);
     vkFreeCommandBuffers(device, uiCommandPool, static_cast<uint32_t>(uiCommandBuffers.size()),
                          uiCommandBuffers.data());
     vkDestroyCommandPool(device, uiCommandPool, nullptr);
@@ -449,7 +449,6 @@ void Sg_UI::Init_ViewportRT()
     vulkan::resource::image::CreateSampler(
     Vulkan_TextureFilter_Bilinear,Vulkan_TextureAddressing_Wrap,
     Vulkan_TextureBorderColor_OpaqueBlack,false,0.0f,0.0f,0.0f,this->viewportSampler);
-
 }
 
 void Sg_UI::CopytoViewport(uint32_t imageIndex,uint32_t currentFrame)
@@ -513,6 +512,6 @@ void Sg_UI::Destroy_ViewportRT()
 {
     vkDestroyImage(device, viewportImage, nullptr);
     vkDestroyImageView(device, viewportImageView, nullptr);
-    vkDestroySampler(device, viewportSampler, nullptr);
     vkFreeMemory(device, viewportImageMemory, nullptr);
+    vkFreeDescriptorSets(device, uiDescriptorPool, 1, &viewportDescriptorSet);
 }

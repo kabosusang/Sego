@@ -163,7 +163,6 @@ Application::Application()
     //挂上Camera组件
     camera =dynamic_cast<Camera*>(go_camera->AddComponent("Camera"));
     
-   
 
 }
 
@@ -242,7 +241,6 @@ recordCommandBuffer(app_device->commandBuffers[currentFrame],imageIndex);
 //主渲染Renderer
 for(auto& mesh : mesh_renderer)
 {
-// 结束渲染通道
 mesh->Render(app_device->commandBuffers[currentFrame],imageIndex);
 }
 for(auto& Light : Light_renderer)
@@ -251,14 +249,13 @@ for(auto& Light : Light_renderer)
 Light->Render(app_device->commandBuffers[currentFrame],imageIndex);
 }
 
-UiContext->CopytoViewport(imageIndex,currentFrame);
+updateUniformBuffer(currentFrame);
+UiContext->CopytoViewport(imageIndex,currentFrame); //拷贝到viewport
 
 vkCmdEndRenderPass(app_device->commandBuffers[currentFrame]);
 if (vkEndCommandBuffer(app_device->commandBuffers[currentFrame]) != VK_SUCCESS) {
     SG_CORE_ERROR("failed to record command buffer!");
 }
-
-updateUniformBuffer(currentFrame);
 
 //提交命令缓冲区
 VkSubmitInfo submitInfo{};
@@ -285,7 +282,6 @@ if (err!= VK_SUCCESS) {
    SG_CORE_ERROR("failed to submit draw command buffer!");
 }//将命令缓冲区提交到图形队列
  
-
 //将结果提交回交换链 让它最终出现在屏幕上
 VkPresentInfoKHR presentInfo{};
 presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

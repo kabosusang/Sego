@@ -12,17 +12,19 @@ namespace Editor
 
 	void UiWindow::DrawViewport()
     {
-        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+       
         //Copy to viewportimage
-        auto textureID = ImGui_ImplVulkan_AddTexture(UiContext->viewportSampler,
+        UiContext->viewportDescriptorSet = ImGui_ImplVulkan_AddTexture(UiContext->viewportSampler,
         UiContext->viewportImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-        
-        if (ImGui::Begin("Viewport")) {
-        ImGui::Image(textureID, ImGui::GetContentRegionAvail());
+        if(UiContext->viewportDescriptorSet)
+        { 
+            ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+            if (ImGui::Begin("Viewport")) {
+            ImGui::Image(UiContext->viewportDescriptorSet, ImGui::GetContentRegionAvail());
+            }
+            ImGui::End();
+            ImGui::PopStyleColor();
         }
-        ImGui::End();
-        ImGui::PopStyleColor();
-
     }
 
 };

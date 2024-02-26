@@ -3,11 +3,11 @@
 
 namespace Sego
 {
-    class SceneRe
+    class SceneReGird
     {
     public:
-        SceneRe();
-        ~SceneRe();
+        SceneReGird();
+        ~SceneReGird();
 
     private:
         FMeshData scene_gridmesh;

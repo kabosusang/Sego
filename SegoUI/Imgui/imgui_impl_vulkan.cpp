@@ -1097,21 +1097,25 @@ VkDescriptorSet ImGui_ImplVulkan_AddTexture(VkSampler sampler, VkImageView image
         check_vk_result(err);
     }
 
-    // Update the Descriptor Set:
+    if(descriptor_set)
     {
-        VkDescriptorImageInfo desc_image[1] = {};
-        desc_image[0].sampler = sampler;
-        desc_image[0].imageView = image_view;
-        desc_image[0].imageLayout = image_layout;
-        VkWriteDescriptorSet write_desc[1] = {};
-        write_desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        write_desc[0].dstSet = descriptor_set;
-        write_desc[0].descriptorCount = 1;
-        write_desc[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        write_desc[0].pImageInfo = desc_image;
-        vkUpdateDescriptorSets(v->Device, 1, write_desc, 0, nullptr);
+        // Update the Descriptor Set:
+        {
+            VkDescriptorImageInfo desc_image[1] = {};
+            desc_image[0].sampler = sampler;
+            desc_image[0].imageView = image_view;
+            desc_image[0].imageLayout = image_layout;
+            VkWriteDescriptorSet write_desc[1] = {};
+            write_desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            write_desc[0].dstSet = descriptor_set;
+            write_desc[0].descriptorCount = 1;
+            write_desc[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            write_desc[0].pImageInfo = desc_image;
+            vkUpdateDescriptorSets(v->Device, 1, write_desc, 0, nullptr);
+        }
+            return descriptor_set;
     }
-    return descriptor_set;
+    return 0;
 }
 
 void ImGui_ImplVulkan_RemoveTexture(VkDescriptorSet descriptor_set)

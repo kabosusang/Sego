@@ -93,8 +93,9 @@ QueueFamilyIndices queueIndices;
 VkImage viewportImage;
 VkImageView viewportImageView;
 VkSampler viewportSampler;
-
 VkDeviceMemory viewportImageMemory;
+VkDescriptorSet viewportDescriptorSet;
+
 };
 
 extern Sg_UI* UiContext;

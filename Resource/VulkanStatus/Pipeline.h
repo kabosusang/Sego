@@ -51,7 +51,6 @@ public:
 PipelineStatus_stencil() : PipelineStatus() {
         bStencilTest = VK_TRUE;
 
-
         stencilOpFront.failOp = VK_STENCIL_OP_REPLACE;
         stencilOpFront.passOp = VK_STENCIL_OP_REPLACE;
         stencilOpFront.depthFailOp = VK_STENCIL_OP_REPLACE;

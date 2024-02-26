@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "SGComponent/LightRenderer/LightRenderer.h"
+#include "LightRenderer.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform2.hpp>
 #include <glm/gtx/euler_angles.hpp>
@@ -46,7 +46,6 @@ void LightRenderer::SetMaterial(Material* material) {
     descriptorManager_->BindLayout(LayoutType::VERTEX_BUFFER);
     descriptorManager_->BindLayout(LayoutType::FRAGME_IMAGE);
     descriptorManager_->BindLayout(LayoutType::FRAGME_BUFFER);
-    
     descriptorManager_->Set(MAX_FRAMES_IN_FLIGHT); //设置描述符数量
     
     for(auto i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
@@ -79,7 +78,6 @@ void LightRenderer::SetMaterial(Material* material) {
     Vk_Pipeline_[0].InputPipeLineStatus(PipelineType::Graphics);
     Vk_Pipeline_[0].CreateGraphicsPipeline_light(material_->vshader_path_[0],
     material_->fshader_path_[0],descriptorManager_->GetDescriptorSetLayouts());
-
 }
 
 LightRenderer::LightRenderer()
@@ -87,7 +85,7 @@ LightRenderer::LightRenderer()
     
 }
 #include "VK_Global_Data.h"
-#include "LightRenderer.h"
+
 
 LightRenderer::~LightRenderer()
 {
@@ -229,7 +227,6 @@ for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
     vkMapMemory(g_device, obj_uniform_->uniformBuffersMemory_[i], 
     0, bufferSize_obj, 0, &obj_uniform_->uniformBuffersMapped_[i]);
 
-
     SG_Allocate::SGvk_Device_Create_Buffer(bufferSize_light, 
     VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
@@ -242,7 +239,6 @@ for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 }
 
 }
-
 
 VkSampler & LightRenderer::GetSampler()
 {
